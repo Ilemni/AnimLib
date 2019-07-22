@@ -1,0 +1,9 @@
+author = TwiliChaos
+version = 0.1
+displayName = Better Animations
+homepage = 
+includePDB = true
+includeSource = true
+hideCode = false
+hideResources = false
+buildIgnore = build.txt, .gitattributes, .gitignore, .git/, .vs/, .vscode/, .idea/, bin/, obj/, Properties/, Thumbs.db, *.csproj, *.sln, *.xcf
