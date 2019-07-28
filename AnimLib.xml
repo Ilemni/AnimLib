@@ -1,0 +1,382 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AnimLib</name>
+    </assembly>
+    <members>
+        <member name="T:AnimLib.Animation">
+            <summary> Base class for Animations of different types.
+            
+            Do not inherit from this class. Instead, use `AnimationPlayer`, `AnimationNpc`, or `AnimationProjectile`
+            </summary>
+        </member>
+        <member name="F:AnimLib.Animation.Time">
+            <summary> Time since last frame change.</summary>
+        </member>
+        <member name="F:AnimLib.Animation.Duration">
+            <summary> Duration that `Time` must reach until next frame change. </summary>
+        </member>
+        <member name="F:AnimLib.Animation.Rotation">
+            <summary> Current rotation of the sprite. </summary>
+        </member>
+        <member name="F:AnimLib.Animation.Loop">
+            <summary> Current LoopMode of the animation. </summary>
+        </member>
+        <member name="F:AnimLib.Animation.Playback">
+            <summary> Current PlaybackMode of the animation. </summary>
+        </member>
+        <member name="P:AnimLib.Animation.Source">
+            <summary> AnimationSource that this Animation is based on. </summary>
+        </member>
+        <member name="M:AnimLib.Animation.ToString">
+            <summary> String containing source, track, frame, time, and rotation. </summary>
+        </member>
+        <member name="T:AnimLib.AnimationPlayer">
+            <summary> Animation for ModPlayers.
+            
+            This keeps track of current data with an Animation.
+            </summary>
+        </member>
+        <member name="P:AnimLib.AnimationPlayer.Source">
+            <summary> The AnimationSource of this Animation </summary>
+        </member>
+        <member name="P:AnimLib.AnimationPlayer.PlayerLayer">
+            <summary> PlayerLayer that is drawn </summary>
+        </member>
+        <member name="M:AnimLib.AnimationPlayer.Draw(System.Collections.Generic.List{Terraria.ModLoader.PlayerLayer},System.Int32,System.Boolean)">
+            <summary> Draws this like a PlayerLayer. </summary>
+            <param name="layers">Layers argument in ModifyDrawLayers</param>
+            <param name="idx">Index used in `layers.Insert()`</param>
+            <param name="force">Draw this even when the active track doesn't match any in the Source tracks (draws first track instead)</param>
+        </member>
+        <member name="M:AnimLib.AnimationPlayer.DefaultDrawData(Terraria.ModLoader.PlayerDrawInfo)">
+            <summary>
+            Gets DrawData with assigned values.
+            
+            Assigns the texture, position, rectangle, rotation, origin, and SpriteEffect to correct values.
+            
+            Defaults color to White, scale to 1, and InactiveDepthlayer to 0
+            </summary>
+            <param name="drawInfo"></param>
+            <returns></returns>
+        </member>
+        <member name="T:AnimLib.AnimationNpc">
+            <summary> Animation for ModNPCs
+            
+            This keeps track of current data with an Animation.
+            </summary>
+        </member>
+        <member name="M:AnimLib.AnimationNpc.DefaultDrawData">
+            <summary> Gets DrawData with assigned values.
+            
+            Assigns the texture, position, rectangle, rotation, and origin to correct values.
+            
+            Defaults color to White, scale to 1, SpriteEffects to None, and InactiveDepthlayer to 0
+            </summary>
+        </member>
+        <member name="T:AnimLib.AnimationSource">
+            <summary> Base class for AnimationSources of different types.
+            
+            Do not inherit from this class. Instead, use `AnimationSourcePlayer`, `AnimationSourceNpc`, or `AnimationSourceProjectile`
+            </summary>
+        </member>
+        <member name="P:AnimLib.AnimationSource.TexturePath">
+            <summary> Path to your texture. Include your Mod name in the path.
+            
+            Used in `ModContent.GetTexture(TexturePath)`
+            </summary>
+        </member>
+        <member name="P:AnimLib.AnimationSource.TileSize">
+            <summary> Size of the sprite. X and Y values represent width and height in pixels. </summary>
+        </member>
+        <member name="M:AnimLib.AnimationSource.Condition(Terraria.Player)">
+            <summary> Condition that must be met for this animation to draw. </summary>
+        </member>
+        <member name="P:AnimLib.AnimationSource.Tracks">
+            <summary> All tracks in the animation. </summary>
+        </member>
+        <member name="M:AnimLib.AnimationSource.UpdateFrame(Terraria.Entity,System.String@,System.Int32@,System.Double@,System.Int32@,System.Single@,AnimLib.LoopMode@,AnimLib.PlaybackMode@,System.Boolean@)">
+            <summary> Logic for determining which frame is played, and all other components of an animation. </summary>
+            <param name="entity">Entity. Cast to Player, NPC, or Projectile depending on what you use.</param>
+            <param name="trackName">Name of the track.</param>
+            <param name="frame">Index of the active frame in the track.</param>
+            <param name="time">How long the active frame has played for</param>
+            <param name="dur">How long the active frame will play for before switching.</param>
+            <param name="deg">Degreees the sprite is rotated</param>
+            <param name="loopMode"></param>
+            <param name="playback"></param>
+            <param name="force">If the current track has TransferTo set, this will prevent switching back to the previous track when set to `false`. Defaults to `false`</param>
+        </member>
+        <member name="P:AnimLib.AnimationSource.Texture">
+            <summary> Default texture of this Source. </summary>
+        </member>
+        <member name="P:AnimLib.AnimationSource.TrackNames">
+            <summary> Cache of `Tracks.Keys.ToArray()` </summary>
+        </member>
+        <member name="P:AnimLib.AnimationSource.Item(System.String)">
+            <summary> Shorthand for AnimationSource.Tracks[name] </summary>
+        </member>
+        <member name="M:AnimLib.AnimationSource.h(AnimLib.InitType,AnimLib.LoopMode,AnimLib.PlaybackMode,System.String,System.String)">
+            <summary> Shorthand for `new Header()`
+            
+            If an optional parameter is not declared, it uses Header.Default, which is normally the desired header type.
+            </summary>
+            <param name="i">Init type of this track.</param>
+            <param name="l">Loop mode of this track.</param>
+            <param name="p">Playback of this track.</param>
+            <param name="s">Source texture for this track, if this track uses a different texture than the Animation Source.
+            
+            Most of the time this is left alone.</param>
+            <param name="t">Track to transfer to when playback for this track ends.
+            
+            Most of the time this is left alone.</param>
+        </member>
+        <member name="M:AnimLib.AnimationSource.f(System.Int32,System.Int32,System.Int32)">
+            <summary> Shorthand for `new Frame()`
+            </summary>
+            <param name="x">Sprite tile X</param>
+            <param name="y">Sprite tile Y</param>
+            <param name="dur">Duration of the frame. If no value is provided, the frame does not transition on its own.</param>
+        </member>
+        <member name="T:AnimLib.AnimationSourcePlayer">
+            <summary> AnimationSource for a ModPlayer </summary>
+        </member>
+        <member name="M:AnimLib.AnimationSourcePlayer.Draw(Terraria.ModLoader.PlayerDrawInfo,AnimLib.AnimationPlayer)">
+            <summary> Called in the PlayerLayer's delegate, with `AnimationPlayer` in scope.
+            
+            By default, adds the Animation's default DrawData to Main.playerDrawData
+            
+            `Main.playerDrawData.Add(anim.DefaultDrawData(drawInfo));`
+            </summary>
+            <param name="drawInfo"></param>
+            <param name="anim"></param>
+        </member>
+        <member name="T:AnimLib.AnimationSourceNpc">
+            <summary> AnimationSource for a ModNPC </summary>
+        </member>
+        <member name="P:AnimLib.AnimationSourceNpc.Action">
+            <summary> Function that is called for drawing </summary>
+        </member>
+        <member name="T:AnimLib.AnimationSourceProjectile">
+            <summary> AnimationSource for a ModProjectile </summary>
+        </member>
+        <member name="M:AnimLib.AnimLib.GetAnimationPlayers``1(``0,System.Boolean)">
+             <summary> Get all AnimationPlayers of a ModPlayer instance that match your Mod.
+             
+             These are returned as a list in the order that your mod added them in Mod.Call().
+             </summary>
+             <param name="modPlayer">The ModPlayer instance you want to get the AnimationPlayer of</param>
+             <param name="preventDraw">Prevents AnimLib from drawing the Animation's PlayerLayer.
+            
+             Set to true if you want to manage your PlayerLayers manually. 
+             </param>
+             <returns>List of all AnimationPlayers your mod has created.</returns>
+        </member>
+        <member name="M:AnimLib.AnimLib.PostSetupContent">
+            <summary> Get all Animation Sources via Mod.Call() </summary>
+        </member>
+        <member name="T:AnimLib.Frame">
+            <summary>
+            Defines the DrawData source rect position of one frame of animation, as well as duration of animation
+            </summary>
+        </member>
+        <member name="F:AnimLib.Frame.X">
+            <summary> X position of the source rect, in tiles </summary>
+        </member>
+        <member name="F:AnimLib.Frame.Y">
+            <summary> Y position of the source rect, in tiles </summary>
+        </member>
+        <member name="F:AnimLib.Frame.Duration">
+            <summary>
+            How many `Update()` calls this frame lasts before transitioning
+            
+            -1 means the frame will never transition from time elapsed
+            </summary>
+        </member>
+        <member name="P:AnimLib.Frame.Tile">
+            <summary>
+            X and Y in one Point
+            </summary>
+        </member>
+        <member name="M:AnimLib.Frame.#ctor(System.UInt16,System.UInt16,System.Int32)">
+            <summary> Creates a new frame </summary>
+            <param name="x">Tile X position.</param>
+            <param name="y">Tile Y position.</param>
+            <param name="dur">How many `Update()` calls this frame lasts before transitioning.
+            
+            Defaults to `-1`, which lasts infinite calls and must transition manually.</param>
+        </member>
+        <member name="M:AnimLib.Frame.#ctor(System.Int32,System.Int32,System.Int32)">
+            <summary> Creates a new frame </summary>
+            <param name="x">Tile X position. Must be between `0` and `65535`</param>
+            <param name="y">Tile Y position. Must be between `0` and `65535`</param>
+            <param name="dur">How many `Update()` calls this frame lasts before transitioning.
+            
+            Defaults to `-1`, which lasts infinite calls and must transition manually.</param>
+        </member>
+        <member name="M:AnimLib.Frame.ToString">
+            <summary> Returns the X, Y, and Duration of this frame </summary>
+        </member>
+        <member name="T:AnimLib.InitType">
+            <summary> How the Frame[] in a Track is initialized. Defaults to Range </summary>
+        </member>
+        <member name="F:AnimLib.InitType.None">
+            <summary> Does not modify frames from how they are declared. </summary> 
+        </member>
+        <member name="F:AnimLib.InitType.Range">
+            <summary>
+            Automatically add all frames in a frame between two or more declared frames, using duration of the first one.
+            
+            Note that this only works when frames share the same X value.
+            </summary>
+        </member>
+        <member name="T:AnimLib.LoopMode">
+            <summary> Determines if the track repeats or stops when reaching the last Frame. </summary>
+        </member>
+        <member name="F:AnimLib.LoopMode.None">
+            <summary> No data. Use LoopMode.Once if you do not want looping. </summary>
+        </member>
+        <member name="F:AnimLib.LoopMode.Always">
+            <summary> After finishing the last frame, repeats the loop. </summary>
+        </member>
+        <member name="F:AnimLib.LoopMode.Once">
+            <summary> Stays on the last frame. </summary>
+        </member>
+        <member name="T:AnimLib.PlaybackMode">
+            <summary> Determines playback behavior </summary>
+        </member>
+        <member name="F:AnimLib.PlaybackMode.None">
+            <summary> No data. Use PlaybackMode.Normal instead. </summary>
+        </member>
+        <member name="F:AnimLib.PlaybackMode.Normal">
+            <summary> After reaching the last frame, returns to the first frame. </summary>
+        </member>
+        <member name="F:AnimLib.PlaybackMode.PingPong">
+            <summary> After reaching the last frame, plays in reverse until reaching the first frame. </summary>
+        </member>
+        <member name="F:AnimLib.PlaybackMode.Reverse">
+            <summary> Plays only in reverse. </summary>
+        </member>
+        <member name="F:AnimLib.PlaybackMode.Random">
+            <summary> Selects a random frame after transitioning. </summary>
+        </member>
+        <member name="T:AnimLib.Header">
+            <summary> Contains data for a track, and optional data that is different from the AnimationSource </summary>
+        </member>
+        <member name="F:AnimLib.Header.Init">
+            <summary> Initialization behavior of this track </summary>
+        </member>
+        <member name="F:AnimLib.Header.Loop">
+            <summary> Looping behavior of this track </summary>
+        </member>
+        <member name="F:AnimLib.Header.Playback">
+            <summary> Playback behavior of this track </summary>
+        </member>
+        <member name="P:AnimLib.Header.Texture">
+            <summary> Texture of this track </summary>
+        </member>
+        <member name="P:AnimLib.Header.TexturePath">
+            <summary> Path to texture of this track </summary>
+        </member>
+        <member name="P:AnimLib.Header.TransferTo">
+            <summary> The track this Track transfers to when playback ends </summary>
+        </member>
+        <member name="M:AnimLib.Header.#ctor(AnimLib.InitType,AnimLib.LoopMode,AnimLib.PlaybackMode,System.String,System.String)">
+            <summary> Creates a new Header. All parameters are optional. </summary>
+            <param name="init">This header's InitType</param>
+            <param name="loop">This header's LoopMode</param>
+            <param name="playback">This header's Playback</param>
+            <param name="transferTo">The track this header transfers to when playback ends</param>
+            <param name="overrideTexturePath">The texture this track uses
+            
+            Only use this if the texture is different from the AnimationSource</param>
+        </member>
+        <member name="M:AnimLib.Header.CopySome(AnimLib.Header)">
+            <summary>
+            Returns a new Header with this header data overwritten with other header data that is not None
+            </summary>
+            <param name="other">Other header</param>
+            <returns></returns>
+        </member>
+        <member name="P:AnimLib.Header.Default">
+            <summary> Default header values. Loop is Always and Playback is Normal </summary>
+        </member>
+        <member name="P:AnimLib.Header.None">
+            <summary> Header where Loop and Playback are both None </summary>
+        </member>
+        <member name="M:AnimLib.Header.ToString">
+            <summary> Returns Loop, Playback, and TexturePath</summary>
+        </member>
+        <member name="M:AnimLib.AnimPlayer.DrawEffects(Terraria.ModLoader.PlayerDrawInfo,System.Single@,System.Single@,System.Single@,System.Single@,System.Boolean@)">
+            <summary> I do this because Initialize() is just barely too early and many things are too late </summary>
+        </member>
+        <member name="T:AnimLib.Track">
+            <summary> This class holds an array of Frames </summary>
+        </member>
+        <member name="P:AnimLib.Track.Header">
+            <summary> Header data for this track </summary>
+        </member>
+        <member name="P:AnimLib.Track.Frames">
+            <summary> Frame data for this track </summary>
+        </member>
+        <member name="P:AnimLib.Track.Duration">
+            <summary> Combined duration of all frames in this track </summary>
+        </member>
+        <member name="P:AnimLib.Track.Item(System.Int32)">
+            <summary> Shorthand for Track.Frames[idx]</summary>
+        </member>
+        <member name="M:AnimLib.Track.#ctor(AnimLib.Header,AnimLib.Frame[])">
+            <summary>
+            Initializes a new Track.
+            
+            Allows frames to either have a duration or no duration.
+            </summary>
+            <param name="header"></param>
+            <param name="frames"></param>
+        </member>
+        <member name="M:AnimLib.Track.#ctor(AnimLib.Header,System.ValueTuple{System.Int32,System.Int32,System.Int32}[])">
+            <summary>
+            Initializes a new Track.
+            
+            This overload requires all frames to have a duration for proper looping.
+            </summary>
+            <param name="header"></param>
+            <param name="frames">Array of frames with values X, Y, and duration.</param>
+            <returns></returns>
+        </member>
+        <member name="M:AnimLib.Track.#ctor(AnimLib.Header,System.ValueTuple{System.Int32,System.Int32}[])">
+            <summary>
+            Initializes a new Track.
+            
+            No frames will have a duration, therefore animations do not play back.
+            </summary>
+            <param name="header"></param>
+            <param name="frames">Array of frames with values X and Y. No frame will have a duration.</param>
+            <returns></returns>
+        </member>
+        <member name="T:AnimLib.Utils">
+            <summary> Utility class that provides a variety of extension methods. </summary>
+        </member>
+        <member name="M:AnimLib.Utils.Draw(Microsoft.Xna.Framework.Graphics.SpriteBatch,Terraria.DataStructures.DrawData,System.Int32)">
+            <summary> AnimLib Extension Method
+            
+            Use a DrawData instead of multiple fields to draw.
+            </summary>
+            <param name="spriteBatch"></param>
+            <param name="d"></param>
+            <param name="layerDepth"></param>
+        </member>
+        <member name="M:AnimLib.Utils.HidePlayerLayers(Terraria.ModLoader.ModPlayer,System.Boolean,System.Boolean,System.Boolean,System.Boolean,System.Boolean)">
+            <summary> AnimLib Extension Method. Call in ModifyDrawLayers
+            
+            Used to hide vanilla PlayerLayers so they can be replaced with custom sprites.
+            </summary>
+            <param name="modPlayer"></param>
+            <param name="hideBody">If the player body still shows or is hidden (default hidden)</param>
+            <param name="hideMount">If the mount still shows or is hidden</param>
+            <param name="hideWings">If wings still show or are hidden</param>
+            <param name="hideAcc">If any accessories still show or are hidden</param>
+            <param name="hideEffects">If any misc effects still show or are hidden</param>
+        </member>
+    </members>
+</doc>

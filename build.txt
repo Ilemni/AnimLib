@@ -1,6 +1,6 @@
 author = TwiliChaos
 version = 0.1
-displayName = Better Animations
+displayName = AnimLib
 homepage = 
 includePDB = true
 includeSource = true

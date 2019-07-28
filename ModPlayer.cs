@@ -1,23 +1,32 @@
+using System.Collections.Generic;
 using Terraria.ModLoader;
 
-namespace BetterAnimations {
+namespace AnimLib {
+#pragma warning disable CS1591
   public class AnimPlayer : ModPlayer {
-    public string AnimName;
-    public int AnimIndex;
-    public float AnimRotation;
-  }
-  public class AnimNpc : GlobalNPC {
-    public override bool InstancePerEntity => true;
+    internal List<AnimationPlayer> Anims { get; private set; }
 
-    public string AnimName;
-    public int AnimIndex;
-    public float AnimRotation;
-  }
-  public class AnimProjectile : GlobalProjectile {
-    public override bool InstancePerEntity => true;
+    /// <summary> I do this because Initialize() is just barely too early and many things are too late </summary>
+    public override void DrawEffects(PlayerDrawInfo drawInfo, ref float r, ref float g, ref float b, ref float a, ref bool fullBright) {
+      if (Anims == null) {
+        Anims = new List<AnimationPlayer>(AnimLib.PlayerSources.Count);
+        AnimLib.PlayerSources.ForEach(s => Anims.Add(new AnimationPlayer(s, player)));
+      }
+    }
+    public override void ModifyDrawLayers(List<PlayerLayer> layers) {
+      Anims.ForEach(anim => {
+        if (!anim.PreventDraw && anim.Source.Condition(player)) {
+          anim.Draw(layers);
+        }
+      });
+    }
 
-    public string AnimName;
-    public int AnimIndex;
-    public float AnimRotation;
+    public override void PostUpdate() {
+      Anims.ForEach(anim => {
+        if (anim.Source.Condition(player)) {
+          anim.Update();
+        }
+      });
+    }
   }
 }
