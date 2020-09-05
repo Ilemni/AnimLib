@@ -216,40 +216,42 @@ namespace AnimLib.Animations {
     /// <exception cref="ArgumentException"><paramref name="trackName"/> was null or whitespace.</exception>
     /// <exception cref="KeyNotFoundException">The value of <paramref name="trackName"/> was not a key in the main <see cref="IAnimationSource.tracks"/>.</exception>
     protected void IncrementFrame(string trackName)
-      => IncrementFrame(trackName, null, 1, null, 0, null, null);
+      => IncrementFrame(trackName, null, null, null, 0, null, null);
+
+    /// <summary>
+    /// Plays the <see cref="Track"/> with the given rotation.
+    /// </summary>
+    /// <inheritdoc cref="IncrementFrame(string, int?, float?, int?, float, LoopMode?, Direction?)"/>
+    protected void IncrementFrame(string trackName, float rotation)
+      => IncrementFrame(trackName, null, null, null, rotation, null, null);
 
     /// <summary>
     /// Plays the <see cref="Track"/> with the given speed.
     /// </summary>
     /// <inheritdoc cref="IncrementFrame(string, int?, float?, int?, float, LoopMode?, Direction?)"/>
-    protected void IncrementFrame(string trackName, float speed)
+    protected void IncrementFrame(string trackName, float? speed)
       => IncrementFrame(trackName, null, speed, null, 0, null, null);
 
     /// <summary>
     /// Plays the <see cref="Track"/> with the given speed and rotation.
     /// </summary>
     /// <inheritdoc cref="IncrementFrame(string, int?, float?, int?, float, LoopMode?, Direction?)"/>
-    protected void IncrementFrame(string trackName, float speed, float rotation)
+    protected void IncrementFrame(string trackName, float? speed, float rotation)
       => IncrementFrame(trackName, null, speed, null, rotation, null, null);
 
     /// <summary>
-    /// Plays the <see cref="Track"/> with the given frame. This prevents normal playback.
+    /// Plays the <see cref="Track"/> with the given frame. If <paramref name="frameIndex"/> is non-<see langword="null"/>, this prevents normal playback.
     /// </summary>
-    /// <param name="trackName">Name of the animation track to play/continue. This must be a valid key in the <see cref="IAnimationSource"/> for <see cref="MainAnimation"/>.</param>
-    /// <param name="frameIndex">The frame to play.</param>
     /// <inheritdoc cref="IncrementFrame(string, int?, float?, int?, float, LoopMode?, Direction?)"/>
-    protected void IncrementFrame(string trackName, int frameIndex)
-      => IncrementFrame(trackName, frameIndex, 1, null, 0, null, null);
+    protected void IncrementFrame(string trackName, int? frameIndex)
+      => IncrementFrame(trackName, frameIndex, null, null, 0, null, null);
 
     /// <summary>
     /// Plays the <see cref="Track"/> with the given frame and rotation. This prevents normal playback.
     /// </summary>
-    /// <param name="trackName">Name of the animation track to play/continue. This must be a valid key in the <see cref="IAnimationSource"/> for <see cref="MainAnimation"/>.</param>
-    /// <param name="frameIndex">The frame to play.</param>
-    /// <param name="rotation">Rotation of the sprite, in <strong>radians</strong>. If degrees are necessary to work with, use <see cref="MathHelper.ToRadians(float)"/> for this parameter.</param>
     /// <inheritdoc cref="IncrementFrame(string, int?, float?, int?, float, LoopMode?, Direction?)"/>
-    protected void IncrementFrame(string trackName, int frameIndex, float rotation)
-      => IncrementFrame(trackName, frameIndex, 1, null, rotation, null, null);
+    protected void IncrementFrame(string trackName, int? frameIndex, float rotation)
+      => IncrementFrame(trackName, frameIndex, null, null, rotation, null, null);
 
     /// <summary>
     /// Plays the <see cref="Track"/> in the given <see cref="Direction"/>.
@@ -258,8 +260,8 @@ namespace AnimLib.Animations {
     /// <param name="direction"><see cref="Direction"/> for the track to play.</param>
     /// <exception cref="ArgumentException"><paramref name="trackName"/> was null or whitespace.</exception>
     /// <exception cref="KeyNotFoundException">The value of <paramref name="trackName"/> was not a key in the main <see cref="IAnimationSource.tracks"/>.</exception>
-    protected void IncrementFrame(string trackName, Direction direction)
-      => IncrementFrame(trackName, null, 1, null, 0, null, direction);
+    protected void IncrementFrame(string trackName, Direction? direction)
+      => IncrementFrame(trackName, null, null, null, 0, null, direction);
 
     /// <summary>
     /// Plays the <see cref="Track"/> with the given name. How the animation advances is based on the given input parameters.
