@@ -1,32 +1,52 @@
+using System;
 using System.Collections.Generic;
+using System.Reflection;
+using AnimLib.Animations;
+using Terraria;
 using Terraria.ModLoader;
 
 namespace AnimLib {
-#pragma warning disable CS1591
-  public class AnimPlayer : ModPlayer {
-    internal List<AnimationPlayer> Anims { get; private set; }
+  /// <summary>
+  /// Main <see cref="ModPlayer"/> class for <see cref="AnimLibMod"/>, contains and updates <see cref="PlayerAnimationData"/>.
+  /// </summary>
+  public sealed class AnimPlayer : ModPlayer {
+    internal readonly Dictionary<Mod, PlayerAnimationData> animationDatas = new Dictionary<Mod, PlayerAnimationData>();
 
-    /// <summary> I do this because Initialize() is just barely too early and many things are too late </summary>
-    public override void DrawEffects(PlayerDrawInfo drawInfo, ref float r, ref float g, ref float b, ref float a, ref bool fullBright) {
-      if (Anims == null) {
-        Anims = new List<AnimationPlayer>(AnimLib.PlayerSources.Count);
-        AnimLib.PlayerSources.ForEach(s => Anims.Add(new AnimationPlayer(s, player)));
+    /// <inheritdoc/>
+    public override void Initialize() {
+      var types = AnimLibMod.Instance.playerAnimationDataTypes;
+      if ((types?.Count ?? 0) > 0) {
+        foreach (var pair in types) {
+          var mod = pair.Key;
+          var type = pair.Value;
+          try {
+            var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+            var constructor = type.GetConstructor(flags, null, new[] { typeof(Player), typeof(Mod) }, default);
+            if (!(constructor is null)) {
+              var playerData = Activator.CreateInstance(type, flags, null, args: new object[] { player, mod }, null) as PlayerAnimationData;
+              playerData.Initialize();
+              animationDatas[mod] = playerData;
+            }
+            else {
+              AnimLibMod.Instance.Logger.Error($"PlayerAnimationData from [{mod.Name}:{type.FullName}] does not contain a constructor with parameters Player and Mod.");
+              continue;
+            }
+          }
+          catch (Exception ex) {
+            AnimLibMod.Instance.Logger.Error($"Exception thrown when constructing PlayerAnimationData from [{mod.Name}:{type.FullName}]", ex);
+          }
+        }
       }
     }
-    public override void ModifyDrawLayers(List<PlayerLayer> layers) {
-      Anims.ForEach(anim => {
-        if (!anim.PreventDraw && anim.Source.Condition(player)) {
-          anim.Draw(layers);
-        }
-      });
-    }
 
+    /// <summary>
+    /// Updates all <see cref="PlayerAnimationData"/>s.
+    /// </summary>
     public override void PostUpdate() {
-      Anims.ForEach(anim => {
-        if (anim.Source.Condition(player)) {
-          anim.Update();
-        }
-      });
+      foreach (var anim in animationDatas.Values) {
+        anim.FrameTime++;
+        anim.Update();
+      }
     }
   }
 }
