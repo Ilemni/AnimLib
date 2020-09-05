@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using AnimLib.Animations;
 using Terraria;
 using Terraria.ID;
@@ -112,7 +113,8 @@ namespace AnimLib {
     }
 
     private IAnimationSource ConstructAnimationSource(Type type, Mod mod) {
-      var source = Activator.CreateInstance(type) as IAnimationSource;
+      var initMethod = type.GetMethodExt("Initialize", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy, null);
+      var source = initMethod?.Invoke(null, null) as IAnimationSource;
       bool doAdd = true;
       if (source.tracks is null) {
         Logger.Error($"Error constructing AnimationSource from [{mod.Name}:{type.FullName}]: Tracks is null.");

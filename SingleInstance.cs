@@ -7,19 +7,6 @@ namespace AnimLib {
   /// </summary>
   /// <typeparam name="T">The type to make Singleton.</typeparam>
   public abstract class SingleInstance<T> where T : SingleInstance<T> {
-    /// <summary>
-    /// Constructor of a Singleton class. Assigns to <see cref="Instance"/> if it is not <see langword="null"/>.
-    /// </summary>
-    protected SingleInstance() {
-      if (_instance is null) {
-        lock (_lock) {
-          if (_instance is null) {
-            _instance = (T)this;
-          }
-        }
-      }
-    }
-
     private static readonly object _lock = new object();
 
     /// <summary>
@@ -38,7 +25,8 @@ namespace AnimLib {
     /// <summary>
     /// Creates a new instance of <typeparamref name="T"/> if it does not already exist.
     /// </summary>
-    public static void Initialize() {
+    /// <returns>The value of <see cref="Instance"/>.</returns>
+    public static T Initialize() {
       if (_instance is null) {
         lock (_lock) {
           if (_instance is null) {
@@ -47,6 +35,7 @@ namespace AnimLib {
           }
         }
       }
+      return Instance;
     }
 
     /// <summary>
