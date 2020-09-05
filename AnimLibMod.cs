@@ -56,7 +56,7 @@ namespace AnimLib {
     public static T GetPlayerAnimationData<T>(Player player) where T : PlayerAnimationData {
       var animPlayer = player.GetModPlayer<AnimPlayer>();
       foreach (var playerData in animPlayer.animationDatas) {
-        if (playerData is T t) {
+        if (playerData.Value is T t) {
           return t;
         }
       }
