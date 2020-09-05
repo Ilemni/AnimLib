@@ -32,11 +32,13 @@ namespace AnimLib {
     /// </summary>
 		public static AnimLibMod Instance { get; private set; }
 
-    internal Dictionary<Mod, IAnimationSource[]> AnimationSources;
+    internal Dictionary<Mod, IAnimationSource[]> animationSources;
     internal Dictionary<Mod, Type> playerAnimationDataTypes;
 
     /// <summary>
     /// Gets the <see cref="PlayerAnimationData"/> of the given type from the given <see cref="ModPlayer"/>.
+    /// Use this if you want your code to use values such as the current track and frame.
+    /// <para>This <strong>cannot</strong> be used during the <see cref="ModPlayer.Initialize"/> method.</para>
     /// </summary>
     /// <typeparam name="T">Type of <see cref="PlayerAnimationData"/> to get.</typeparam>
     /// <param name="player">The <see cref="ModPlayer"/>.</param>
@@ -45,6 +47,8 @@ namespace AnimLib {
 
     /// <summary>
     /// Gets the <see cref="PlayerAnimationData"/> of the given type from the given <see cref="Player"/>.
+    /// Use this if you want your code to use values such as the current track and frame.
+    /// <para>This <strong>cannot</strong> be used during the <see cref="ModPlayer.Initialize"/> method.</para>
     /// </summary>
     /// <typeparam name="T">Type of <see cref="PlayerAnimationData"/> to get.</typeparam>
     /// <param name="player">The <see cref="Player"/>.</param>
@@ -62,7 +66,7 @@ namespace AnimLib {
     /// <summary>
     /// Use this to null static reference types on unload.
     /// </summary>
-    public static event Action OnUnload;
+    internal static event Action OnUnload;
 
     /// <summary>
     /// Collects and constructs all <see cref="IAnimationSource"/>s across all other <see cref="Mod"/>s.
@@ -72,13 +76,12 @@ namespace AnimLib {
         return;
       }
 
-      AnimationSources = new Dictionary<Mod, IAnimationSource[]>();
+      animationSources = new Dictionary<Mod, IAnimationSource[]>();
       playerAnimationDataTypes = new Dictionary<Mod, Type>();
       foreach (var mod in ModLoader.Mods) {
         if (mod is AnimLibMod || mod.Code is null) {
           continue;
         }
-        Logger.Info($"mod:{mod}, code:{mod?.Code?.FullName}");
         var types = from type in mod.Code.GetTypes()
                     where type.IsSubclassOfRawGeneric(typeof(AnimationSource<>)) || type.IsSubclassOf(typeof(PlayerAnimationData))
                     select type;
@@ -108,7 +111,7 @@ namespace AnimLib {
             }
           }
         }
-        AnimationSources.Add(mod, list.ToArray());
+        animationSources.Add(mod, list.ToArray());
       }
     }
 
@@ -141,7 +144,5 @@ namespace AnimLib {
       OnUnload = null;
       Instance = null;
     }
-
-    internal static void Debug(object msg) => Instance.Logger.Debug(msg);
   }
 }

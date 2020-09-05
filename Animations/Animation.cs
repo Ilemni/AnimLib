@@ -10,6 +10,7 @@ using Terraria.ModLoader;
 namespace AnimLib.Animations {
   /// <summary>
   /// Animation for a single player. This class uses runtime data from a <see cref="PlayerAnimationData"/> to retrieve values from an <see cref="IAnimationSource"/>.
+  /// <para>One of these will be created for each <see cref="PlayerAnimationData"/> you have in your mod, per player.</para>
   /// </summary>
   public sealed class Animation {
     /// <summary>
@@ -74,7 +75,7 @@ namespace AnimLib.Animations {
     public readonly PlayerAnimationData playerData;
 
     /// <summary>
-    /// <see cref="IAnimationSource"/> used for this <see cref="Animation"/>.
+    /// <see cref="IAnimationSource"/> database used for this <see cref="Animation"/>.
     /// </summary>
     public readonly IAnimationSource source;
 

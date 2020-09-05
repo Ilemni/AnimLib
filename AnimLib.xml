@@ -7,6 +7,7 @@
         <member name="T:AnimLib.Animations.Animation">
             <summary>
             Animation for a single player. This class uses runtime data from a <see cref="T:AnimLib.Animations.PlayerAnimationData"/> to retrieve values from an <see cref="T:AnimLib.Animations.IAnimationSource"/>.
+            <para>One of these will be created for each <see cref="T:AnimLib.Animations.PlayerAnimationData"/> you have in your mod, per player.</para>
             </summary>
         </member>
         <member name="M:AnimLib.Animations.Animation.#ctor(AnimLib.Animations.PlayerAnimationData,AnimLib.Animations.IAnimationSource)">
@@ -53,7 +54,7 @@
         </member>
         <member name="F:AnimLib.Animations.Animation.source">
             <summary>
-            <see cref="T:AnimLib.Animations.IAnimationSource"/> used for this <see cref="T:AnimLib.Animations.Animation"/>.
+            <see cref="T:AnimLib.Animations.IAnimationSource"/> database used for this <see cref="T:AnimLib.Animations.Animation"/>.
             </summary>
         </member>
         <member name="M:AnimLib.Animations.Animation.TryInsertInLayers(System.Collections.Generic.List{Terraria.ModLoader.PlayerLayer},Terraria.ModLoader.PlayerLayer,System.Int32)">
@@ -260,6 +261,9 @@
         <member name="T:AnimLib.Animations.PlayerAnimationData">
             <summary>
             Container for various <see cref="T:AnimLib.Animations.Animation"/>s and data to be attached to an <see cref="T:AnimLib.AnimPlayer"/>. Manages advancement of frames.
+            <para>For your mod, you must have exactly one class derived from <see cref="T:AnimLib.Animations.PlayerAnimationData"/>, else your player cannot be animated.</para>
+            <para>Your <see cref="T:AnimLib.Animations.PlayerAnimationData"/> is automatically created by <see cref="T:AnimLib.AnimPlayer">AnimLib</see> when a player is initialized.
+            To get your <see cref="T:AnimLib.Animations.PlayerAnimationData"/>, use <see cref="M:AnimLib.AnimLibMod.GetPlayerAnimationData``1(Terraria.Player)"/></para>
             </summary>
         </member>
         <member name="M:AnimLib.Animations.PlayerAnimationData.#ctor(Terraria.ModLoader.ModPlayer)">
@@ -350,11 +354,11 @@
         </member>
         <member name="M:AnimLib.Animations.PlayerAnimationData.Update">
             <summary>
-            Updates the player animation by one frame, and changes it depending on various conditions.
-            <para>You must make calls to <see cref="M:AnimLib.Animations.PlayerAnimationData.IncrementFrame(System.String,System.Int32,System.Single,System.Int32,System.Nullable{AnimLib.Animations.LoopMode},System.Nullable{AnimLib.Animations.Direction},System.Single)"/> to switch or continue the animation.</para>
+            Updates the player animation by one frame, and changes it depending on various conditions. This is where you choose what tracks are played.
+            <para>You must make calls to <see cref="M:AnimLib.Animations.PlayerAnimationData.IncrementFrame(System.String,System.Int32,System.Single,System.Int32,System.Nullable{AnimLib.Animations.LoopMode},System.Nullable{AnimLib.Animations.Direction},System.Single)"/> to continue or change the animation.</para>
             </summary>
             <example>
-            Here is an example of updating the animation based on player movement.
+            Here is an example of updating the animation based on player movement. This code assumes you have tracks for "Moving", "Jumping", "Falling", and "Idle".
             <code>
             public override void Update() {
               if (Math.Abs(player.velocity.X) &gt; 0.1f) {
@@ -555,6 +559,8 @@
         <member name="M:AnimLib.AnimLibMod.GetPlayerAnimationData``1(Terraria.ModLoader.ModPlayer)">
             <summary>
             Gets the <see cref="T:AnimLib.Animations.PlayerAnimationData"/> of the given type from the given <see cref="T:Terraria.ModLoader.ModPlayer"/>.
+            Use this if you want your code to use values such as the current track and frame.
+            <para>This <strong>cannot</strong> be used during the <see cref="M:Terraria.ModLoader.ModPlayer.Initialize"/> method.</para>
             </summary>
             <typeparam name="T">Type of <see cref="T:AnimLib.Animations.PlayerAnimationData"/> to get.</typeparam>
             <param name="player">The <see cref="T:Terraria.ModLoader.ModPlayer"/>.</param>
@@ -563,6 +569,8 @@
         <member name="M:AnimLib.AnimLibMod.GetPlayerAnimationData``1(Terraria.Player)">
             <summary>
             Gets the <see cref="T:AnimLib.Animations.PlayerAnimationData"/> of the given type from the given <see cref="T:Terraria.Player"/>.
+            Use this if you want your code to use values such as the current track and frame.
+            <para>This <strong>cannot</strong> be used during the <see cref="M:Terraria.ModLoader.ModPlayer.Initialize"/> method.</para>
             </summary>
             <typeparam name="T">Type of <see cref="T:AnimLib.Animations.PlayerAnimationData"/> to get.</typeparam>
             <param name="player">The <see cref="T:Terraria.Player"/>.</param>
@@ -663,11 +671,6 @@
             </summary>
             <typeparam name="T">The type to make Singleton.</typeparam>
         </member>
-        <member name="M:AnimLib.SingleInstance`1.#ctor">
-            <summary>
-            Constructor of a Singleton class. Assigns to <see cref="P:AnimLib.SingleInstance`1.Instance"/> if it is not <see langword="null"/>.
-            </summary>
-        </member>
         <member name="P:AnimLib.SingleInstance`1.Instance">
             <summary>
             The singleton instance of this type.
@@ -677,6 +680,7 @@
             <summary>
             Creates a new instance of <typeparamref name="T"/> if it does not already exist.
             </summary>
+            <returns>The value of <see cref="P:AnimLib.SingleInstance`1.Instance"/>.</returns>
         </member>
         <member name="M:AnimLib.SingleInstance`1.Unload">
             <summary>
@@ -762,6 +766,35 @@
             </summary>
             <param name="baseType">The base type class for which the check is made.</param>
             <param name="toCheck">To type to determine for whether it derives from <paramref name="baseType"/>.</param>
+        </member>
+        <member name="M:ReflectionUtils.GetMethodExt(System.Type,System.String,System.Type[])">
+            <summary>
+            Search for a method by name and parameter types.  
+            Unlike GetMethod(), does 'loose' matching on generic
+            parameter types, and searches base interfaces.
+            </summary>
+            <exception cref="T:System.Reflection.AmbiguousMatchException"/>
+        </member>
+        <member name="M:ReflectionUtils.GetMethodExt(System.Type,System.String,System.Reflection.BindingFlags,System.Type[])">
+            <summary>
+            Search for a method by name, parameter types, and binding flags.  
+            Unlike GetMethod(), does 'loose' matching on generic
+            parameter types, and searches base interfaces.
+            </summary>
+            <exception cref="T:System.Reflection.AmbiguousMatchException"/>
+        </member>
+        <member name="T:ReflectionUtils.T">
+            <summary>
+            Special type used to match any generic parameter type in GetMethodExt().
+            </summary>
+        </member>
+        <member name="M:ReflectionUtils.IsSimilarType(System.Type,System.Type)">
+            <summary>
+            Determines if the two types are either identical, or are both generic 
+            parameters or generic types with generic parameters in the same
+             locations (generic parameters match any other generic paramter,
+            but NOT concrete types).
+            </summary>
         </member>
     </members>
 </doc>

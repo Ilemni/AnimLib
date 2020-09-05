@@ -8,6 +8,9 @@ using Terraria.ModLoader;
 namespace AnimLib.Animations {
   /// <summary>
   /// Container for various <see cref="Animation"/>s and data to be attached to an <see cref="AnimPlayer"/>. Manages advancement of frames.
+  /// <para>For your mod, you must have exactly one class derived from <see cref="PlayerAnimationData"/>, else your player cannot be animated.</para>
+  /// <para>Your <see cref="PlayerAnimationData"/> is automatically created by <see cref="AnimPlayer">AnimLib</see> when a player is initialized.
+  /// To get your <see cref="PlayerAnimationData"/>, use <see cref="AnimLibMod.GetPlayerAnimationData{T}(Player)"/></para>
   /// </summary>
   public abstract class PlayerAnimationData {
     /// <summary>
@@ -29,7 +32,7 @@ namespace AnimLib.Animations {
       if (Main.netMode == NetmodeID.Server) {
         throw new InvalidOperationException($"Animation classes are not allowed to be constructed on servers.");
       }
-      var sources = AnimLibMod.Instance.AnimationSources;
+      var sources = AnimLibMod.Instance.animationSources;
       if (!sources.ContainsKey(mod)) {
         throw new InvalidOperationException($"{mod.Name} does not contain any classes derived from AnimationSource.");
       }
@@ -145,11 +148,11 @@ namespace AnimLib.Animations {
     }
 
     /// <summary>
-    /// Updates the player animation by one frame, and changes it depending on various conditions.
-    /// <para>You must make calls to <see cref="IncrementFrame(string, int, float, int, LoopMode?, Direction?, float)"/> to switch or continue the animation.</para>
+    /// Updates the player animation by one frame, and changes it depending on various conditions. This is where you choose what tracks are played.
+    /// <para>You must make calls to <see cref="IncrementFrame(string, int, float, int, LoopMode?, Direction?, float)"/> to continue or change the animation.</para>
     /// </summary>
     /// <example>
-    /// Here is an example of updating the animation based on player movement.
+    /// Here is an example of updating the animation based on player movement. This code assumes you have tracks for "Moving", "Jumping", "Falling", and "Idle".
     /// <code>
     /// public override void Update() {
     ///   if (Math.Abs(player.velocity.X) &gt; 0.1f) {
