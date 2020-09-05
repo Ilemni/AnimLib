@@ -45,6 +45,14 @@ namespace AnimLib.Animations {
       for (int i = 0; i < modSources.Length; i++) {
         animations[i] = new Animation(this, modSources[i]);
       }
+
+      if (animations.Length > 0) {
+        MainAnimation = animations[0];
+      }
+
+      if (AnimDebugCommand.DebugEnabled) {
+        AnimLibMod.Instance.Logger.Debug($"PlayerAnimationData for mod {mod.Name} created with {animations.Length} animations. Its MainAnimation is {MainAnimation?.source.GetType().Name ?? "null"}");
+      }
     }
 
     /// <summary>
@@ -72,7 +80,33 @@ namespace AnimLib.Animations {
     /// The <see cref="Animation"/> to retrieve track data from, such as frame duration. This <see cref="Animation"/>'s <see cref="IAnimationSource"/> must contain all tracks that can be used.
     /// <para>By default this is the first <see cref="Animation"/> in <see cref="animations"/>.</para>
     /// </summary>
-    public virtual Animation MainAnimation => animations[0];
+    public Animation MainAnimation { get; private set; }
+
+    /// <summary>
+    /// Sets the main <see cref="Animation"/> of this player to the given <see cref="Animation"/>.
+    /// This can be useful for things like player transformations that use multiple <see cref="AnimationSource{T}"/>s.
+    /// </summary>
+    /// <param name="animation">Animation to set this player's <see cref="MainAnimation"/> to.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="animation"/> is null.</exception>
+    public void SetMainAnimation(Animation animation) {
+      if (animation is null) {
+        throw new ArgumentNullException(nameof(animation));
+      }
+      MainAnimation = animation;
+    }
+
+    /// <summary>
+    /// Sets the main <see cref="Animation"/> of this player to the animation whose source is <typeparamref name="T"/>.
+    /// This can be useful for things like player transformations that use multiple <see cref="AnimationSource{T}"/>s.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public void SetMainAnimation<T>() where T : AnimationSource<T> {
+      var result = GetAnimation<T>();
+      // This shouldn't ever be null
+      if (result != null) {
+        MainAnimation = result;
+      }
+    }
 
     /// <summary>
     /// The name of the animation track currently playing.
