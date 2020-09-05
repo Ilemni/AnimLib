@@ -20,7 +20,7 @@ namespace AnimLib.Animations {
     /// <summary>
     /// Default spritesheet used for animations.
     /// </summary>
-    Texture2D Texture { get; }
+    Texture2D texture { get; }
 
     /// <summary>
     /// The mod that this <see cref="IAnimationSource"/> belongs to.

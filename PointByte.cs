@@ -48,7 +48,7 @@ namespace AnimLib {
     /// </summary>
     /// <param name="left">This <see cref="PointByte"/>.</param>
     /// <param name="right">The other <see cref="PointByte"/> to compare to this <see cref="PointByte"/>.</param>
-    /// <returns><see langword="true"/> if the current <see cref="PointByte"/> is equal to the other <see cref="PointByte"/>, otherwise <see langword="false"/>.</returns>
+    /// <returns><see langword="true"/> if the current <see cref="PointByte"/> is equal to the other <see cref="PointByte"/>; otherwise, <see langword="false"/>.</returns>
     public static bool operator ==(PointByte left, PointByte right) => left.Equals(right);
 
     /// <summary>
@@ -56,7 +56,7 @@ namespace AnimLib {
     /// </summary>
     /// <param name="left">This <see cref="PointByte"/>.</param>
     /// <param name="right">The other <see cref="PointByte"/> to compare to this <see cref="PointByte"/>.</param>
-    /// <returns><see langword="true"/> if the current <see cref="PointByte"/> is not equal to the other <see cref="PointByte"/>, otherwise <see langword="false"/>.</returns>
+    /// <returns><see langword="true"/> if the current <see cref="PointByte"/> is not equal to the other <see cref="PointByte"/>; otherwise, <see langword="false"/>.</returns>
     public static bool operator !=(PointByte left, PointByte right) => !(left == right);
 
     /// <summary>

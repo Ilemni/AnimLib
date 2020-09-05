@@ -29,7 +29,7 @@ namespace AnimLib.Animations {
     public abstract Dictionary<string, Track> tracks { get; }
 
     /// <inheritdoc/>
-    public abstract Texture2D Texture { get; }
+    public abstract Texture2D texture { get; }
 
     /// <inheritdoc/>
     public Mod mod { get; private set; }
@@ -39,7 +39,8 @@ namespace AnimLib.Animations {
     public Track this[string name] => tracks[name];
 
     /// <summary>
-    /// Shorthand for <see cref="Frame(byte, byte, ushort)"/>
+    /// <para>Shorthand for <see cref="Frame(byte, byte, ushort)"/></para>
+    /// <inheritdoc cref="Frame(int, int, int)"/>
     /// </summary>
     /// <inheritdoc cref="Frame(int, int, int)"/>
     protected static Frame F(int x, int y, int duration = 0) => new Frame((byte)x, (byte)y, (ushort)duration);

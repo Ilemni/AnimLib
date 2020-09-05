@@ -32,8 +32,8 @@ namespace AnimLib {
     /// </summary>
 		public static AnimLibMod Instance { get; private set; }
 
-    internal Dictionary<Mod, IAnimationSource[]> animationSources;
-    internal Dictionary<Mod, Type> playerAnimationDataTypes;
+    internal Dictionary<Mod, IAnimationSource[]> animationSources = new Dictionary<Mod, IAnimationSource[]>();
+    internal Dictionary<Mod, Type> playerAnimationDataTypes = new Dictionary<Mod, Type>();
 
     /// <summary>
     /// Gets the <see cref="PlayerAnimationData"/> of the given type from the given <see cref="ModPlayer"/>.
@@ -55,7 +55,7 @@ namespace AnimLib {
     /// <returns>A <see cref="PlayerAnimationData"/> of type <typeparamref name="T"/>.</returns>
     public static T GetPlayerAnimationData<T>(Player player) where T : PlayerAnimationData {
       var animPlayer = player.GetModPlayer<AnimPlayer>();
-      foreach (var playerData in animPlayer.animationDatas.Values) {
+      foreach (var playerData in animPlayer.animationDatas) {
         if (playerData is T t) {
           return t;
         }
@@ -73,11 +73,14 @@ namespace AnimLib {
     /// </summary>
     public override void PostSetupContent() {
       if (Main.netMode == NetmodeID.Server) {
+        animationSources = null;
+        playerAnimationDataTypes = null;
         return;
       }
 
       animationSources = new Dictionary<Mod, IAnimationSource[]>();
       playerAnimationDataTypes = new Dictionary<Mod, Type>();
+      
       foreach (var mod in ModLoader.Mods) {
         if (mod is AnimLibMod || mod.Code is null) {
           continue;
@@ -96,6 +99,7 @@ namespace AnimLib {
             }
             else {
               playerAnimationDataTypes[mod] = type;
+              Logger.Info($"From mod {mod.Name} collected PlayerAnimationData \"{type.Name}\"");
             }
           }
           else {
@@ -104,6 +108,7 @@ namespace AnimLib {
               source = ConstructAnimationSource(type, mod);
               if (!(source is null)) {
                 list.Add(source);
+                Logger.Info($"From mod {mod.Name} collected AnimationSource \"{type.Name}\"");
               }
             }
             catch (Exception ex) {
@@ -112,6 +117,12 @@ namespace AnimLib {
           }
         }
         animationSources.Add(mod, list.ToArray());
+      }
+      
+      if (!animationSources.Any()) {
+        animationSources = null;
+        playerAnimationDataTypes = null;
+        Logger.Warn("AnimLibMod loaded; no mods contained any AnimationSources. Currently there is no reason for this mod to be enabled.");
       }
     }
 
@@ -123,7 +134,7 @@ namespace AnimLib {
         Logger.Error($"Error constructing AnimationSource from [{mod.Name}:{type.FullName}]: Tracks is null.");
         doAdd = false;
       }
-      if (source.Texture is null) {
+      if (source.texture is null) {
         Logger.Error($"Error constructing AnimationSource from [{mod.Name}:{type.FullName}]: Texture is null.");
         doAdd = false;
       }

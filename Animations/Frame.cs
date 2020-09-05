@@ -22,7 +22,7 @@ namespace AnimLib.Animations {
       tile = new PointByte(x, y);
       this.duration = duration;
     }
-    
+
     /// <inheritdoc/>
     public PointByte tile { get; }
 

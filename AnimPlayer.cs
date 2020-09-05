@@ -12,7 +12,9 @@ namespace AnimLib {
   public sealed class AnimPlayer : ModPlayer {
     internal readonly Dictionary<Mod, PlayerAnimationData> animationDatas = new Dictionary<Mod, PlayerAnimationData>();
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Constructs and collects all <see cref="PlayerAnimationData"/>s across all mods onto this <see cref="Player"/>.
+    /// </summary>
     public override void Initialize() {
       var types = AnimLibMod.Instance.playerAnimationDataTypes;
       if ((types?.Count ?? 0) > 0) {
@@ -28,7 +30,7 @@ namespace AnimLib {
               animationDatas[mod] = playerData;
             }
             else {
-              AnimLibMod.Instance.Logger.Error($"PlayerAnimationData from [{mod.Name}:{type.FullName}] does not contain a constructor with parameters Player and Mod.");
+              AnimLibMod.Instance.Logger.Error($"PlayerAnimationData from [{mod.Name}:{type.FullName}] does not contain a constructor with parameters (Player, Mod).");
               continue;
             }
           }
@@ -37,14 +39,19 @@ namespace AnimLib {
           }
         }
       }
+      else {
+        if (AnimDebugCommand.DebugEnabled) {
+          AnimLibMod.Instance.Logger.Debug("AnimPlayer instance initialized without animations.");
+        }
+        return;
+      }
     }
 
     /// <summary>
-    /// Updates all <see cref="PlayerAnimationData"/>s.
+    /// Updates all <see cref="PlayerAnimationData"/>s on this <see cref="Player"/>.
     /// </summary>
     public override void PostUpdate() {
       foreach (var anim in animationDatas.Values) {
-        anim.FrameTime++;
         anim.Update();
       }
     }

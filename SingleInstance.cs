@@ -23,7 +23,7 @@ namespace AnimLib {
     private static T _instance;
 
     /// <summary>
-    /// Creates a new instance of <typeparamref name="T"/> if it does not already exist.
+    /// Creates a new instance of <typeparamref name="T"/> if it does not already exist, and returns the instance.
     /// </summary>
     /// <returns>The value of <see cref="Instance"/>.</returns>
     public static T Initialize() {

@@ -29,10 +29,19 @@ namespace AnimLib.Animations {
     }
 
     /// <summary>
-    /// Current <see cref="Texture2D"/> that is to be drawn.
-    /// <para>If <see cref="Track.GetTexture(int)"/> is not <see langword="null"/>, that is returned, otherwise returns the <see cref="IAnimationSource"/>'s <see cref="Texture2D"/>.</para>
+    /// <see cref="PlayerAnimationData"/> this <see cref="Animation"/> belongs to. This is used to get the current <see cref="Track"/>s and <see cref="Frame"/>s.
     /// </summary>
-    public Texture2D CurrentTexture => CurrentTrack.GetTexture(playerData.FrameIndex) ?? source.Texture;
+    public readonly PlayerAnimationData playerData;
+
+    /// <summary>
+    /// <see cref="IAnimationSource"/> database used for this <see cref="Animation"/>.
+    /// </summary>
+    public readonly IAnimationSource source;
+
+    /// <summary>
+    /// Whether or not the current <see cref="PlayerAnimationData.TrackName"/> maps to a valid <see cref="Track"/> on this <see cref="IAnimationSource"/>.
+    /// </summary>
+    public bool Valid { get; private set; }
 
     /// <summary>
     /// Current <see cref="Track"/> that is being played.
@@ -54,7 +63,7 @@ namespace AnimLib.Animations {
     }
 
     /// <summary>
-    /// Current <see cref="Frame"/>'s sprite position and size on the <see cref="GetCurrentTexture()"/>.
+    /// Current <see cref="Frame"/>'s sprite position and size on the <see cref="CurrentTexture"/>.
     /// </summary>
     public Rectangle CurrentTile {
       get {
@@ -65,19 +74,10 @@ namespace AnimLib.Animations {
     }
 
     /// <summary>
-    /// Whether or not the current <see cref="PlayerAnimationData.TrackName"/> maps to a valid <see cref="Track"/> on this <see cref="IAnimationSource"/>.
+    /// Current <see cref="Texture2D"/> that is to be drawn.
+    /// <para>If <see cref="Track.GetTexture(int)"/> is not <see langword="null"/>, that is returned; otherwise, returns the <see cref="IAnimationSource"/>'s <see cref="Texture2D"/>.</para>
     /// </summary>
-    public bool Valid { get; private set; }
-
-    /// <summary>
-    /// <see cref="PlayerAnimationData"/> this <see cref="Animation"/> belongs to. This is used to get the current <see cref="Track"/>s and <see cref="Frame"/>s.
-    /// </summary>
-    public readonly PlayerAnimationData playerData;
-
-    /// <summary>
-    /// <see cref="IAnimationSource"/> database used for this <see cref="Animation"/>.
-    /// </summary>
-    public readonly IAnimationSource source;
+    public Texture2D CurrentTexture => CurrentTrack.GetTexture(playerData.FrameIndex) ?? source.texture;
 
     /// <summary>
     /// Attempts to insert the <see cref="PlayerLayer"/> of this <see cref="Animation"/> to <paramref name="layers"/>. If <see cref="Valid"/> is <see langword="false"/>, this will fail and return <see langword="false"/>.
@@ -85,7 +85,7 @@ namespace AnimLib.Animations {
     /// <param name="layers">The <see cref="List{T}"/> of <see cref="PlayerLayer"/> to insert in.</param>
     /// <param name="playerLayer"><see cref="PlayerLayer"/> to use for this <see cref="Animation"/>.</param>
     /// <param name="idx">Position to insert into.</param>
-    /// <returns><see langword="true"/> if <paramref name="playerLayer"/> was inserted, otherwise <see langword="false"/>.</returns>
+    /// <returns><see langword="true"/> if <paramref name="playerLayer"/> was inserted; otherwise, <see langword="false"/>.</returns>
     public bool TryInsertInLayers(List<PlayerLayer> layers, PlayerLayer playerLayer, int idx = 0) {
       if (Valid) {
         layers.Insert(idx, playerLayer);
@@ -117,7 +117,7 @@ namespace AnimLib.Animations {
     /// </list>
     /// </summary>
     /// <param name="drawInfo">Parameter of <see cref="PlayerLayer(string, string, System.Action{PlayerDrawInfo})"/>.</param>
-    /// <returns></returns>
+    /// <returns>A <see cref="DrawData"/> based on this <see cref="Animation"/></returns>
     public DrawData GetDrawData(PlayerDrawInfo drawInfo) {
       Player player = drawInfo.drawPlayer;
       Texture2D texture = CurrentTexture;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Terraria;
@@ -40,7 +40,7 @@ namespace AnimLib.Animations {
       this.player = player;
       this.mod = mod;
       var modSources = sources[mod];
-      
+
       animations = new Animation[modSources.Length];
       for (int i = 0; i < modSources.Length; i++) {
         animations[i] = new Animation(this, modSources[i]);
@@ -49,6 +49,7 @@ namespace AnimLib.Animations {
 
     /// <summary>
     /// Allows you to do things after this <see cref="PlayerAnimationData"/> is constructed.
+    /// Useful for getting references to <see cref="Animation"/>s via <see cref="GetAnimation{T}"/>.
     /// </summary>
     public virtual void Initialize() { }
 
@@ -109,21 +110,24 @@ namespace AnimLib.Animations {
     public bool Reversed { get; private set; }
 
     /// <summary>
-    /// Gets the <see cref="Animation"/> from this <see cref="animations"/> where its <see cref="IAnimationSource"/> is of type <typeparamref name="T"/>.
+    /// Gets the <see cref="Animation"/> from this <see cref="animations"/> where its <see cref="AnimationSource{T}"/> is of type <typeparamref name="T"/>.
     /// </summary>
+    /// <remarks>
+    /// In theory this shouldn't ever return <see langword="null"/>, unless this <see cref="PlayerAnimationData"/> was constructed prior to <see cref="AnimLibMod.PostSetupContent"/>.
+    /// </remarks>
     /// <typeparam name="T">Type of <see cref="AnimationSource{T}"/></typeparam>
-    /// <returns>The <see cref="Animation"/> with the matching <see cref="IAnimationSource"/>.</returns>
+    /// <returns>The <see cref="Animation"/> with the matching <see cref="AnimationSource{T}"/>.</returns>
     /// <exception cref="ArgumentException"><typeparamref name="T"/> and <see cref="mod"/> are from different assemblies.</exception>
-    public Animation GetAnimation<T>() where T : IAnimationSource {
-      string tAsmName = typeof(T).Assembly.FullName;
-      string modAsmName = mod.Code.FullName;
-      if (tAsmName != modAsmName) {
-        throw new ArgumentException($"Assembly mismatch: {typeof(T)} is from {tAsmName}; this {nameof(PlayerAnimationData)} is from {modAsmName}");
-      }
+    public Animation GetAnimation<T>() where T : AnimationSource<T> {
       foreach (var anim in animations) {
         if (anim.source is T) {
           return anim;
         }
+      }
+      string tAsmName = typeof(T).Assembly.FullName;
+      string modAsmName = mod.Code.FullName;
+      if (tAsmName != modAsmName) {
+        throw new ArgumentException($"Assembly mismatch: {typeof(T)} is from {tAsmName}; this {nameof(PlayerAnimationData)} is from {modAsmName}");
       }
       return null;
     }
@@ -131,11 +135,11 @@ namespace AnimLib.Animations {
     /// <summary>
     /// Check if the <see cref="Animation"/>s will be valid when the given track name.
     /// If <paramref name="updateValue"/> is <see langword="true"/>, all <see cref="Animation.Valid"/> states will be updated.
-    /// Returns <see langword="true"/> if the main <see cref="Animation"/> is valid, otherwise <see langword="false"/>.
+    /// Returns <see langword="true"/> if the main <see cref="Animation"/> is valid; otherwise, <see langword="false"/>.
     /// </summary>
     /// <param name="newTrackName">New value of <see cref="TrackName"/>.</param>
     /// <param name="updateValue">Whether or not to update <see cref="Animation.Valid"/>.</param>
-    /// <returns><see langword="true"/> if the main <see cref="Animation"/> is valid, otherwise <see langword="false"/>.</returns>
+    /// <returns><see langword="true"/> if the main <see cref="Animation"/> is valid; otherwise, <see langword="false"/>.</returns>
     private bool Validate(string newTrackName, bool updateValue) {
       if (!updateValue) {
         return MainAnimation.CheckIfValid(newTrackName);
@@ -148,15 +152,17 @@ namespace AnimLib.Animations {
     }
 
     /// <summary>
-    /// Updates the player animation by one frame, and changes it depending on various conditions. This is where you choose what tracks are played.
-    /// <para>You must make calls to <see cref="IncrementFrame(string, int, float, int, LoopMode?, Direction?, float)"/> to continue or change the animation.</para>
+    /// Updates the player animation by one frame. This is where you choose what tracks are played, and how they are played.
+    /// <para>You must make calls to <see cref="IncrementFrame(string, int?, float?, int?, float, LoopMode?, Direction?)"/>
+    /// or its various overloads to continue or change the animation.</para>
     /// </summary>
     /// <example>
-    /// Here is an example of updating the animation based on player movement. This code assumes you have tracks for "Moving", "Jumping", "Falling", and "Idle".
+    /// Here is an example of updating the animation based on player movement.
+    /// This code assumes your <see cref="MainAnimation"/> have tracks for "Running", "Jumping", "Falling", and "Idle".
     /// <code>
     /// public override void Update() {
     ///   if (Math.Abs(player.velocity.X) &gt; 0.1f) {
-    ///     IncrementFrame("Moving");
+    ///     IncrementFrame("Running");
     ///     return;
     ///   }
     ///   if (player.velocity.Y != 0) {
