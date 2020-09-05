@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Terraria;
@@ -163,6 +163,7 @@ namespace AnimLib.Animations {
       if (tAsmName != modAsmName) {
         throw new ArgumentException($"Assembly mismatch: {typeof(T)} is from {tAsmName}; this {nameof(PlayerAnimationData)} is from {modAsmName}");
       }
+      AnimLibMod.Instance.Logger.Warn($"{GetType().Name}.GetAnimation<{typeof(T).Name}>() failed.");
       return null;
     }
 
@@ -210,58 +211,136 @@ namespace AnimLib.Animations {
     public abstract void Update();
 
     /// <summary>
-    /// Logic for managing which frame should play.
+    /// Plays the <see cref="Track"/> of the given name.
     /// </summary>
-    /// <param name="trackName">Name of the animation track to play/continue.</param>
-    /// <param name="overrideFrameIndex">Optional override for the frame to play. This forces a frame to play and prevents normal playback.</param>
-    /// <param name="timeOffset">Optional offset to time. To play in reverse, use <paramref name="overrideDirection"/>.</param>
-    /// <param name="overrideDuration">Optional override for the duration of the frame.</param>
-    /// <param name="overrideDirection">Optional override for the direction the track plays.</param>
-    /// <param name="overrideLoopmode">Optional override for how the track loops.</param>
-    /// <param name="rotation">Rotation of the sprite, in <strong>radians</strong>.</param>
     /// <exception cref="ArgumentException"><paramref name="trackName"/> was null or whitespace.</exception>
-    /// <exception cref="KeyNotFoundException">The value of <paramref name="trackName"/> was not a key in any <see cref="IAnimationSource.tracks"/>.</exception>
-    protected void IncrementFrame(string trackName, int overrideFrameIndex = -1, float timeOffset = 0, int overrideDuration = -1, LoopMode? overrideLoopmode = null, Direction? overrideDirection = null, float rotation = 0) {
+    /// <exception cref="KeyNotFoundException">The value of <paramref name="trackName"/> was not a key in the main <see cref="IAnimationSource.tracks"/>.</exception>
+    protected void IncrementFrame(string trackName)
+      => IncrementFrame(trackName, null, 1, null, 0, null, null);
+
+    /// <summary>
+    /// Plays the <see cref="Track"/> with the given speed.
+    /// </summary>
+    /// <inheritdoc cref="IncrementFrame(string, int?, float?, int?, float, LoopMode?, Direction?)"/>
+    protected void IncrementFrame(string trackName, float speed)
+      => IncrementFrame(trackName, null, speed, null, 0, null, null);
+
+    /// <summary>
+    /// Plays the <see cref="Track"/> with the given speed and rotation.
+    /// </summary>
+    /// <inheritdoc cref="IncrementFrame(string, int?, float?, int?, float, LoopMode?, Direction?)"/>
+    protected void IncrementFrame(string trackName, float speed, float rotation)
+      => IncrementFrame(trackName, null, speed, null, rotation, null, null);
+
+    /// <summary>
+    /// Plays the <see cref="Track"/> with the given frame. This prevents normal playback.
+    /// </summary>
+    /// <param name="trackName">Name of the animation track to play/continue. This must be a valid key in the <see cref="IAnimationSource"/> for <see cref="MainAnimation"/>.</param>
+    /// <param name="frameIndex">The frame to play.</param>
+    /// <inheritdoc cref="IncrementFrame(string, int?, float?, int?, float, LoopMode?, Direction?)"/>
+    protected void IncrementFrame(string trackName, int frameIndex)
+      => IncrementFrame(trackName, frameIndex, 1, null, 0, null, null);
+
+    /// <summary>
+    /// Plays the <see cref="Track"/> with the given frame and rotation. This prevents normal playback.
+    /// </summary>
+    /// <param name="trackName">Name of the animation track to play/continue. This must be a valid key in the <see cref="IAnimationSource"/> for <see cref="MainAnimation"/>.</param>
+    /// <param name="frameIndex">The frame to play.</param>
+    /// <param name="rotation">Rotation of the sprite, in <strong>radians</strong>. If degrees are necessary to work with, use <see cref="MathHelper.ToRadians(float)"/> for this parameter.</param>
+    /// <inheritdoc cref="IncrementFrame(string, int?, float?, int?, float, LoopMode?, Direction?)"/>
+    protected void IncrementFrame(string trackName, int frameIndex, float rotation)
+      => IncrementFrame(trackName, frameIndex, 1, null, rotation, null, null);
+
+    /// <summary>
+    /// Plays the <see cref="Track"/> in the given <see cref="Direction"/>.
+    /// </summary>
+    /// <param name="trackName">Name of the animation track to play/continue. This must be a valid key in the <see cref="IAnimationSource"/> for <see cref="MainAnimation"/>.</param>
+    /// <param name="direction"><see cref="Direction"/> for the track to play.</param>
+    /// <exception cref="ArgumentException"><paramref name="trackName"/> was null or whitespace.</exception>
+    /// <exception cref="KeyNotFoundException">The value of <paramref name="trackName"/> was not a key in the main <see cref="IAnimationSource.tracks"/>.</exception>
+    protected void IncrementFrame(string trackName, Direction direction)
+      => IncrementFrame(trackName, null, 1, null, 0, null, direction);
+
+    /// <summary>
+    /// Plays the <see cref="Track"/> with the given name. How the animation advances is based on the given input parameters.
+    /// </summary>
+    /// <param name="trackName">
+    /// Name of the animation track to play/continue.
+    /// <para>This must be a valid key in the <see cref="IAnimationSource"/> for <see cref="MainAnimation"/>.</para>
+    /// </param>
+    /// <param name="frameIndex">
+    /// The frame to play, -or- <see langword="null"/> to use the current <see cref="Frame"/>.
+    /// <para>A non-<see langword="null"/> value prevents normal playback.</para>
+    /// </param>
+    /// <param name="speed">
+    /// Speed to increase <see cref="FrameTime"/> by, -or- <see langword="null"/> to play at the default speed.
+    /// <para>This must be a non-negative value. To play in reverse, use <paramref name="direction"/>.</para>
+    /// </param>
+    /// <param name="duration">
+    /// Duration of the frame, -or- <see langword="null"/> to use the <see cref="Frame"/>'s duration.
+    /// <para>This must be a positive value.</para>
+    /// </param>
+    /// <param name="rotation">
+    /// Rotation of the sprite, in <strong>radians</strong>.
+    /// <para>If degrees are necessary to work with, use <see cref="MathHelper.ToRadians(float)"/> for this parameter.</para>
+    /// </param>
+    /// <param name="direction">
+    /// <see cref="Direction"/> to play the track in, -or- <see langword="null"/>, to use the current <see cref="Track"/>'s <see cref="Direction"/>.
+    /// </param>
+    /// <param name="loop">
+    /// <see cref="LoopMode"/> to play the track with, -or- <see langword="null"/>, to use the current <see cref="Track"/>'s <see cref="LoopMode"/>.
+    /// </param>
+    /// <exception cref="ArgumentException"><paramref name="trackName"/> was null or whitespace.</exception>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="frameIndex"/> is less than 0, or greater than the count of <paramref name="trackName"/>'s frames, -or- <paramref name="speed"/> was negative, -or- <paramref name="duration"/> was negative or 0.</exception>
+    /// <exception cref="KeyNotFoundException">The value of <paramref name="trackName"/> was not a key in the main <see cref="IAnimationSource.tracks"/>.</exception>
+    protected void IncrementFrame(string trackName, int? frameIndex, float? speed, int? duration, float rotation, LoopMode? loop, Direction? direction) {
       if (string.IsNullOrWhiteSpace(trackName)) {
-        throw new ArgumentException($"{nameof(trackName)} cannot be empty.", nameof(trackName));
+        throw new ArgumentException($"{nameof(trackName)} cannot be null or whitespace.", nameof(trackName));
       }
       if (!Validate(trackName, false)) {
-        throw new KeyNotFoundException($"\"{trackName}\" is not a valid key for any Animation track.");
+        throw new KeyNotFoundException($"\"{trackName}\" is not a valid key for the main Animation track {MainAnimation.source.GetType().Name}.");
+      }
+      // If any arguments are true, they throw. They can only throw if specified by the user to an invalid value.
+      if (frameIndex < 0 || frameIndex > MainAnimation.source[trackName].Length) {
+        throw new ArgumentOutOfRangeException(nameof(frameIndex), $"{nameof(frameIndex)} must be between 0 and the length of {trackName}'s frame count.");
+      }
+      if (speed < 0) {
+        throw new ArgumentOutOfRangeException(nameof(speed), $"{nameof(speed)} must be a positive value.");
+      }
+      if (duration <= 0) {
+        throw new ArgumentOutOfRangeException(nameof(duration), $"{nameof(duration)} must be a positive value.");
       }
 
-      FrameTime += timeOffset;
+      FrameTime += speed ?? 1;
       SpriteRotation = rotation;
 
-      //Main.NewText($"Frame called: {TrackName}{(Reversed ? " (Reversed)" : "")}, Time: {FrameTime}, AnimIndex: {FrameIndex}/{MainAnimation.CurrentTrack.frames.Length}"); // Debug
+      if (trackName != TrackName) {
+        SwitchTrack(trackName, direction);
+      }
 
       Track track = MainAnimation.source[trackName];
-      LoopMode loop = overrideLoopmode ?? track.loop;
-      Direction direction = overrideDirection ?? track.direction;
       IFrame[] frames = track.frames;
       int lastFrame = frames.Length - 1;
 
-      if (trackName != TrackName) {
-        // Track changed: switch to next track
-        TrackName = trackName;
-        track = MainAnimation.source[trackName];
-        frames = track.frames;
-        lastFrame = frames.Length - 1;
-        Reversed = direction == Direction.Reverse;
-        FrameIndex = Reversed ? lastFrame : 0;
+      if (frameIndex != null && frameIndex >= 0 && frameIndex <= lastFrame) {
+        FrameIndex = frameIndex.Value;
         FrameTime = 0;
       }
 
-      if (overrideFrameIndex >= 0 && overrideFrameIndex <= lastFrame) {
-        // If overrideFrame was specified, simply set frame
-        FrameIndex = overrideFrameIndex;
-        FrameTime = 0;
-      }
+      // Loop logic
+      PostIncrementFrame(duration, loop, direction);
+    }
 
-      // Increment frames based on time (this should rarely be above 1)
-      int duration = overrideDuration != -1 ? overrideDuration : frames[FrameIndex].duration;
+    private void PostIncrementFrame(int? overrideDuration, LoopMode? overrideLoopMode, Direction? overrideDirection) {
+      var track = MainAnimation.CurrentTrack;
+      var loop = overrideLoopMode ?? track.loop;
+      var duration = overrideDuration ?? MainAnimation.CurrentFrame.duration;
+      var direction = overrideDirection ?? track.direction;
+
       if (FrameTime < duration || duration <= 0) {
         return;
       }
+      int lastFrame = track.Length - 1;
 
       int framesToAdvance = 0;
       while (FrameTime >= duration) {
@@ -271,8 +350,6 @@ namespace AnimLib.Animations {
           FrameTime %= duration;
         }
       }
-
-      // Loop logic
       switch (direction) {
         case Direction.Forward: {
             Reversed = false;
@@ -332,6 +409,19 @@ namespace AnimLib.Animations {
           }
       }
       FrameIndex = (int)MathHelper.Clamp(FrameIndex, 0, lastFrame);
+    }
+
+    private void SwitchTrack(string newTrack, Direction? direction = null) {
+      if (newTrack != TrackName) {
+        if (!Validate(newTrack, false)) {
+          throw new KeyNotFoundException($"\"{newTrack}\" is not a valid key for the main Animation track.");
+        }
+        TrackName = newTrack;
+        var track = MainAnimation.source[newTrack];
+        FrameTime = 0;
+        Reversed = (direction ?? track.direction) == Direction.Reverse;
+        FrameIndex = Reversed ? (track.Length - 1) : 0;
+      }
     }
   }
 }
