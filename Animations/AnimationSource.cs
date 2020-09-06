@@ -14,7 +14,7 @@ namespace AnimLib.Animations {
     /// Base constructor. Ensures that this is not constructed on a server.
     /// </summary>
     /// <exception cref="InvalidOperationException">Animation classes are not allowed to be constructed on servers.</exception>
-    private AnimationSource() {
+    protected AnimationSource() {
       if (!AnimLoader.UseAnimations) {
         throw new InvalidOperationException($"{GetType().Name} is not allowed to be constructed on servers.");
       }

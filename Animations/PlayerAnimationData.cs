@@ -12,7 +12,15 @@ namespace AnimLib.Animations {
   /// To get your <see cref="PlayerAnimationData"/>, use <see cref="AnimLibMod.GetPlayerAnimationData{T}(Player)"/></para>
   /// </summary>
   public abstract class PlayerAnimationData {
-    private PlayerAnimationData() { }
+    /// <summary>
+    /// Base constructor. Ensures that this is not constructed on a server.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Animation classes are not allowed to be constructed on servers.</exception>
+    protected PlayerAnimationData() {
+      if (!AnimLoader.UseAnimations) {
+        throw new InvalidOperationException($"{GetType().Name} is not allowed to be constructed on servers.");
+      }
+    }
 
     /// <summary>
     /// Allows you to do things after this <see cref="PlayerAnimationData"/> is constructed.
