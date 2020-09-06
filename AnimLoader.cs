@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -8,14 +8,11 @@ using Terraria.ModLoader;
 
 namespace AnimLib {
   internal class AnimLoader : SingleInstance<AnimLoader> {
-    internal Dictionary<Mod, IAnimationSource[]> animationSources = new Dictionary<Mod, IAnimationSource[]>();
+    internal Dictionary<Mod, AnimationSource[]> animationSources = new Dictionary<Mod, AnimationSource[]>();
     internal Dictionary<Mod, Type> playerAnimationDataTypes = new Dictionary<Mod, Type>();
 
     internal static void Load() {
       Initialize();
-    }
-
-    internal static void PostSetupContent() {
       var animationSources = Instance.animationSources;
       var playerAnimationDataTypes = Instance.playerAnimationDataTypes;
 
@@ -24,13 +21,22 @@ namespace AnimLib {
           continue;
         }
         var types = from type in mod.Code.GetTypes()
-                    where type.IsSubclassOfRawGeneric(typeof(AnimationSource<>)) || type.IsSubclassOf(typeof(PlayerAnimationData))
+                    where type.IsSubclassOf(typeof(AnimationSource)) || type.IsSubclassOf(typeof(PlayerAnimationData))
                     select type;
 
         if (!types.Any()) continue;
 
         var list = GetAnimationSourcesFromTypes(types, mod);
-        Instance.animationSources.Add(mod, list.ToArray());
+        if (list.Count > 0) {
+          var type = GetPlayerAnimationDataTypeFromTypes(types, mod);
+          if (type != null) {
+            animationSources[mod] = list.ToArray();
+            playerAnimationDataTypes[mod] = type;
+          }
+          else {
+            AnimLibMod.Instance.Logger.Error($"{mod.Name} error: {mod.Name} contains {(list.Count > 1 ? "classes" : "a class")} extending AnimationSource, but does not contain any classes extending {nameof(PlayerAnimationData)}s");
+          }
+        }
       }
 
       if (!Instance.animationSources.Any()) {
@@ -40,14 +46,40 @@ namespace AnimLib {
       }
     }
 
-    private static List<IAnimationSource> GetAnimationSourcesFromTypes(IEnumerable<Type> types, Mod mod) {
-      List<IAnimationSource> sources = new List<IAnimationSource>();
+    internal static void PostSetupContent() {
+      var sources = Instance.animationSources;
+      if (sources is null) {
+        return;
+      }
+
+      foreach (var modSources in sources.Values) {
+        foreach (var source in modSources) {
+          string texturePath = source.GetType().FullName;
+          source.Load(ref texturePath);
+          if (ModContent.TextureExists(texturePath)) {
+            source.texture = ModContent.GetTexture(texturePath);
+          }
+          else {
+            AnimLibMod.Instance.Logger.Error($"Mod {source.mod.Name}: {source.GetType().Name}.Load() texturePath \"{texturePath}\" is not a valid texture path.");
+          }
+        }
+      }
+    }
+
+    private static List<AnimationSource> GetAnimationSourcesFromTypes(IEnumerable<Type> types, Mod mod) {
+      List<AnimationSource> sources = new List<AnimationSource>();
 
       foreach (var type in types) {
         try {
           if (TryConstructAnimationSource(type, mod, out var source)) {
-            sources.Add(source);
-            AnimLibMod.Instance.Logger.Info($"From mod {mod.Name} collected AnimationSource \"{(type.Name != "AnimationSource" ? type.Name : type.FullName)}\"");
+            string _ = source.GetType().FullName;
+            if (source.Load(ref _)) {
+              sources.Add(source);
+              AnimLibMod.Instance.Logger.Info($"From mod {mod.Name} collected AnimationSource \"{(type.Name != "AnimationSource" ? type.Name : type.FullName)}\"");
+            }
+            else {
+              AnimLibMod.Instance.Logger.Info($"Skipped {mod.Name} AnimationSource \"{(type.Name != "AnimationSource" ? type.Name : type.FullName)}\", Load() returned false.");
+            }
           }
         }
         catch (Exception ex) {

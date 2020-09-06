@@ -1,4 +1,4 @@
-using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using Terraria;
@@ -29,13 +29,22 @@ namespace AnimLib.Animations {
     public abstract Dictionary<string, Track> tracks { get; }
 
     /// <inheritdoc/>
-    public abstract Texture2D texture { get; }
+    public Texture2D texture { get; internal set; }
 
     /// <inheritdoc/>
     public Mod mod { get; internal set; }
 
     /// <inheritdoc/>
     public Track this[string name] => tracks[name];
+
+
+    /// <summary>
+    /// Whether or not this <see cref="AnimationSource"/> should be used. Return <see langword="false"/> to prevent this from being used.
+    /// Returns <see langword="true"/> by default.
+    /// </summary>
+    /// <param name="texturePath">The file name of this <see cref="AnimationSource"/>'s texture file in the mod loader's file space.</param>
+    /// <returns></returns>
+    public virtual bool Load(ref string texturePath) => true;
 
     /// <summary>
     /// <para>Shorthand for <see cref="Frame(byte, byte, ushort)"/></para>
