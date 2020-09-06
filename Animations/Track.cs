@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework.Graphics;
+using Terraria.ModLoader;
+using Terraria.ModLoader.Exceptions;
 
 namespace AnimLib.Animations {
   /// <summary>
@@ -116,14 +118,24 @@ namespace AnimLib.Animations {
     public bool multiTexture { get; }
 
     /// <summary>
-    /// Texture of the track itself. If any <see cref="SwitchTextureFrame"/>s are in use, use <see cref="GetTexture(int)"/> instead.
+    /// Texture of the track itself. If you have used any <see cref="SwitchTextureFrame"/>s (from <see cref="Frame.WithNextSpritesheet(string)"/>), use <see cref="GetTexture(int)"/> instead.
     /// </summary>
-    public Texture2D trackTexture { get; private set; }
+    public Texture2D trackTexture {
+      get {
+        if (texturePath is null) {
+          return null;
+        }
+        return _tTxt ?? (_tTxt = LoadTexture());
+      }
+    }
+
+    private Texture2D _tTxt;
+    private string texturePath;
 
     /// <summary>
     /// Optional spritesheet that may be used instead of <see cref="AnimationSource.texture"/>.
-    /// <para>If any frame after or including the current frame (at <paramref name="frameIdx"/>) is a <see cref="SwitchTextureFrame"/>, that <see cref="SwitchTextureFrame.texture"/> will be returned.</para>
-    /// <para>If this track uses its own <see cref="Texture2D"/> (assigned with <see cref="WithTexture(Texture2D)"/> during construction), that is returned. Otherwise, returns <see langword="null"/></para>
+    /// <para>If any frame after or including the current frame (at <paramref name="frameIdx"/>) is a <see cref="SwitchTextureFrame"/>, that <see cref="SwitchTextureFrame.texturePath"/> will be returned.</para>
+    /// <para>If this track uses its own <see cref="Texture2D"/> (assigned with <see cref="WithTexture(string)"/> during construction), that is returned. Otherwise, returns <see langword="null"/></para>
     /// </summary>
     /// <param name="frameIdx">Index of the <see cref="IFrame"/> currently being played.</param>
     /// <returns>A valid <see cref="Texture2D"/> if <see cref="AnimationSource.texture"/> should be overridden, else <see langword="null"/>.</returns>
@@ -134,23 +146,43 @@ namespace AnimLib.Animations {
       if (frameIdx < 0) {
         throw new ArgumentOutOfRangeException(nameof(frameIdx), $"Expected value greater than or equal to 0, got {frameIdx}");
       }
-      if (multiTexture) {
+      // TODO: Proper support for multiple textures per frame
+      /*if (multiTexture) {
         while (frameIdx >= 0) {
           if (frames[frameIdx] is SwitchTextureFrame stf) {
-            return stf.texture;
+            return stf.texturePath;
           }
           frameIdx--;
         }
-      }
+      }*/
       return trackTexture;
     }
 
     /// <summary>
     /// Assign a spritesheet that will be used instead of <see cref="AnimationSource.texture"/>.
     /// </summary>
-    public Track WithTexture(Texture2D texture) {
-      this.trackTexture = texture;
+    public Track WithTexture(string texturePath) {
+      if (string.IsNullOrWhiteSpace(texturePath)) {
+        throw new ArgumentException($"{nameof(texturePath)} cannot be null or empty.", nameof(texturePath));
+      }
+      if (this.texturePath == null) {
+        this.texturePath = texturePath;
+      }
+      else {
+        AnimLibMod.Instance.Logger.Warn("Cannot set the track's texture twice.");
+      }
       return this;
+    }
+
+    private Texture2D LoadTexture() {
+      try {
+        var result = ModContent.GetTexture(texturePath);
+        return result;
+      }
+      catch (MissingResourceException ex) {
+        AnimLibMod.Instance.Logger.Error("Animation Track texture missing: ", ex);
+        return ModContent.GetTexture("ModLoader/MysteryTile");
+      }
     }
 
     /// <summary>

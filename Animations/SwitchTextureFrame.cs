@@ -1,6 +1,4 @@
-﻿using Microsoft.Xna.Framework.Graphics;
-
-namespace AnimLib.Animations {
+﻿namespace AnimLib.Animations {
   /// <summary>
   /// Single frame of animation that switches to another spritesheet. Stores sprite position on the sprite sheet, duration of the frame, and the next spritesheet to use.
   /// </summary>
@@ -15,8 +13,8 @@ namespace AnimLib.Animations {
     /// <param name="x">X position of the tile. This will be cast to a <see cref="byte"/>.</param>
     /// <param name="y">Y position of the tile. This will be cast to a <see cref="byte"/>.</param>
     /// <param name="duration">Duration of the frame. This will be cast to a <see cref="ushort"/>.</param>
-    /// /// <param name="texture">Spritesheet that this track will switch to.</param>
-    public SwitchTextureFrame(int x, int y, int duration, Texture2D texture) : this((byte)x, (byte)y, (ushort)duration, texture) { }
+    /// /// <param name="texturePath">Spritesheet that this track will switch to.</param>
+    public SwitchTextureFrame(int x, int y, int duration, string texturePath) : this((byte)x, (byte)y, (ushort)duration, texturePath) { }
 
     /// <summary>
     /// Creates a <see cref="SwitchTextureFrame"/> with the given X and Y position, frame duration, and spritesheet.
@@ -24,11 +22,11 @@ namespace AnimLib.Animations {
     /// <param name="x">X position of the tile.</param>
     /// <param name="y">Y position of the tile.</param>
     /// <param name="duration">Duration of the frame.</param>
-    /// <param name="texture">Spritesheet that this track will switch to upon reaching this frame.</param>
-    public SwitchTextureFrame(byte x, byte y, ushort duration, Texture2D texture) {
+    /// <param name="texturePath">Spritesheet that this track will switch to upon reaching this frame.</param>
+    public SwitchTextureFrame(byte x, byte y, ushort duration, string texturePath) {
       tile = new PointByte(x, y);
       this.duration = duration;
-      this.texture = texture;
+      this.texturePath = texturePath;
     }
 
     /// <inheritdoc/>
@@ -40,12 +38,12 @@ namespace AnimLib.Animations {
     /// <summary>
     /// Spritesheet this frame will switch to.
     /// </summary>
-    public Texture2D texture { get; }
+    public string texturePath { get; }
 
     /// <summary>
-    /// Returns a <see cref="string"/> containing the X and Y value of the <see cref="tile"/>, the <see cref="duration"/>, and the name of <see cref="texture"/> of this instance.
+    /// Returns a <see cref="string"/> containing the X and Y value of the <see cref="tile"/>, the <see cref="duration"/>, and the name of <see cref="texturePath"/> of this instance.
     /// </summary>
-    /// <returns>A <see cref="string"/> containing the X and Y value of the <see cref="tile"/>, the <see cref="duration"/>, and the name of <see cref="texture"/>.</returns>
-    public override string ToString() => $"x:{tile.X}, y:{tile.Y}, duration:{duration}, texture:{texture.Name}";
+    /// <returns>A <see cref="string"/> containing the X and Y value of the <see cref="tile"/>, the <see cref="duration"/>, and the name of <see cref="texturePath"/>.</returns>
+    public override string ToString() => $"x:{tile.X}, y:{tile.Y}, duration:{duration}, texturePath:{texturePath}";
   }
 }

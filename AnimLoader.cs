@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AnimLib.Animations;
@@ -54,7 +54,7 @@ namespace AnimLib {
 
       foreach (var modSources in sources.Values) {
         foreach (var source in modSources) {
-          string texturePath = source.GetType().FullName;
+          string texturePath = source.GetType().FullName.Replace('.', '/');
           source.Load(ref texturePath);
           if (ModContent.TextureExists(texturePath)) {
             source.texture = ModContent.GetTexture(texturePath);
@@ -70,6 +70,9 @@ namespace AnimLib {
       List<AnimationSource> sources = new List<AnimationSource>();
 
       foreach (var type in types) {
+        if (!type.IsSubclassOf(typeof(AnimationSource))) {
+          continue;
+        }
         try {
           if (TryConstructAnimationSource(type, mod, out var source)) {
             string _ = source.GetType().FullName;
@@ -158,10 +161,6 @@ namespace AnimLib {
       bool doAdd = true;
       if (source.tracks is null) {
         AnimLibMod.Instance.Logger.Error($"Error constructing AnimationSource from [{mod.Name}:{type.FullName}]: Tracks is null.");
-        doAdd = false;
-      }
-      if (source.texture is null) {
-        AnimLibMod.Instance.Logger.Error($"Error constructing AnimationSource from [{mod.Name}:{type.FullName}]: Texture is null.");
         doAdd = false;
       }
       if (source.spriteSize.X == 0 || source.spriteSize.Y == 0) {

@@ -36,15 +36,15 @@ namespace AnimLib.Animations {
     /// This should only ever be used if a single <strong><see cref="Track"/></strong> on its own needs to use more than one spritesheet.
     /// This does not apply to cases where an <see cref="AnimationSource"/> needs more than one <see cref="Texture2D"/> for its <see cref="Track"/>s, but rather,
     /// when a single <see cref="Track"/> needs more than one <see cref="Texture2D"/>.
-    /// If all of one <see cref="Track"/> can fit on a 2048x2048 spritesheet, use <see cref="Track.WithTexture(Texture2D)"/> instead.
+    /// If all of one <see cref="Track"/> can fit on a 2048x2048 spritesheet, use <see cref="Track.WithTexture(string)"/> instead.
     /// </remarks>
-    /// <exception cref="ArgumentNullException"><paramref name="texture"/> is <see langword="null"/>.</exception>
-    public SwitchTextureFrame WithNextSpritesheet(Texture2D texture) {
-      if (texture is null) {
-        throw new ArgumentNullException(nameof(texture));
+    /// <exception cref="ArgumentException"><paramref name="texturePath"/> is <see langword="null"/> or empty.</exception>
+    public SwitchTextureFrame WithNextSpritesheet(string texturePath) {
+      if (string.IsNullOrWhiteSpace(texturePath)) {
+        throw new ArgumentException("message", nameof(texturePath));
       }
 
-      return new SwitchTextureFrame(tile.X, tile.Y, duration, texture);
+      return new SwitchTextureFrame(tile.X, tile.Y, duration, texturePath);
     }
 
     /// <summary>
