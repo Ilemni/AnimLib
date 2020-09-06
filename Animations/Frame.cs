@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework.Graphics;
 
 namespace AnimLib.Animations {
   /// <inheritdoc cref="IFrame"/>
@@ -32,7 +31,7 @@ namespace AnimLib.Animations {
     /// <summary>
     /// For a <see cref="Track"/>, adds another <see cref="Texture2D"/> to the track, and switches to that texture when this track is played.
     /// </summary>
-    /// <exception cref="ArgumentException"><paramref name="texturePath"/> is <see langword="null"/> or empty.</exception>
+    /// <param name="texturePath">Path of the texture to play, or <see langword="null"/> to use the <see cref="AnimationSource"/>'s texture.</param>
     public SwitchTextureFrame WithTexture(string texturePath) => new SwitchTextureFrame(tile.X, tile.Y, duration, texturePath);
 
     /// <summary>
