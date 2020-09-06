@@ -108,7 +108,9 @@ namespace AnimLib {
     /// </summary>
     internal static event Action OnUnload;
 
-
+    /// <summary>
+    /// Collects the classes extending <see cref="AnimationSource"/>s and <see cref="PlayerAnimationData"/>s from all mods.
+    /// </summary>
     public override void Load() {
       if (AnimLoader.UseAnimations) {
         AnimLoader.Load();

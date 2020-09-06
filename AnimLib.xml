@@ -95,6 +95,12 @@
             After initialization, values should not be modified.
             </summary>
         </member>
+        <member name="M:AnimLib.Animations.AnimationSource.#ctor">
+            <summary>
+            Base constructor. Ensures that this is not constructed on a server.
+            </summary>
+            <exception cref="T:System.InvalidOperationException">Animation classes are not allowed to be constructed on servers.</exception>
+        </member>
         <member name="P:AnimLib.Animations.AnimationSource.spriteSize">
             <inheritdoc/>
         </member>
@@ -170,7 +176,7 @@
         <member name="P:AnimLib.Animations.Frame.duration">
             <inheritdoc/>
         </member>
-        <member name="M:AnimLib.Animations.Frame.WithNextSpritesheet(Microsoft.Xna.Framework.Graphics.Texture2D)">
+        <member name="M:AnimLib.Animations.Frame.WithNextSpritesheet(System.String)">
             <summary>
             For a <see cref="T:AnimLib.Animations.Track"/>, adds another <see cref="T:Microsoft.Xna.Framework.Graphics.Texture2D"/> to the track, and switches to that texture when this track is played.
             </summary>
@@ -178,9 +184,9 @@
             This should only ever be used if a single <strong><see cref="T:AnimLib.Animations.Track"/></strong> on its own needs to use more than one spritesheet.
             This does not apply to cases where an <see cref="T:AnimLib.Animations.AnimationSource"/> needs more than one <see cref="T:Microsoft.Xna.Framework.Graphics.Texture2D"/> for its <see cref="T:AnimLib.Animations.Track"/>s, but rather,
             when a single <see cref="T:AnimLib.Animations.Track"/> needs more than one <see cref="T:Microsoft.Xna.Framework.Graphics.Texture2D"/>.
-            If all of one <see cref="T:AnimLib.Animations.Track"/> can fit on a 2048x2048 spritesheet, use <see cref="M:AnimLib.Animations.Track.WithTexture(Microsoft.Xna.Framework.Graphics.Texture2D)"/> instead.
+            If all of one <see cref="T:AnimLib.Animations.Track"/> can fit on a 2048x2048 spritesheet, use <see cref="M:AnimLib.Animations.Track.WithTexture(System.String)"/> instead.
             </remarks>
-            <exception cref="T:System.ArgumentNullException"><paramref name="texture"/> is <see langword="null"/>.</exception>
+            <exception cref="T:System.ArgumentException"><paramref name="texturePath"/> is <see langword="null"/> or empty.</exception>
         </member>
         <member name="M:AnimLib.Animations.Frame.ToString">
             <summary>
@@ -230,6 +236,12 @@
             <para>Your <see cref="T:AnimLib.Animations.PlayerAnimationData"/> is automatically created by <see cref="T:AnimLib.AnimPlayer">AnimLib</see> when a player is initialized.
             To get your <see cref="T:AnimLib.Animations.PlayerAnimationData"/>, use <see cref="M:AnimLib.AnimLibMod.GetPlayerAnimationData``1(Terraria.Player)"/></para>
             </summary>
+        </member>
+        <member name="M:AnimLib.Animations.PlayerAnimationData.#ctor">
+            <summary>
+            Base constructor. Ensures that this is not constructed on a server.
+            </summary>
+            <exception cref="T:System.InvalidOperationException">Animation classes are not allowed to be constructed on servers.</exception>
         </member>
         <member name="M:AnimLib.Animations.PlayerAnimationData.Initialize">
             <summary>
@@ -432,23 +444,23 @@
             If all of one <see cref="T:AnimLib.Animations.Track"/> can fit on a 2048x2048 track, use that instead.
             </remarks>
         </member>
-        <member name="M:AnimLib.Animations.SwitchTextureFrame.#ctor(System.Int32,System.Int32,System.Int32,Microsoft.Xna.Framework.Graphics.Texture2D)">
+        <member name="M:AnimLib.Animations.SwitchTextureFrame.#ctor(System.Int32,System.Int32,System.Int32,System.String)">
             <summary>
             Creates a <see cref="T:AnimLib.Animations.Frame"/> with the given X and Y position, frame duration, and spritesheet. These values will be cast to smaller data types.
             </summary>
             <param name="x">X position of the tile. This will be cast to a <see cref="T:System.Byte"/>.</param>
             <param name="y">Y position of the tile. This will be cast to a <see cref="T:System.Byte"/>.</param>
             <param name="duration">Duration of the frame. This will be cast to a <see cref="T:System.UInt16"/>.</param>
-            /// <param name="texture">Spritesheet that this track will switch to.</param>
+            /// <param name="texturePath">Spritesheet that this track will switch to.</param>
         </member>
-        <member name="M:AnimLib.Animations.SwitchTextureFrame.#ctor(System.Byte,System.Byte,System.UInt16,Microsoft.Xna.Framework.Graphics.Texture2D)">
+        <member name="M:AnimLib.Animations.SwitchTextureFrame.#ctor(System.Byte,System.Byte,System.UInt16,System.String)">
             <summary>
             Creates a <see cref="T:AnimLib.Animations.SwitchTextureFrame"/> with the given X and Y position, frame duration, and spritesheet.
             </summary>
             <param name="x">X position of the tile.</param>
             <param name="y">Y position of the tile.</param>
             <param name="duration">Duration of the frame.</param>
-            <param name="texture">Spritesheet that this track will switch to upon reaching this frame.</param>
+            <param name="texturePath">Spritesheet that this track will switch to upon reaching this frame.</param>
         </member>
         <member name="P:AnimLib.Animations.SwitchTextureFrame.tile">
             <inheritdoc/>
@@ -456,16 +468,16 @@
         <member name="P:AnimLib.Animations.SwitchTextureFrame.duration">
             <inheritdoc/>
         </member>
-        <member name="P:AnimLib.Animations.SwitchTextureFrame.texture">
+        <member name="P:AnimLib.Animations.SwitchTextureFrame.texturePath">
             <summary>
             Spritesheet this frame will switch to.
             </summary>
         </member>
         <member name="M:AnimLib.Animations.SwitchTextureFrame.ToString">
             <summary>
-            Returns a <see cref="T:System.String"/> containing the X and Y value of the <see cref="P:AnimLib.Animations.SwitchTextureFrame.tile"/>, the <see cref="P:AnimLib.Animations.SwitchTextureFrame.duration"/>, and the name of <see cref="P:AnimLib.Animations.SwitchTextureFrame.texture"/> of this instance.
+            Returns a <see cref="T:System.String"/> containing the X and Y value of the <see cref="P:AnimLib.Animations.SwitchTextureFrame.tile"/>, the <see cref="P:AnimLib.Animations.SwitchTextureFrame.duration"/>, and the name of <see cref="P:AnimLib.Animations.SwitchTextureFrame.texturePath"/> of this instance.
             </summary>
-            <returns>A <see cref="T:System.String"/> containing the X and Y value of the <see cref="P:AnimLib.Animations.SwitchTextureFrame.tile"/>, the <see cref="P:AnimLib.Animations.SwitchTextureFrame.duration"/>, and the name of <see cref="P:AnimLib.Animations.SwitchTextureFrame.texture"/>.</returns>
+            <returns>A <see cref="T:System.String"/> containing the X and Y value of the <see cref="P:AnimLib.Animations.SwitchTextureFrame.tile"/>, the <see cref="P:AnimLib.Animations.SwitchTextureFrame.duration"/>, and the name of <see cref="P:AnimLib.Animations.SwitchTextureFrame.texturePath"/>.</returns>
         </member>
         <member name="T:AnimLib.Animations.Track">
             <summary>
@@ -549,24 +561,24 @@
         </member>
         <member name="P:AnimLib.Animations.Track.multiTexture">
             <summary>
-            Whether or not any <see cref="T:AnimLib.Animations.IFrame"/> in <see cref="F:AnimLib.Animations.Track.frames"/> is a <see cref="T:AnimLib.Animations.SwitchTextureFrame"/> (from <see cref="M:AnimLib.Animations.Frame.WithNextSpritesheet(Microsoft.Xna.Framework.Graphics.Texture2D)"/>).
+            Whether or not any <see cref="T:AnimLib.Animations.IFrame"/> in <see cref="F:AnimLib.Animations.Track.frames"/> is a <see cref="T:AnimLib.Animations.SwitchTextureFrame"/> (from <see cref="!:Frame.WithNextSpritesheet(Texture2D)"/>).
             </summary>
         </member>
         <member name="P:AnimLib.Animations.Track.trackTexture">
             <summary>
-            Texture of the track itself. If any <see cref="T:AnimLib.Animations.SwitchTextureFrame"/>s are in use, use <see cref="M:AnimLib.Animations.Track.GetTexture(System.Int32)"/> instead.
+            Texture of the track itself. If you have used any <see cref="T:AnimLib.Animations.SwitchTextureFrame"/>s (from <see cref="M:AnimLib.Animations.Frame.WithNextSpritesheet(System.String)"/>), use <see cref="M:AnimLib.Animations.Track.GetTexture(System.Int32)"/> instead.
             </summary>
         </member>
         <member name="M:AnimLib.Animations.Track.GetTexture(System.Int32)">
             <summary>
             Optional spritesheet that may be used instead of <see cref="P:AnimLib.Animations.AnimationSource.texture"/>.
-            <para>If any frame after or including the current frame (at <paramref name="frameIdx"/>) is a <see cref="T:AnimLib.Animations.SwitchTextureFrame"/>, that <see cref="P:AnimLib.Animations.SwitchTextureFrame.texture"/> will be returned.</para>
-            <para>If this track uses its own <see cref="T:Microsoft.Xna.Framework.Graphics.Texture2D"/> (assigned with <see cref="M:AnimLib.Animations.Track.WithTexture(Microsoft.Xna.Framework.Graphics.Texture2D)"/> during construction), that is returned. Otherwise, returns <see langword="null"/></para>
+            <para>If any frame after or including the current frame (at <paramref name="frameIdx"/>) is a <see cref="T:AnimLib.Animations.SwitchTextureFrame"/>, that <see cref="P:AnimLib.Animations.SwitchTextureFrame.texturePath"/> will be returned.</para>
+            <para>If this track uses its own <see cref="T:Microsoft.Xna.Framework.Graphics.Texture2D"/> (assigned with <see cref="M:AnimLib.Animations.Track.WithTexture(System.String)"/> during construction), that is returned. Otherwise, returns <see langword="null"/></para>
             </summary>
             <param name="frameIdx">Index of the <see cref="T:AnimLib.Animations.IFrame"/> currently being played.</param>
             <returns>A valid <see cref="T:Microsoft.Xna.Framework.Graphics.Texture2D"/> if <see cref="P:AnimLib.Animations.AnimationSource.texture"/> should be overridden, else <see langword="null"/>.</returns>
         </member>
-        <member name="M:AnimLib.Animations.Track.WithTexture(Microsoft.Xna.Framework.Graphics.Texture2D)">
+        <member name="M:AnimLib.Animations.Track.WithTexture(System.String)">
             <summary>
             Assign a spritesheet that will be used instead of <see cref="P:AnimLib.Animations.AnimationSource.texture"/>.
             </summary>
@@ -613,9 +625,34 @@
             <returns>A <see cref="T:AnimLib.Animations.PlayerAnimationData"/> of type <typeparamref name="T"/>.</returns>
             <exception cref="T:System.ArgumentNullException"><paramref name="player"/> cannot be null.</exception>
         </member>
+        <member name="M:AnimLib.AnimLibMod.GetAnimationSource``2">
+            <summary>
+            Gets the <see cref="T:AnimLib.Animations.AnimationSource"/> of the given type from the given <see cref="T:Terraria.ModLoader.Mod"/>.
+            Use this if you want to access one of your <see cref="T:AnimLib.Animations.AnimationSource"/>s.
+            <para>This <strong>cannot</strong> be used during the <see cref="M:Terraria.ModLoader.Mod.PostSetupContent"/> method or earlier.</para>
+            </summary>
+            <typeparam name="T">Type of <see cref="T:AnimLib.Animations.AnimationSource"/> to get.</typeparam>
+            <typeparam name="TMod">Your mod type.</typeparam>
+            <returns>A <see cref="T:AnimLib.Animations.AnimationSource"/> of type <typeparamref name="T"/>.</returns>
+        </member>
+        <member name="M:AnimLib.AnimLibMod.GetAnimationSource``1(Terraria.ModLoader.Mod)">
+            <summary>
+            Gets the <see cref="T:AnimLib.Animations.AnimationSource"/> of the given type.
+            Use this if you want to access one of your <see cref="T:AnimLib.Animations.AnimationSource"/>s.
+            <para>This <strong>cannot</strong> be used during the <see cref="M:Terraria.ModLoader.Mod.PostSetupContent"/> method or earlier.</para>
+            </summary>
+            <param name="mod">Your mod.</param>
+            <typeparam name="T">Type of <see cref="T:AnimLib.Animations.AnimationSource"/> to get.</typeparam>
+            <returns>A <see cref="T:AnimLib.Animations.AnimationSource"/> of type <typeparamref name="T"/>.</returns>
+        </member>
         <member name="E:AnimLib.AnimLibMod.OnUnload">
             <summary>
             Use this to null static reference types on unload.
+            </summary>
+        </member>
+        <member name="M:AnimLib.AnimLibMod.Load">
+            <summary>
+            Collects the classes extending <see cref="T:AnimLib.Animations.AnimationSource"/>s and <see cref="T:AnimLib.Animations.PlayerAnimationData"/>s from all mods.
             </summary>
         </member>
         <member name="M:AnimLib.AnimLibMod.PostSetupContent">
@@ -726,42 +763,13 @@
             Sets the static reference of <see cref="T:AnimLib.SingleInstance`1"/> to <see langword="null"/>. Calls <see cref="M:System.IDisposable.Dispose"/> first, if applicable.
             </summary>
         </member>
-        <member name="M:AnimLib.ReflectionUtils.IsSubclassOfRawGeneric(System.Type,System.Type)">
+        <member name="M:AnimLib.Utils.SafeTypeName(System.Type,System.String)">
             <summary>
-            Alternative version of <see cref="M:System.Type.IsSubclassOf(System.Type)"/> that supports raw generic types (generic types without
-            any type parameters).
+            Returns the name of the <see cref="T:System.Type"/> if it is not equal to the given <see cref="T:System.String"/>, otherwise returns the full name of the <see cref="T:System.Type"/>.
             </summary>
-            <param name="baseType">The base type class for which the check is made.</param>
-            <param name="toCheck">To type to determine for whether it derives from <paramref name="baseType"/>.</param>
-        </member>
-        <member name="M:AnimLib.ReflectionUtils.GetMethodExt(System.Type,System.String,System.Type[])">
-            <summary>
-            Search for a method by name, parameter types, and binding flags.  
-            Unlike <see cref="M:System.Type.GetMethod(System.String)"/>, this does 'loose' matching on generic
-            parameter types, and searches base interfaces.
-            </summary>
-            <exception cref="T:System.Reflection.AmbiguousMatchException"/>
-        </member>
-        <member name="M:AnimLib.ReflectionUtils.GetMethodExt(System.Type,System.String,System.Reflection.BindingFlags,System.Type[])">
-            <summary>
-            Search for a method by name, parameter types, and binding flags.  
-            Unlike <see cref="M:System.Type.GetMethod(System.String)"/>, this does 'loose' matching on generic
-            parameter types, and searches base interfaces.
-            </summary>
-            <exception cref="T:System.Reflection.AmbiguousMatchException"/>
-        </member>
-        <member name="T:AnimLib.ReflectionUtils.T">
-            <summary>
-            Special type used to match any generic parameter type in <see cref="M:AnimLib.ReflectionUtils.GetMethodExt(System.Type,System.String,System.Reflection.BindingFlags,System.Type[])"/>.
-            </summary>
-        </member>
-        <member name="M:AnimLib.ReflectionUtils.IsSimilarType(System.Type,System.Type)">
-            <summary>
-            Determines if the two types are either identical, or are both generic 
-            parameters or generic types with generic parameters in the same
-            locations (generic parameters match any other generic paramter,
-            but NOT concrete types).
-            </summary>
+            <param name="type">Type to get the name or full name of.</param>
+            <param name="compareTo">String to compare against the name.</param>
+            <returns>The <see cref="T:System.Type"/>'s name, or its full name if the name matches the given <see cref="T:System.String"/>.</returns>
         </member>
     </members>
 </doc>

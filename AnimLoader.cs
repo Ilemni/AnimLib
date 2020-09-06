@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using AnimLib.Animations;
@@ -34,15 +34,13 @@ namespace AnimLib {
             playerAnimationDataTypes[mod] = type;
           }
           else {
-            AnimLibMod.Instance.Logger.Error($"{mod.Name} error: {mod.Name} contains {(list.Count > 1 ? "classes" : "a class")} extending AnimationSource, but does not contain any classes extending {nameof(PlayerAnimationData)}s");
+            AnimLibMod.Instance.Logger.Error($"{mod.Name} error: {mod.Name} contains {(list.Count > 1 ? "classes" : "a class")} extending {nameof(AnimationSource)}, but does not contain any classes extending {nameof(PlayerAnimationData)}s");
           }
         }
       }
 
-      if (!Instance.animationSources.Any()) {
-        Instance.animationSources = null;
-        Instance.playerAnimationDataTypes = null;
-        AnimLibMod.Instance.Logger.Warn("AnimLibMod loaded; no mods contained any AnimationSources. Currently there is no reason for this mod to be enabled.");
+      if (!Instance.animationSources.Any() && !Instance.playerAnimationDataTypes.Any()) {
+        AnimLibMod.Instance.Logger.Warn($"AnimLibMod loaded; no mods contained any {nameof(AnimationSource)}s or {nameof(PlayerAnimationData)}s. Currently there is no reason for this mod to be enabled.");
       }
     }
 
@@ -78,15 +76,15 @@ namespace AnimLib {
             string _ = source.GetType().FullName;
             if (source.Load(ref _)) {
               sources.Add(source);
-              AnimLibMod.Instance.Logger.Info($"From mod {mod.Name} collected AnimationSource \"{(type.Name != "AnimationSource" ? type.Name : type.FullName)}\"");
+              AnimLibMod.Instance.Logger.Info($"From mod {mod.Name} collected {nameof(AnimationSource)} \"{type.SafeTypeName(nameof(AnimationSource))}\"");
             }
             else {
-              AnimLibMod.Instance.Logger.Info($"Skipped {mod.Name} AnimationSource \"{(type.Name != "AnimationSource" ? type.Name : type.FullName)}\", Load() returned false.");
+              AnimLibMod.Instance.Logger.Info($"Skipped {mod.Name} {nameof(AnimationSource)} \"{type.SafeTypeName(nameof(AnimationSource))}\", Load() returned false.");
             }
           }
         }
         catch (Exception ex) {
-          AnimLibMod.Instance.Logger.Error($"Exception thrown when constructing AnimationSource from [{mod.Name}:{type.FullName}]", ex);
+          AnimLibMod.Instance.Logger.Error($"Exception thrown when constructing {nameof(AnimationSource)} from [{mod.Name}:{type.FullName}]", ex);
         }
       }
 
@@ -98,11 +96,11 @@ namespace AnimLib {
       foreach (var type in types) {
         if (type.IsSubclassOf(typeof(PlayerAnimationData))) {
           if (result is null) {
-            AnimLibMod.Instance.Logger.Info($"From mod {mod.Name} collected PlayerAnimationData \"{(type.Name != nameof(PlayerAnimationData) ? type.Name : type.FullName)}\"");
+            AnimLibMod.Instance.Logger.Info($"From mod {mod.Name} collected {nameof(PlayerAnimationData)} \"{type.SafeTypeName(nameof(PlayerAnimationData))}\"");
             result = type;
           }
           else {
-            AnimLibMod.Instance.Logger.Error($"Error collecting PlayerAnimationData from [{type.Name}]: More than one PlayerAnimationData found. Keeping {result.GetType()}, skipping {type.FullName}");
+            AnimLibMod.Instance.Logger.Error($"Error collecting {nameof(PlayerAnimationData)} from [{mod.Name}]: More than one {nameof(PlayerAnimationData)} found. Keeping {result.GetType().Name}, skipping {type.FullName}");
           }
         }
       }
@@ -121,7 +119,7 @@ namespace AnimLib {
             animPlayer.animationDatas[mod] = playerData;
           }
           catch (Exception ex) {
-            AnimLibMod.Instance.Logger.Error($"Exception thrown when constructing PlayerAnimationData from [{mod.Name}:{type.FullName}]", ex);
+            AnimLibMod.Instance.Logger.Error($"Exception thrown when constructing {nameof(PlayerAnimationData)} from [{mod.Name}:{type.FullName}]", ex);
           }
         }
       }
@@ -151,7 +149,7 @@ namespace AnimLib {
       }
 
       if (AnimDebugCommand.DebugEnabled) {
-        AnimLibMod.Instance.Logger.Debug($"PlayerAnimationData for mod {mod.Name} created with {animations.Length} animations. Its MainAnimation is {playerData.MainAnimation?.source.GetType().Name ?? "null"}");
+        AnimLibMod.Instance.Logger.Debug($"{nameof(PlayerAnimationData)} for mod {mod.Name} created with {animations.Length} animations. Its MainAnimation is {playerData.MainAnimation?.source.GetType().Name ?? "null"}");
       }
       return playerData;
     }
@@ -160,11 +158,11 @@ namespace AnimLib {
       source = Activator.CreateInstance(type, true) as AnimationSource;
       bool doAdd = true;
       if (source.tracks is null) {
-        AnimLibMod.Instance.Logger.Error($"Error constructing AnimationSource from [{mod.Name}:{type.FullName}]: Tracks is null.");
+        AnimLibMod.Instance.Logger.Error($"Error constructing {nameof(AnimationSource)} from [{mod.Name}:{type.FullName}]: Tracks is null.");
         doAdd = false;
       }
       if (source.spriteSize.X == 0 || source.spriteSize.Y == 0) {
-        AnimLibMod.Instance.Logger.Error($"Error constructing AnimationSource from [{mod.Name}:{type.FullName}]: Sprite Size cannot be 0 width or 0 height.");
+        AnimLibMod.Instance.Logger.Error($"Error constructing {nameof(AnimationSource)} from [{mod.Name}:{type.FullName}]: Sprite Size cannot be 0 width or 0 height.");
         doAdd = false;
       }
       if (doAdd) {
