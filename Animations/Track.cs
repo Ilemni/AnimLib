@@ -121,12 +121,12 @@ namespace AnimLib.Animations {
     public Texture2D trackTexture { get; private set; }
 
     /// <summary>
-    /// Optional spritesheet that may be used instead of <see cref="IAnimationSource.texture"/>.
+    /// Optional spritesheet that may be used instead of <see cref="AnimationSource.texture"/>.
     /// <para>If any frame after or including the current frame (at <paramref name="frameIdx"/>) is a <see cref="SwitchTextureFrame"/>, that <see cref="SwitchTextureFrame.texture"/> will be returned.</para>
     /// <para>If this track uses its own <see cref="Texture2D"/> (assigned with <see cref="WithTexture(Texture2D)"/> during construction), that is returned. Otherwise, returns <see langword="null"/></para>
     /// </summary>
     /// <param name="frameIdx">Index of the <see cref="IFrame"/> currently being played.</param>
-    /// <returns>A valid <see cref="Texture2D"/> if <see cref="IAnimationSource.texture"/> should be overridden, else <see langword="null"/>.</returns>
+    /// <returns>A valid <see cref="Texture2D"/> if <see cref="AnimationSource.texture"/> should be overridden, else <see langword="null"/>.</returns>
     public Texture2D GetTexture(int frameIdx) {
       if (frameIdx > Length - 1) {
         frameIdx = Length - 1;
@@ -146,7 +146,7 @@ namespace AnimLib.Animations {
     }
 
     /// <summary>
-    /// Assign a spritesheet that will be used instead of <see cref="IAnimationSource.texture"/>.
+    /// Assign a spritesheet that will be used instead of <see cref="AnimationSource.texture"/>.
     /// </summary>
     public Track WithTexture(Texture2D texture) {
       this.trackTexture = texture;

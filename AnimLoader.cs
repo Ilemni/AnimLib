@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -58,7 +58,7 @@ namespace AnimLib {
       return sources;
     }
 
-    private Type GetPlayerAnimationDataTypeFromTypes(IEnumerable<Type> types, Mod mod) {
+    private static Type GetPlayerAnimationDataTypeFromTypes(IEnumerable<Type> types, Mod mod) {
       Type result = null;
       foreach (var type in types) {
         if (type.IsSubclassOf(typeof(PlayerAnimationData))) {
@@ -67,7 +67,7 @@ namespace AnimLib {
             result = type;
           }
           else {
-            AnimLibMod.Instance.Logger.Error($"Error collecting PlayerAnimationData from [{type.Name}]: More than one PlayerAnimationData found. Keeping {playerAnimationDataTypes[mod].GetType()}, skipping {type.FullName}");
+            AnimLibMod.Instance.Logger.Error($"Error collecting PlayerAnimationData from [{type.Name}]: More than one PlayerAnimationData found. Keeping {result.GetType()}, skipping {type.FullName}");
           }
         }
       }
@@ -106,9 +106,8 @@ namespace AnimLib {
       }
     }
 
-    private static bool TryConstructAnimationSource(Type type, Mod mod, out IAnimationSource source) {
-      var initMethod = type.GetMethodExt("Initialize", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy, null);
-      source = initMethod?.Invoke(null, null) as IAnimationSource;
+    private static bool TryConstructAnimationSource(Type type, Mod mod, out AnimationSource source) {
+      source = Activator.CreateInstance(type, true) as AnimationSource;
       bool doAdd = true;
       if (source.tracks is null) {
         AnimLibMod.Instance.Logger.Error($"Error constructing AnimationSource from [{mod.Name}:{type.FullName}]: Tracks is null.");
@@ -123,7 +122,7 @@ namespace AnimLib {
         doAdd = false;
       }
       if (doAdd) {
-        (source as IWriteMod).mod = mod;
+        source.mod = mod;
         return true;
       }
       source = null;

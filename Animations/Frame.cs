@@ -34,7 +34,7 @@ namespace AnimLib.Animations {
     /// </summary>
     /// <remarks>
     /// This should only ever be used if a single <strong><see cref="Track"/></strong> on its own needs to use more than one spritesheet.
-    /// This does not apply to cases where an <see cref="IAnimationSource"/> needs more than one <see cref="Texture2D"/> for its <see cref="Track"/>s, but rather,
+    /// This does not apply to cases where an <see cref="AnimationSource"/> needs more than one <see cref="Texture2D"/> for its <see cref="Track"/>s, but rather,
     /// when a single <see cref="Track"/> needs more than one <see cref="Texture2D"/>.
     /// If all of one <see cref="Track"/> can fit on a 2048x2048 spritesheet, use <see cref="Track.WithTexture(Texture2D)"/> instead.
     /// </remarks>

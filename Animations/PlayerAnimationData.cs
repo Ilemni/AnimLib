@@ -18,16 +18,16 @@ namespace AnimLib.Animations {
     /// </summary>
     /// <param name="modPlayer">The <see cref="ModPlayer"/> instance the animations will belong to.</param>
     /// <exception cref="InvalidOperationException">Animation classes are not allowed to be constructed on a server.</exception>
-    /// <exception cref="InvalidOperationException">The mod of the given <see cref="ModPlayer"/> does not contain any classes derived from <see cref="AnimationSource{T}"/>.</exception>
+    /// <exception cref="InvalidOperationException">The mod of the given <see cref="ModPlayer"/> does not contain any classes derived from <see cref="AnimationSource"/>.</exception>
     protected PlayerAnimationData(ModPlayer modPlayer) : this(modPlayer.player, modPlayer.mod) { }
 
     /// <summary>
     /// Creates a new instance of <see cref="PlayerAnimationData"/> for the given <see cref="Player"/> that belongs to <see cref="Mod"/>.
     /// </summary>
     /// <param name="player">The <see cref="Player"/> instance the animations will belong to.</param>
-    /// <param name="mod">The mod that owns the <see cref="IAnimationSource"/>s this will use.</param>
+    /// <param name="mod">The mod that owns the <see cref="AnimationSource"/>s this will use.</param>
     /// <exception cref="InvalidOperationException">Animation classes are not allowed to be constructed on a server.</exception>
-    /// <exception cref="InvalidOperationException">The mod of the given <see cref="ModPlayer"/> does not contain any classes derived from <see cref="AnimationSource{T}"/>.</exception>
+    /// <exception cref="InvalidOperationException">The mod of the given <see cref="ModPlayer"/> does not contain any classes derived from <see cref="AnimationSource"/>.</exception>
     protected PlayerAnimationData(Player player, Mod mod) {
       if (Main.netMode == NetmodeID.Server) {
         throw new InvalidOperationException($"Animation classes are not allowed to be constructed on servers.");
@@ -77,14 +77,14 @@ namespace AnimLib.Animations {
     public readonly Mod mod;
 
     /// <summary>
-    /// The <see cref="Animation"/> to retrieve track data from, such as frame duration. This <see cref="Animation"/>'s <see cref="IAnimationSource"/> must contain all tracks that can be used.
+    /// The <see cref="Animation"/> to retrieve track data from, such as frame duration. This <see cref="Animation"/>'s <see cref="AnimationSource"/> must contain all tracks that can be used.
     /// <para>By default this is the first <see cref="Animation"/> in <see cref="animations"/>.</para>
     /// </summary>
     public Animation MainAnimation { get; private set; }
 
     /// <summary>
     /// Sets the main <see cref="Animation"/> of this player to the given <see cref="Animation"/>.
-    /// This can be useful for things like player transformations that use multiple <see cref="AnimationSource{T}"/>s.
+    /// This can be useful for things like player transformations that use multiple <see cref="AnimationSource"/>s.
     /// </summary>
     /// <param name="animation">Animation to set this player's <see cref="MainAnimation"/> to.</param>
     /// <exception cref="ArgumentNullException"><paramref name="animation"/> is null.</exception>
@@ -97,10 +97,10 @@ namespace AnimLib.Animations {
 
     /// <summary>
     /// Sets the main <see cref="Animation"/> of this player to the animation whose source is <typeparamref name="T"/>.
-    /// This can be useful for things like player transformations that use multiple <see cref="AnimationSource{T}"/>s.
+    /// This can be useful for things like player transformations that use multiple <see cref="AnimationSource"/>s.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public void SetMainAnimation<T>() where T : AnimationSource<T> {
+    public void SetMainAnimation<T>() where T : AnimationSource {
       var result = GetAnimation<T>();
       // This shouldn't ever be null
       if (result != null) {
@@ -144,15 +144,15 @@ namespace AnimLib.Animations {
     public bool Reversed { get; private set; }
 
     /// <summary>
-    /// Gets the <see cref="Animation"/> from this <see cref="animations"/> where its <see cref="AnimationSource{T}"/> is of type <typeparamref name="T"/>.
+    /// Gets the <see cref="Animation"/> from this <see cref="animations"/> where its <see cref="AnimationSource"/> is of type <typeparamref name="T"/>.
     /// </summary>
     /// <remarks>
     /// In theory this shouldn't ever return <see langword="null"/>, unless this <see cref="PlayerAnimationData"/> was constructed prior to <see cref="AnimLibMod.PostSetupContent"/>.
     /// </remarks>
-    /// <typeparam name="T">Type of <see cref="AnimationSource{T}"/></typeparam>
-    /// <returns>The <see cref="Animation"/> with the matching <see cref="AnimationSource{T}"/>.</returns>
+    /// <typeparam name="T">Type of <see cref="AnimationSource"/></typeparam>
+    /// <returns>The <see cref="Animation"/> with the matching <see cref="AnimationSource"/>.</returns>
     /// <exception cref="ArgumentException"><typeparamref name="T"/> and <see cref="mod"/> are from different assemblies.</exception>
-    public Animation GetAnimation<T>() where T : AnimationSource<T> {
+    public Animation GetAnimation<T>() where T : AnimationSource {
       foreach (var anim in animations) {
         if (anim.source is T) {
           return anim;
@@ -214,7 +214,7 @@ namespace AnimLib.Animations {
     /// Plays the <see cref="Track"/> of the given name.
     /// </summary>
     /// <exception cref="ArgumentException"><paramref name="trackName"/> was null or whitespace.</exception>
-    /// <exception cref="KeyNotFoundException">The value of <paramref name="trackName"/> was not a key in the main <see cref="IAnimationSource.tracks"/>.</exception>
+    /// <exception cref="KeyNotFoundException">The value of <paramref name="trackName"/> was not a key in the main <see cref="AnimationSource.tracks"/>.</exception>
     protected void IncrementFrame(string trackName)
       => IncrementFrame(trackName, null, null, null, 0, null, null);
 
@@ -256,10 +256,10 @@ namespace AnimLib.Animations {
     /// <summary>
     /// Plays the <see cref="Track"/> in the given <see cref="Direction"/>.
     /// </summary>
-    /// <param name="trackName">Name of the animation track to play/continue. This must be a valid key in the <see cref="IAnimationSource"/> for <see cref="MainAnimation"/>.</param>
+    /// <param name="trackName">Name of the animation track to play/continue. This must be a valid key in the <see cref="AnimationSource"/> for <see cref="MainAnimation"/>.</param>
     /// <param name="direction"><see cref="Direction"/> for the track to play.</param>
     /// <exception cref="ArgumentException"><paramref name="trackName"/> was null or whitespace.</exception>
-    /// <exception cref="KeyNotFoundException">The value of <paramref name="trackName"/> was not a key in the main <see cref="IAnimationSource.tracks"/>.</exception>
+    /// <exception cref="KeyNotFoundException">The value of <paramref name="trackName"/> was not a key in the main <see cref="AnimationSource.tracks"/>.</exception>
     protected void IncrementFrame(string trackName, Direction? direction)
       => IncrementFrame(trackName, null, null, null, 0, null, direction);
 
@@ -268,7 +268,7 @@ namespace AnimLib.Animations {
     /// </summary>
     /// <param name="trackName">
     /// Name of the animation track to play/continue.
-    /// <para>This must be a valid key in the <see cref="IAnimationSource"/> for <see cref="MainAnimation"/>.</para>
+    /// <para>This must be a valid key in the <see cref="AnimationSource"/> for <see cref="MainAnimation"/>.</para>
     /// </param>
     /// <param name="frameIndex">
     /// The frame to play, -or- <see langword="null"/> to use the current <see cref="Frame"/>.
@@ -294,7 +294,7 @@ namespace AnimLib.Animations {
     /// </param>
     /// <exception cref="ArgumentException"><paramref name="trackName"/> was null or whitespace.</exception>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="frameIndex"/> is less than 0, or greater than the count of <paramref name="trackName"/>'s frames, -or- <paramref name="speed"/> was negative, -or- <paramref name="duration"/> was negative or 0.</exception>
-    /// <exception cref="KeyNotFoundException">The value of <paramref name="trackName"/> was not a key in the main <see cref="IAnimationSource.tracks"/>.</exception>
+    /// <exception cref="KeyNotFoundException">The value of <paramref name="trackName"/> was not a key in the main <see cref="AnimationSource.tracks"/>.</exception>
     protected void IncrementFrame(string trackName, int? frameIndex, float? speed, int? duration, float rotation, LoopMode? loop, Direction? direction) {
       if (string.IsNullOrWhiteSpace(trackName)) {
         throw new ArgumentException($"{nameof(trackName)} cannot be null or whitespace.", nameof(trackName));

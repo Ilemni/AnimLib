@@ -6,7 +6,7 @@ using Terraria.ModLoader;
 
 namespace AnimLib {
   /// <summary>
-  /// Central place for all <see cref="IAnimationSource"/>s across all other <see cref="Mod"/>s.
+  /// Interface for any mods using this mod to interact with.
   /// </summary>
 	public sealed class AnimLibMod : Mod {
     /// <summary>
@@ -82,7 +82,7 @@ namespace AnimLib {
     }
 
     /// <summary>
-    /// Collects and constructs all <see cref="IAnimationSource"/>s across all other <see cref="Mod"/>s.
+    /// Collects and constructs all <see cref="AnimationSource"/>s across all other <see cref="Mod"/>s.
     /// </summary>
     public override void PostSetupContent() {
       if (Main.netMode != NetmodeID.Server) {

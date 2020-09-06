@@ -9,17 +9,17 @@ using Terraria.ModLoader;
 
 namespace AnimLib.Animations {
   /// <summary>
-  /// Animation for a single player. This class uses runtime data from a <see cref="PlayerAnimationData"/> to retrieve values from an <see cref="IAnimationSource"/>.
+  /// Animation for a single player. This class uses runtime data from a <see cref="PlayerAnimationData"/> to retrieve values from an <see cref="AnimationSource"/>.
   /// <para>One of these will be created for each <see cref="PlayerAnimationData"/> you have in your mod, per player.</para>
   /// </summary>
   public sealed class Animation {
     /// <summary>
-    /// Creates a new instance of <see cref="Animation"/> for the given <see cref="AnimPlayer"/>, using the given <see cref="IAnimationSource"/> and rendering with <see cref="PlayerLayer"/>.
+    /// Creates a new instance of <see cref="Animation"/> for the given <see cref="AnimPlayer"/>, using the given <see cref="AnimationSource"/> and rendering with <see cref="PlayerLayer"/>.
     /// </summary>
     /// <param name="container"><see cref="PlayerAnimationData"/> instance this will belong to.</param>
-    /// <param name="source"><see cref="IAnimationSource"/> to determine which sprite is drawn.</param>
+    /// <param name="source"><see cref="AnimationSource"/> to determine which sprite is drawn.</param>
     /// <exception cref="System.InvalidOperationException">Animation classes are not allowed to be constructed on a server.</exception>
-    public Animation(PlayerAnimationData container, IAnimationSource source) {
+    public Animation(PlayerAnimationData container, AnimationSource source) {
       if (Main.netMode == NetmodeID.Server) {
         throw new System.InvalidOperationException($"Animation classes are not allowed to be constructed on servers.");
       }
@@ -34,18 +34,18 @@ namespace AnimLib.Animations {
     public readonly PlayerAnimationData playerData;
 
     /// <summary>
-    /// <see cref="IAnimationSource"/> database used for this <see cref="Animation"/>.
+    /// <see cref="AnimationSource"/> database used for this <see cref="Animation"/>.
     /// </summary>
-    public readonly IAnimationSource source;
+    public readonly AnimationSource source;
 
     /// <summary>
-    /// Whether or not the current <see cref="PlayerAnimationData.TrackName"/> maps to a valid <see cref="Track"/> on this <see cref="IAnimationSource"/>.
+    /// Whether or not the current <see cref="PlayerAnimationData.TrackName"/> maps to a valid <see cref="Track"/> on this <see cref="AnimationSource"/>.
     /// </summary>
     public bool Valid { get; private set; }
 
     /// <summary>
     /// Current <see cref="Track"/> that is being played.
-    /// <para>If <see cref="PlayerAnimationData.TrackName"/> is not a valid track name, this returns the first <see cref="Track"/> in the <see cref="IAnimationSource"/>.</para>
+    /// <para>If <see cref="PlayerAnimationData.TrackName"/> is not a valid track name, this returns the first <see cref="Track"/> in the <see cref="AnimationSource"/>.</para>
     /// </summary>
     public Track CurrentTrack => Valid ? source.tracks[playerData.TrackName] : source.tracks.First().Value;
 
@@ -75,7 +75,7 @@ namespace AnimLib.Animations {
 
     /// <summary>
     /// Current <see cref="Texture2D"/> that is to be drawn.
-    /// <para>If <see cref="Track.GetTexture(int)"/> is not <see langword="null"/>, that is returned; otherwise, returns the <see cref="IAnimationSource"/>'s <see cref="Texture2D"/>.</para>
+    /// <para>If <see cref="Track.GetTexture(int)"/> is not <see langword="null"/>, that is returned; otherwise, returns the <see cref="AnimationSource"/>'s <see cref="Texture2D"/>.</para>
     /// </summary>
     public Texture2D CurrentTexture => CurrentTrack.GetTexture(playerData.FrameIndex) ?? source.texture;
 
