@@ -32,7 +32,7 @@ namespace AnimLib.Animations {
       if (Main.netMode == NetmodeID.Server) {
         throw new InvalidOperationException($"Animation classes are not allowed to be constructed on servers.");
       }
-      var sources = AnimLibMod.Instance.animationSources;
+      var sources = AnimLoader.Instance.animationSources;
       if (!sources.ContainsKey(mod)) {
         throw new InvalidOperationException($"{mod.Name} does not contain any classes derived from AnimationSource.");
       }
