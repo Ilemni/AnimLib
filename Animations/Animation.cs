@@ -8,29 +8,29 @@ using Terraria.ModLoader;
 
 namespace AnimLib.Animations {
   /// <summary>
-  /// Animation for a single player. This class uses runtime data from a <see cref="PlayerAnimationData"/> to retrieve values from an <see cref="AnimationSource"/>.
-  /// <para>One of these will be created for each <see cref="PlayerAnimationData"/> you have in your mod, per player.</para>
+  /// Animation for a single player. This class uses runtime data from a <see cref="AnimationController"/> to retrieve values from an <see cref="AnimationSource"/>.
+  /// <para>One of these will be created for each <see cref="AnimationController"/> you have in your mod, per player.</para>
   /// </summary>
   public sealed class Animation {
     /// <summary>
     /// Creates a new instance of <see cref="Animation"/> for the given <see cref="AnimPlayer"/>, using the given <see cref="AnimationSource"/> and rendering with <see cref="PlayerLayer"/>.
     /// </summary>
-    /// <param name="container"><see cref="PlayerAnimationData"/> instance this will belong to.</param>
+    /// <param name="container"><see cref="AnimationController"/> instance this will belong to.</param>
     /// <param name="source"><see cref="AnimationSource"/> to determine which sprite is drawn.</param>
     /// <exception cref="System.InvalidOperationException">Animation classes are not allowed to be constructed on a server.</exception>
-    public Animation(PlayerAnimationData container, AnimationSource source) {
+    internal Animation(AnimationController container, AnimationSource source) {
       if (!AnimLoader.UseAnimations) {
         throw new System.InvalidOperationException($"Animation classes are not allowed to be constructed on servers.");
       }
-      this.playerData = container;
+      this.controller = container;
       this.source = source;
       CheckIfValid(container.TrackName);
     }
 
     /// <summary>
-    /// <see cref="PlayerAnimationData"/> this <see cref="Animation"/> belongs to. This is used to get the current <see cref="Track"/>s and <see cref="Frame"/>s.
+    /// <see cref="AnimationController"/> this <see cref="Animation"/> belongs to. This is used to get the current <see cref="Track"/>s and <see cref="Frame"/>s.
     /// </summary>
-    public readonly PlayerAnimationData playerData;
+    public readonly AnimationController controller;
 
     /// <summary>
     /// <see cref="AnimationSource"/> database used for this <see cref="Animation"/>.
@@ -38,25 +38,25 @@ namespace AnimLib.Animations {
     public readonly AnimationSource source;
 
     /// <summary>
-    /// Whether or not the current <see cref="PlayerAnimationData.TrackName"/> maps to a valid <see cref="Track"/> on this <see cref="AnimationSource"/>.
+    /// Whether or not the current <see cref="AnimationController.TrackName"/> maps to a valid <see cref="Track"/> on this <see cref="AnimationSource"/>.
     /// </summary>
     public bool Valid { get; private set; }
 
     /// <summary>
     /// Current <see cref="Track"/> that is being played.
-    /// <para>If <see cref="PlayerAnimationData.TrackName"/> is not a valid track name, this returns the first <see cref="Track"/> in the <see cref="AnimationSource"/>.</para>
+    /// <para>If <see cref="AnimationController.TrackName"/> is not a valid track name, this returns the first <see cref="Track"/> in the <see cref="AnimationSource"/>.</para>
     /// </summary>
-    public Track CurrentTrack => Valid ? source.tracks[playerData.TrackName] : source.tracks.First().Value;
+    public Track CurrentTrack => Valid ? source.tracks[controller.TrackName] : source.tracks.First().Value;
 
     /// <summary>
     /// Current <see cref="Frame"/> that is being played.
-    /// <para>If <see cref="PlayerAnimationData.FrameIndex"/> is less than 0, this returns the first <see cref="Frame"/> in the <see cref="Track"/>.</para>
-    /// <para>If <see cref="PlayerAnimationData.FrameIndex"/> is greater than the <see cref="Track"/> length, this returns the last <see cref="Frame"/> in the <see cref="Track"/>.</para>
+    /// <para>If <see cref="AnimationController.FrameIndex"/> is less than 0, this returns the first <see cref="Frame"/> in the <see cref="Track"/>.</para>
+    /// <para>If <see cref="AnimationController.FrameIndex"/> is greater than the <see cref="Track"/> length, this returns the last <see cref="Frame"/> in the <see cref="Track"/>.</para>
     /// </summary>
     public IFrame CurrentFrame {
       get {
         var track = CurrentTrack;
-        int idx = (int)MathHelper.Clamp(playerData.FrameIndex, 0, track.Length - 1);
+        int idx = (int)MathHelper.Clamp(controller.FrameIndex, 0, track.Length - 1);
         return track.frames[idx];
       }
     }
@@ -76,7 +76,7 @@ namespace AnimLib.Animations {
     /// Current <see cref="Texture2D"/> that is to be drawn.
     /// <para>If <see cref="Track.GetTexture(int)"/> is not <see langword="null"/>, that is returned; otherwise, returns the <see cref="AnimationSource"/>'s <see cref="Texture2D"/>.</para>
     /// </summary>
-    public Texture2D CurrentTexture => CurrentTrack.GetTexture(playerData.FrameIndex) ?? source.texture;
+    public Texture2D CurrentTexture => CurrentTrack.GetTexture(controller.FrameIndex) ?? source.texture;
 
     /// <summary>
     /// Attempts to insert the <see cref="PlayerLayer"/> of this <see cref="Animation"/> to <paramref name="layers"/>. If <see cref="Valid"/> is <see langword="false"/>, this will fail and return <see langword="false"/>.
@@ -110,7 +110,7 @@ namespace AnimLib.Animations {
     /// <item><see cref="DrawData.texture"/> is <see cref="Texture"/> (recommended)</item>
     /// <item><see cref="DrawData.position"/> is the center of the <see cref="PlayerDrawInfo.drawPlayer"/>, in screen-space. (recommended)</item>
     /// <item><see cref="DrawData.sourceRect"/> is <see cref="CurrentTile"/> (recommended)</item>
-    /// <item><see cref="DrawData.rotation"/> is <see cref="Entity.direction"/> <see langword="*"/> <see cref="PlayerAnimationData.SpriteRotation"/> (recommended)</item>
+    /// <item><see cref="DrawData.rotation"/> is <see cref="Entity.direction"/> <see langword="*"/> <see cref="AnimationController.SpriteRotation"/> (recommended)</item>
     /// <item><see cref="DrawData.origin"/> is half of <see cref="CurrentTile"/>'s size, plus (5 * <see cref="Player.gravDir"/>) on the Y axis. Feel free to modify this.</item>
     /// <item><see cref="DrawData.effect"/> is based on <see cref="Entity.direction"/> and <see cref="Player.gravDir"/>. (recommended)</item>
     /// </list>
@@ -132,7 +132,7 @@ namespace AnimLib.Animations {
         effect |= SpriteEffects.FlipVertically;
       }
 
-      return new DrawData(texture, pos, rect, Color.White, player.direction * playerData.SpriteRotation, orig, 1, effect, 0);
+      return new DrawData(texture, pos, rect, Color.White, player.direction * controller.SpriteRotation, orig, 1, effect, 0);
     }
   }
 }

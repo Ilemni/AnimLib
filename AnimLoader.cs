@@ -9,38 +9,38 @@ namespace AnimLib {
     public static bool UseAnimations => Terraria.Main.netMode != Terraria.ID.NetmodeID.Server;
     
     internal Dictionary<Mod, AnimationSource[]> animationSources = new Dictionary<Mod, AnimationSource[]>();
-    internal Dictionary<Mod, Type> playerAnimationDataTypes = new Dictionary<Mod, Type>();
+    internal Dictionary<Mod, Type> animationControllerTypes = new Dictionary<Mod, Type>();
 
     internal static void Load() {
       Initialize();
-      var animationSources = Instance.animationSources;
-      var playerAnimationDataTypes = Instance.playerAnimationDataTypes;
+      var sources = Instance.animationSources;
+      var controllerTypes = Instance.animationControllerTypes;
 
       foreach (var mod in ModLoader.Mods) {
         if (mod is AnimLibMod || mod.Code is null) {
           continue;
         }
         var types = from type in mod.Code.GetTypes()
-                    where type.IsSubclassOf(typeof(AnimationSource)) || type.IsSubclassOf(typeof(PlayerAnimationData))
+                    where type.IsSubclassOf(typeof(AnimationSource)) || type.IsSubclassOf(typeof(AnimationController))
                     select type;
 
         if (!types.Any()) continue;
 
         var list = GetAnimationSourcesFromTypes(types, mod);
         if (list.Count > 0) {
-          var type = GetPlayerAnimationDataTypeFromTypes(types, mod);
+          var type = GetAnimationControllerTypeFromTypes(types, mod);
           if (type != null) {
-            animationSources[mod] = list.ToArray();
-            playerAnimationDataTypes[mod] = type;
+            sources[mod] = list.ToArray();
+            controllerTypes[mod] = type;
           }
           else {
-            AnimLibMod.Instance.Logger.Error($"{mod.Name} error: {mod.Name} contains {(list.Count > 1 ? "classes" : "a class")} extending {nameof(AnimationSource)}, but does not contain any classes extending {nameof(PlayerAnimationData)}s");
+            AnimLibMod.Instance.Logger.Error($"{mod.Name} error: {mod.Name} contains {(list.Count > 1 ? "classes" : "a class")} extending {nameof(AnimationSource)}, but does not contain any classes extending {nameof(AnimationController)}s");
           }
         }
       }
 
-      if (!Instance.animationSources.Any() && !Instance.playerAnimationDataTypes.Any()) {
-        AnimLibMod.Instance.Logger.Warn($"AnimLibMod loaded; no mods contained any {nameof(AnimationSource)}s or {nameof(PlayerAnimationData)}s. Currently there is no reason for this mod to be enabled.");
+      if (!Instance.animationSources.Any() && !Instance.animationControllerTypes.Any()) {
+        AnimLibMod.Instance.Logger.Warn($"AnimLibMod loaded; no mods contained any {nameof(AnimationSource)}s or {nameof(AnimationController)}s. Currently there is no reason for this mod to be enabled.");
       }
     }
 
@@ -91,16 +91,16 @@ namespace AnimLib {
       return sources;
     }
 
-    private static Type GetPlayerAnimationDataTypeFromTypes(IEnumerable<Type> types, Mod mod) {
+    private static Type GetAnimationControllerTypeFromTypes(IEnumerable<Type> types, Mod mod) {
       Type result = null;
       foreach (var type in types) {
-        if (type.IsSubclassOf(typeof(PlayerAnimationData))) {
+        if (type.IsSubclassOf(typeof(AnimationController))) {
           if (result is null) {
-            AnimLibMod.Instance.Logger.Info($"From mod {mod.Name} collected {nameof(PlayerAnimationData)} \"{type.SafeTypeName(nameof(PlayerAnimationData))}\"");
+            AnimLibMod.Instance.Logger.Info($"From mod {mod.Name} collected {nameof(AnimationController)} \"{type.SafeTypeName(nameof(AnimationController))}\"");
             result = type;
           }
           else {
-            AnimLibMod.Instance.Logger.Error($"Error collecting {nameof(PlayerAnimationData)} from [{mod.Name}]: More than one {nameof(PlayerAnimationData)} found. Keeping {result.GetType().Name}, skipping {type.FullName}");
+            AnimLibMod.Instance.Logger.Error($"Error collecting {nameof(AnimationController)} from [{mod.Name}]: More than one {nameof(AnimationController)} found. Keeping {result.GetType().Name}, skipping {type.FullName}");
           }
         }
       }
@@ -108,18 +108,18 @@ namespace AnimLib {
     }
 
     internal static void PlayerInitialize(AnimPlayer animPlayer) {
-      var types = Instance.playerAnimationDataTypes;
+      var types = Instance.animationControllerTypes;
       if ((types?.Count ?? 0) > 0) {
         foreach (var pair in types) {
           var mod = pair.Key;
           var type = pair.Value;
           try {
-            var playerData = CreatePlayerAnimationDataForPlayer(animPlayer, mod, type);
-            playerData.Initialize();
-            animPlayer.animationDatas[mod] = playerData;
+            var controller = CreateAnimationControllerForPlayer(animPlayer, mod, type);
+            controller.Initialize();
+            animPlayer.animationControllers[mod] = controller;
           }
           catch (Exception ex) {
-            AnimLibMod.Instance.Logger.Error($"Exception thrown when constructing {nameof(PlayerAnimationData)} from [{mod.Name}:{type.FullName}]", ex);
+            AnimLibMod.Instance.Logger.Error($"Exception thrown when constructing {nameof(AnimationController)} from [{mod.Name}:{type.FullName}]", ex);
           }
         }
       }
@@ -131,27 +131,27 @@ namespace AnimLib {
       }
     }
 
-    private static PlayerAnimationData CreatePlayerAnimationDataForPlayer(AnimPlayer animPlayer, Mod mod, Type type) {
-      var playerData = Activator.CreateInstance(type, true) as PlayerAnimationData;
-      playerData.player = animPlayer.player;
-      playerData.mod = mod;
+    private static AnimationController CreateAnimationControllerForPlayer(AnimPlayer animPlayer, Mod mod, Type type) {
+      var controller = Activator.CreateInstance(type, true) as AnimationController;
+      controller.player = animPlayer.player;
+      controller.mod = mod;
 
       var modSources = Instance.animationSources[mod];
       var animations = new Animation[modSources.Length];
-      playerData.animations = animations;
+      controller.animations = animations;
 
       for (int i = 0; i < modSources.Length; i++) {
-        animations[i] = new Animation(playerData, modSources[i]);
+        animations[i] = new Animation(controller, modSources[i]);
       }
 
       if (animations.Length > 0) {
-        playerData.SetMainAnimation(animations[0]);
+        controller.SetMainAnimation(animations[0]);
       }
 
       if (AnimDebugCommand.DebugEnabled) {
-        AnimLibMod.Instance.Logger.Debug($"{nameof(PlayerAnimationData)} for mod {mod.Name} created with {animations.Length} animations. Its MainAnimation is {playerData.MainAnimation?.source.GetType().Name ?? "null"}");
+        AnimLibMod.Instance.Logger.Debug($"{nameof(AnimationController)} for mod {mod.Name} created with {animations.Length} animations. Its MainAnimation is {controller.MainAnimation?.source.GetType().Name ?? "null"}");
       }
-      return playerData;
+      return controller;
     }
 
     private static bool TryConstructAnimationSource(Type type, Mod mod, out AnimationSource source) {

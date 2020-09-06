@@ -6,24 +6,24 @@ using Terraria.ModLoader;
 
 namespace AnimLib.Animations {
   /// <summary>
-  /// Container for various <see cref="Animation"/>s and data to be attached to an <see cref="AnimPlayer"/>. Manages advancement of frames.
-  /// <para>For your mod, you must have exactly one class derived from <see cref="PlayerAnimationData"/>, else your player cannot be animated.</para>
-  /// <para>Your <see cref="PlayerAnimationData"/> is automatically created by <see cref="AnimPlayer">AnimLib</see> when a player is initialized.
-  /// To get your <see cref="PlayerAnimationData"/>, use <see cref="AnimLibMod.GetPlayerAnimationData{T}(Player)"/></para>
+  /// This class plays various <see cref="Animation"/>s and manages advancement of frames.
+  /// <para>For your mod, you must have exactly one class derived from <see cref="AnimationController"/>, else your player cannot be animated.</para>
+  /// <para>Your <see cref="AnimationController"/> is automatically created by <see cref="AnimLibMod"/> when a player is initialized.
+  /// To get your <see cref="AnimationController"/> instance on the player, use <see cref="AnimLibMod.GetAnimationController{T}(Player)"/></para>
   /// </summary>
-  public abstract class PlayerAnimationData {
+  public abstract class AnimationController {
     /// <summary>
     /// Base constructor. Ensures that this is not constructed on a server.
     /// </summary>
     /// <exception cref="InvalidOperationException">Animation classes are not allowed to be constructed on servers.</exception>
-    protected PlayerAnimationData() {
+    protected AnimationController() {
       if (!AnimLoader.UseAnimations) {
         throw new InvalidOperationException($"{GetType().Name} is not allowed to be constructed on servers.");
       }
     }
 
     /// <summary>
-    /// Allows you to do things after this <see cref="PlayerAnimationData"/> is constructed.
+    /// Allows you to do things after this <see cref="AnimationController"/> is constructed.
     /// Useful for getting references to <see cref="Animation"/>s via <see cref="GetAnimation{T}"/>.
     /// </summary>
     public virtual void Initialize() { }
@@ -39,7 +39,7 @@ namespace AnimLib.Animations {
     public Player player { get; internal set; }
 
     /// <summary>
-    /// The <see cref="Mod"/> that owns this <see cref="PlayerAnimationData"/>.
+    /// The <see cref="Mod"/> that owns this <see cref="AnimationController"/>.
     /// </summary>
     public Mod mod { get; internal set; }
 
@@ -111,7 +111,7 @@ namespace AnimLib.Animations {
     /// Gets the <see cref="Animation"/> from this <see cref="animations"/> where its <see cref="AnimationSource"/> is of type <typeparamref name="T"/>.
     /// </summary>
     /// <remarks>
-    /// In theory this shouldn't ever return <see langword="null"/>, unless this <see cref="PlayerAnimationData"/> was constructed prior to <see cref="AnimLibMod.PostSetupContent"/>.
+    /// In theory this shouldn't ever return <see langword="null"/>, unless this <see cref="AnimationController"/> was constructed prior to <see cref="AnimLibMod.PostSetupContent"/>.
     /// </remarks>
     /// <typeparam name="T">Type of <see cref="AnimationSource"/></typeparam>
     /// <returns>The <see cref="Animation"/> with the matching <see cref="AnimationSource"/>.</returns>
@@ -125,7 +125,7 @@ namespace AnimLib.Animations {
       string tAsmName = typeof(T).Assembly.FullName;
       string modAsmName = mod.Code.FullName;
       if (tAsmName != modAsmName) {
-        throw new ArgumentException($"Assembly mismatch: {typeof(T)} is from {tAsmName}; this {nameof(PlayerAnimationData)} is from {modAsmName}");
+        throw new ArgumentException($"Assembly mismatch: {typeof(T)} is from {tAsmName}; this {nameof(AnimationController)} is from {modAsmName}");
       }
       AnimLibMod.Instance.Logger.Warn($"{GetType().Name}.GetAnimation<{typeof(T).Name}>() failed.");
       return null;

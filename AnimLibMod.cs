@@ -29,39 +29,39 @@ namespace AnimLib {
 		public static AnimLibMod Instance { get; private set; }
 
     /// <summary>
-    /// Gets the <see cref="PlayerAnimationData"/> of the given type from the given <see cref="ModPlayer"/>.
+    /// Gets the <see cref="AnimationController"/> of the given type from the given <see cref="ModPlayer"/>.
     /// Use this if you want your code to use values such as the current track and frame.
     /// <para>This <strong>cannot</strong> be used during the <see cref="ModPlayer.Initialize"/> method.</para>
     /// </summary>
-    /// <typeparam name="T">Type of <see cref="PlayerAnimationData"/> to get.</typeparam>
+    /// <typeparam name="T">Type of <see cref="AnimationController"/> to get.</typeparam>
     /// <param name="modPlayer">The <see cref="ModPlayer"/>.</param>
-    /// <returns>A <see cref="PlayerAnimationData"/> of type <typeparamref name="T"/>.</returns>
+    /// <returns>A <see cref="AnimationController"/> of type <typeparamref name="T"/>.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="modPlayer"/> cannot be null.</exception>
-    public static T GetPlayerAnimationData<T>(ModPlayer modPlayer) where T : PlayerAnimationData {
+    public static T GetAnimationController<T>(ModPlayer modPlayer) where T : AnimationController {
       if (modPlayer is null) {
         throw new ArgumentNullException(nameof(modPlayer));
       }
 
-      return GetPlayerAnimationData<T>(modPlayer.player);
+      return GetAnimationController<T>(modPlayer.player);
     }
 
     /// <summary>
-    /// Gets the <see cref="PlayerAnimationData"/> of the given type from the given <see cref="Player"/>.
+    /// Gets the <see cref="AnimationController"/> of the given type from the given <see cref="Player"/>.
     /// Use this if you want your code to use values such as the current track and frame.
     /// <para>This <strong>cannot</strong> be used during the <see cref="ModPlayer.Initialize"/> method.</para>
     /// </summary>
-    /// <typeparam name="T">Type of <see cref="PlayerAnimationData"/> to get.</typeparam>
+    /// <typeparam name="T">Type of <see cref="AnimationController"/> to get.</typeparam>
     /// <param name="player">The <see cref="Player"/>.</param>
-    /// <returns>A <see cref="PlayerAnimationData"/> of type <typeparamref name="T"/>.</returns>
+    /// <returns>A <see cref="AnimationController"/> of type <typeparamref name="T"/>.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="player"/> cannot be null.</exception>
-    public static T GetPlayerAnimationData<T>(Player player) where T : PlayerAnimationData {
+    public static T GetAnimationController<T>(Player player) where T : AnimationController {
       if (player is null) {
         throw new ArgumentNullException(nameof(player));
       }
 
       var animPlayer = player.GetModPlayer<AnimPlayer>();
-      foreach (var playerData in animPlayer.animationDatas) {
-        if (playerData.Value is T t) {
+      foreach (var controller in animPlayer.animationControllers.Values) {
+        if (controller is T t) {
           return t;
         }
       }
@@ -109,7 +109,7 @@ namespace AnimLib {
     internal static event Action OnUnload;
 
     /// <summary>
-    /// Collects the classes extending <see cref="AnimationSource"/>s and <see cref="PlayerAnimationData"/>s from all mods.
+    /// Collects the classes extending <see cref="AnimationSource"/> and <see cref="AnimationController"/> from all mods.
     /// </summary>
     public override void Load() {
       if (AnimLoader.UseAnimations) {
