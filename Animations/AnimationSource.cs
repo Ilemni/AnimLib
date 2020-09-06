@@ -1,8 +1,6 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
-using Terraria;
-using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace AnimLib.Animations {
@@ -17,7 +15,7 @@ namespace AnimLib.Animations {
     /// </summary>
     /// <exception cref="InvalidOperationException">Animation classes are not allowed to be constructed on servers.</exception>
     private AnimationSource() {
-      if (Main.netMode == NetmodeID.Server) {
+      if (!AnimLoader.UseAnimations) {
         throw new InvalidOperationException($"{GetType().Name} is not allowed to be constructed on servers.");
       }
     }

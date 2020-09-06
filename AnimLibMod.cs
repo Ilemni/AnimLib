@@ -1,7 +1,6 @@
 using System;
 using AnimLib.Animations;
 using Terraria;
-using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace AnimLib {
@@ -20,7 +19,7 @@ namespace AnimLib {
         throw new InvalidOperationException($"{typeof(AnimLibMod)} can only be constructed by tModLoader.");
       }
       Properties = new ModProperties() {
-        Autoload = Main.netMode != NetmodeID.Server,
+        Autoload = AnimLoader.UseAnimations,
       };
     }
 
@@ -76,7 +75,7 @@ namespace AnimLib {
 
 
     public override void Load() {
-      if (Main.netMode != NetmodeID.Server) {
+      if (AnimLoader.UseAnimations) {
         AnimLoader.Load();
       }
     }
@@ -85,7 +84,7 @@ namespace AnimLib {
     /// Collects and constructs all <see cref="AnimationSource"/>s across all other <see cref="Mod"/>s.
     /// </summary>
     public override void PostSetupContent() {
-      if (Main.netMode != NetmodeID.Server) {
+      if (AnimLoader.UseAnimations) {
         AnimLoader.PostSetupContent();
       }
     }

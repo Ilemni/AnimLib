@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Terraria;
-using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace AnimLib.Animations {
@@ -13,47 +12,7 @@ namespace AnimLib.Animations {
   /// To get your <see cref="PlayerAnimationData"/>, use <see cref="AnimLibMod.GetPlayerAnimationData{T}(Player)"/></para>
   /// </summary>
   public abstract class PlayerAnimationData {
-    /// <summary>
-    /// Creates a new instance of <see cref="PlayerAnimationData"/> for the given <see cref="ModPlayer"/>.
-    /// </summary>
-    /// <param name="modPlayer">The <see cref="ModPlayer"/> instance the animations will belong to.</param>
-    /// <exception cref="InvalidOperationException">Animation classes are not allowed to be constructed on a server.</exception>
-    /// <exception cref="InvalidOperationException">The mod of the given <see cref="ModPlayer"/> does not contain any classes derived from <see cref="AnimationSource"/>.</exception>
-    protected PlayerAnimationData(ModPlayer modPlayer) : this(modPlayer.player, modPlayer.mod) { }
-
-    /// <summary>
-    /// Creates a new instance of <see cref="PlayerAnimationData"/> for the given <see cref="Player"/> that belongs to <see cref="Mod"/>.
-    /// </summary>
-    /// <param name="player">The <see cref="Player"/> instance the animations will belong to.</param>
-    /// <param name="mod">The mod that owns the <see cref="AnimationSource"/>s this will use.</param>
-    /// <exception cref="InvalidOperationException">Animation classes are not allowed to be constructed on a server.</exception>
-    /// <exception cref="InvalidOperationException">The mod of the given <see cref="ModPlayer"/> does not contain any classes derived from <see cref="AnimationSource"/>.</exception>
-    protected PlayerAnimationData(Player player, Mod mod) {
-      if (Main.netMode == NetmodeID.Server) {
-        throw new InvalidOperationException($"Animation classes are not allowed to be constructed on servers.");
-      }
-      var sources = AnimLoader.Instance.animationSources;
-      if (!sources.ContainsKey(mod)) {
-        throw new InvalidOperationException($"{mod.Name} does not contain any classes derived from AnimationSource.");
-      }
-
-      this.player = player;
-      this.mod = mod;
-      var modSources = sources[mod];
-
-      animations = new Animation[modSources.Length];
-      for (int i = 0; i < modSources.Length; i++) {
-        animations[i] = new Animation(this, modSources[i]);
-      }
-
-      if (animations.Length > 0) {
-        MainAnimation = animations[0];
-      }
-
-      if (AnimDebugCommand.DebugEnabled) {
-        AnimLibMod.Instance.Logger.Debug($"PlayerAnimationData for mod {mod.Name} created with {animations.Length} animations. Its MainAnimation is {MainAnimation?.source.GetType().Name ?? "null"}");
-      }
-    }
+    private PlayerAnimationData() { }
 
     /// <summary>
     /// Allows you to do things after this <see cref="PlayerAnimationData"/> is constructed.
@@ -64,17 +23,17 @@ namespace AnimLib.Animations {
     /// <summary>
     /// All <see cref="Animation"/>s that belong to this mod.
     /// </summary>
-    public readonly Animation[] animations;
+    public Animation[] animations { get; internal set; }
 
     /// <summary>
     /// The <see cref="Player"/> that is being animated.
     /// </summary>
-    public readonly Player player;
+    public Player player { get; internal set; }
 
     /// <summary>
     /// The <see cref="Mod"/> that owns this <see cref="PlayerAnimationData"/>.
     /// </summary>
-    public readonly Mod mod;
+    public Mod mod { get; internal set; }
 
     /// <summary>
     /// The <see cref="Animation"/> to retrieve track data from, such as frame duration. This <see cref="Animation"/>'s <see cref="AnimationSource"/> must contain all tracks that can be used.
@@ -89,10 +48,7 @@ namespace AnimLib.Animations {
     /// <param name="animation">Animation to set this player's <see cref="MainAnimation"/> to.</param>
     /// <exception cref="ArgumentNullException"><paramref name="animation"/> is null.</exception>
     public void SetMainAnimation(Animation animation) {
-      if (animation is null) {
-        throw new ArgumentNullException(nameof(animation));
-      }
-      MainAnimation = animation;
+      MainAnimation = animation ?? throw new ArgumentNullException(nameof(animation));
     }
 
     /// <summary>

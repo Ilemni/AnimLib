@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Terraria;
 using Terraria.DataStructures;
-using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace AnimLib.Animations {
@@ -20,7 +19,7 @@ namespace AnimLib.Animations {
     /// <param name="source"><see cref="AnimationSource"/> to determine which sprite is drawn.</param>
     /// <exception cref="System.InvalidOperationException">Animation classes are not allowed to be constructed on a server.</exception>
     public Animation(PlayerAnimationData container, AnimationSource source) {
-      if (Main.netMode == NetmodeID.Server) {
+      if (!AnimLoader.UseAnimations) {
         throw new System.InvalidOperationException($"Animation classes are not allowed to be constructed on servers.");
       }
       this.playerData = container;

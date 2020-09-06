@@ -237,40 +237,23 @@
             To get your <see cref="T:AnimLib.Animations.PlayerAnimationData"/>, use <see cref="M:AnimLib.AnimLibMod.GetPlayerAnimationData``1(Terraria.Player)"/></para>
             </summary>
         </member>
-        <member name="M:AnimLib.Animations.PlayerAnimationData.#ctor(Terraria.ModLoader.ModPlayer)">
-            <summary>
-            Creates a new instance of <see cref="T:AnimLib.Animations.PlayerAnimationData"/> for the given <see cref="T:Terraria.ModLoader.ModPlayer"/>.
-            </summary>
-            <param name="modPlayer">The <see cref="T:Terraria.ModLoader.ModPlayer"/> instance the animations will belong to.</param>
-            <exception cref="T:System.InvalidOperationException">Animation classes are not allowed to be constructed on a server.</exception>
-            <exception cref="T:System.InvalidOperationException">The mod of the given <see cref="T:Terraria.ModLoader.ModPlayer"/> does not contain any classes derived from <see cref="T:AnimLib.Animations.AnimationSource"/>.</exception>
-        </member>
-        <member name="M:AnimLib.Animations.PlayerAnimationData.#ctor(Terraria.Player,Terraria.ModLoader.Mod)">
-            <summary>
-            Creates a new instance of <see cref="T:AnimLib.Animations.PlayerAnimationData"/> for the given <see cref="T:Terraria.Player"/> that belongs to <see cref="T:Terraria.ModLoader.Mod"/>.
-            </summary>
-            <param name="player">The <see cref="T:Terraria.Player"/> instance the animations will belong to.</param>
-            <param name="mod">The mod that owns the <see cref="T:AnimLib.Animations.AnimationSource"/>s this will use.</param>
-            <exception cref="T:System.InvalidOperationException">Animation classes are not allowed to be constructed on a server.</exception>
-            <exception cref="T:System.InvalidOperationException">The mod of the given <see cref="T:Terraria.ModLoader.ModPlayer"/> does not contain any classes derived from <see cref="T:AnimLib.Animations.AnimationSource"/>.</exception>
-        </member>
         <member name="M:AnimLib.Animations.PlayerAnimationData.Initialize">
             <summary>
             Allows you to do things after this <see cref="T:AnimLib.Animations.PlayerAnimationData"/> is constructed.
             Useful for getting references to <see cref="T:AnimLib.Animations.Animation"/>s via <see cref="M:AnimLib.Animations.PlayerAnimationData.GetAnimation``1"/>.
             </summary>
         </member>
-        <member name="F:AnimLib.Animations.PlayerAnimationData.animations">
+        <member name="P:AnimLib.Animations.PlayerAnimationData.animations">
             <summary>
             All <see cref="T:AnimLib.Animations.Animation"/>s that belong to this mod.
             </summary>
         </member>
-        <member name="F:AnimLib.Animations.PlayerAnimationData.player">
+        <member name="P:AnimLib.Animations.PlayerAnimationData.player">
             <summary>
             The <see cref="T:Terraria.Player"/> that is being animated.
             </summary>
         </member>
-        <member name="F:AnimLib.Animations.PlayerAnimationData.mod">
+        <member name="P:AnimLib.Animations.PlayerAnimationData.mod">
             <summary>
             The <see cref="T:Terraria.ModLoader.Mod"/> that owns this <see cref="T:AnimLib.Animations.PlayerAnimationData"/>.
             </summary>
@@ -278,7 +261,7 @@
         <member name="P:AnimLib.Animations.PlayerAnimationData.MainAnimation">
             <summary>
             The <see cref="T:AnimLib.Animations.Animation"/> to retrieve track data from, such as frame duration. This <see cref="T:AnimLib.Animations.Animation"/>'s <see cref="T:AnimLib.Animations.AnimationSource"/> must contain all tracks that can be used.
-            <para>By default this is the first <see cref="T:AnimLib.Animations.Animation"/> in <see cref="F:AnimLib.Animations.PlayerAnimationData.animations"/>.</para>
+            <para>By default this is the first <see cref="T:AnimLib.Animations.Animation"/> in <see cref="P:AnimLib.Animations.PlayerAnimationData.animations"/>.</para>
             </summary>
         </member>
         <member name="M:AnimLib.Animations.PlayerAnimationData.SetMainAnimation(AnimLib.Animations.Animation)">
@@ -323,14 +306,14 @@
         </member>
         <member name="M:AnimLib.Animations.PlayerAnimationData.GetAnimation``1">
             <summary>
-            Gets the <see cref="T:AnimLib.Animations.Animation"/> from this <see cref="F:AnimLib.Animations.PlayerAnimationData.animations"/> where its <see cref="T:AnimLib.Animations.AnimationSource"/> is of type <typeparamref name="T"/>.
+            Gets the <see cref="T:AnimLib.Animations.Animation"/> from this <see cref="P:AnimLib.Animations.PlayerAnimationData.animations"/> where its <see cref="T:AnimLib.Animations.AnimationSource"/> is of type <typeparamref name="T"/>.
             </summary>
             <remarks>
             In theory this shouldn't ever return <see langword="null"/>, unless this <see cref="T:AnimLib.Animations.PlayerAnimationData"/> was constructed prior to <see cref="M:AnimLib.AnimLibMod.PostSetupContent"/>.
             </remarks>
             <typeparam name="T">Type of <see cref="T:AnimLib.Animations.AnimationSource"/></typeparam>
             <returns>The <see cref="T:AnimLib.Animations.Animation"/> with the matching <see cref="T:AnimLib.Animations.AnimationSource"/>.</returns>
-            <exception cref="T:System.ArgumentException"><typeparamref name="T"/> and <see cref="F:AnimLib.Animations.PlayerAnimationData.mod"/> are from different assemblies.</exception>
+            <exception cref="T:System.ArgumentException"><typeparamref name="T"/> and <see cref="P:AnimLib.Animations.PlayerAnimationData.mod"/> are from different assemblies.</exception>
         </member>
         <member name="M:AnimLib.Animations.PlayerAnimationData.Validate(System.String,System.Boolean)">
             <summary>

@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using AnimLib.Animations;
-using Terraria;
 using Terraria.ModLoader;
 
 namespace AnimLib {
   internal class AnimLoader : SingleInstance<AnimLoader> {
+    public static bool UseAnimations => Terraria.Main.netMode != Terraria.ID.NetmodeID.Server;
+    
     internal Dictionary<Mod, AnimationSource[]> animationSources = new Dictionary<Mod, AnimationSource[]>();
     internal Dictionary<Mod, Type> playerAnimationDataTypes = new Dictionary<Mod, Type>();
 
@@ -113,17 +113,9 @@ namespace AnimLib {
           var mod = pair.Key;
           var type = pair.Value;
           try {
-            var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
-            var constructor = type.GetConstructor(flags, null, new[] { typeof(Player), typeof(Mod) }, default);
-            if (!(constructor is null)) {
-              var playerData = Activator.CreateInstance(type, flags, null, args: new object[] { animPlayer.player, mod }, null) as PlayerAnimationData;
-              playerData.Initialize();
-              animPlayer.animationDatas[mod] = playerData;
-            }
-            else {
-              AnimLibMod.Instance.Logger.Error($"PlayerAnimationData from [{mod.Name}:{type.FullName}] does not contain a constructor with parameters (Player, Mod).");
-              continue;
-            }
+            var playerData = CreatePlayerAnimationDataForPlayer(animPlayer, mod, type);
+            playerData.Initialize();
+            animPlayer.animationDatas[mod] = playerData;
           }
           catch (Exception ex) {
             AnimLibMod.Instance.Logger.Error($"Exception thrown when constructing PlayerAnimationData from [{mod.Name}:{type.FullName}]", ex);
@@ -136,6 +128,29 @@ namespace AnimLib {
         }
         return;
       }
+    }
+
+    private static PlayerAnimationData CreatePlayerAnimationDataForPlayer(AnimPlayer animPlayer, Mod mod, Type type) {
+      var playerData = Activator.CreateInstance(type, true) as PlayerAnimationData;
+      playerData.player = animPlayer.player;
+      playerData.mod = mod;
+
+      var modSources = Instance.animationSources[mod];
+      var animations = new Animation[modSources.Length];
+      playerData.animations = animations;
+
+      for (int i = 0; i < modSources.Length; i++) {
+        animations[i] = new Animation(playerData, modSources[i]);
+      }
+
+      if (animations.Length > 0) {
+        playerData.SetMainAnimation(animations[0]);
+      }
+
+      if (AnimDebugCommand.DebugEnabled) {
+        AnimLibMod.Instance.Logger.Debug($"PlayerAnimationData for mod {mod.Name} created with {animations.Length} animations. Its MainAnimation is {playerData.MainAnimation?.source.GetType().Name ?? "null"}");
+      }
+      return playerData;
     }
 
     private static bool TryConstructAnimationSource(Type type, Mod mod, out AnimationSource source) {
