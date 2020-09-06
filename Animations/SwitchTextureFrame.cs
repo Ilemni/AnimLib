@@ -1,11 +1,9 @@
-﻿namespace AnimLib.Animations {
+﻿using System;
+
+namespace AnimLib.Animations {
   /// <summary>
   /// Single frame of animation that switches to another spritesheet. Stores sprite position on the sprite sheet, duration of the frame, and the next spritesheet to use.
   /// </summary>
-  /// <remarks>
-  /// This should only ever be used if a single <strong><see cref="Track"/></strong> needs to use more than one spritesheet.
-  /// If all of one <see cref="Track"/> can fit on a 2048x2048 track, use that instead.
-  /// </remarks>
   public readonly struct SwitchTextureFrame : IFrame {
     /// <summary>
     /// Creates a <see cref="Frame"/> with the given X and Y position, frame duration, and spritesheet. These values will be cast to smaller data types.
@@ -13,7 +11,8 @@
     /// <param name="x">X position of the tile. This will be cast to a <see cref="byte"/>.</param>
     /// <param name="y">Y position of the tile. This will be cast to a <see cref="byte"/>.</param>
     /// <param name="duration">Duration of the frame. This will be cast to a <see cref="ushort"/>.</param>
-    /// /// <param name="texturePath">Spritesheet that this track will switch to.</param>
+    /// <param name="texturePath">Spritesheet that this track will switch to.</param>
+    /// <exception cref="ArgumentException"><paramref name="texturePath"/> is <see langword="null"/> or white space.</exception>
     public SwitchTextureFrame(int x, int y, int duration, string texturePath) : this((byte)x, (byte)y, (ushort)duration, texturePath) { }
 
     /// <summary>
@@ -23,7 +22,12 @@
     /// <param name="y">Y position of the tile.</param>
     /// <param name="duration">Duration of the frame.</param>
     /// <param name="texturePath">Spritesheet that this track will switch to upon reaching this frame.</param>
+    /// <exception cref="ArgumentException"><paramref name="texturePath"/> is <see langword="null"/> or white space.</exception>
     public SwitchTextureFrame(byte x, byte y, ushort duration, string texturePath) {
+      if (string.IsNullOrWhiteSpace(texturePath)) {
+        throw new ArgumentException("message", nameof(texturePath));
+      }
+
       tile = new PointByte(x, y);
       this.duration = duration;
       this.texturePath = texturePath;

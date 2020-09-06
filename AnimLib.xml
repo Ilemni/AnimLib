@@ -176,16 +176,10 @@
         <member name="P:AnimLib.Animations.Frame.duration">
             <inheritdoc/>
         </member>
-        <member name="M:AnimLib.Animations.Frame.WithNextSpritesheet(System.String)">
+        <member name="M:AnimLib.Animations.Frame.WithTexture(System.String)">
             <summary>
             For a <see cref="T:AnimLib.Animations.Track"/>, adds another <see cref="T:Microsoft.Xna.Framework.Graphics.Texture2D"/> to the track, and switches to that texture when this track is played.
             </summary>
-            <remarks>
-            This should only ever be used if a single <strong><see cref="T:AnimLib.Animations.Track"/></strong> on its own needs to use more than one spritesheet.
-            This does not apply to cases where an <see cref="T:AnimLib.Animations.AnimationSource"/> needs more than one <see cref="T:Microsoft.Xna.Framework.Graphics.Texture2D"/> for its <see cref="T:AnimLib.Animations.Track"/>s, but rather,
-            when a single <see cref="T:AnimLib.Animations.Track"/> needs more than one <see cref="T:Microsoft.Xna.Framework.Graphics.Texture2D"/>.
-            If all of one <see cref="T:AnimLib.Animations.Track"/> can fit on a 2048x2048 spritesheet, use <see cref="M:AnimLib.Animations.Track.WithTexture(System.String)"/> instead.
-            </remarks>
             <exception cref="T:System.ArgumentException"><paramref name="texturePath"/> is <see langword="null"/> or empty.</exception>
         </member>
         <member name="M:AnimLib.Animations.Frame.ToString">
@@ -193,6 +187,9 @@
             Returns a <see cref="T:System.String"/> containing the X and Y value of the <see cref="P:AnimLib.Animations.Frame.tile"/>, and the <see cref="P:AnimLib.Animations.Frame.duration"/> of this instance.
             </summary>
             <returns>A <see cref="T:System.String"/> containing the X and Y value of the <see cref="P:AnimLib.Animations.Frame.tile"/>, and the <see cref="P:AnimLib.Animations.Frame.duration"/>.</returns>
+        </member>
+        <member name="M:AnimLib.Animations.Frame.op_Explicit(AnimLib.Animations.SwitchTextureFrame)~AnimLib.Animations.Frame">
+            <inheritdoc cref="M:AnimLib.Animations.Frame.#ctor(System.Byte,System.Byte,System.UInt16)"/>
         </member>
         <member name="T:AnimLib.Animations.IFrame">
             <summary>
@@ -439,10 +436,6 @@
             <summary>
             Single frame of animation that switches to another spritesheet. Stores sprite position on the sprite sheet, duration of the frame, and the next spritesheet to use.
             </summary>
-            <remarks>
-            This should only ever be used if a single <strong><see cref="T:AnimLib.Animations.Track"/></strong> needs to use more than one spritesheet.
-            If all of one <see cref="T:AnimLib.Animations.Track"/> can fit on a 2048x2048 track, use that instead.
-            </remarks>
         </member>
         <member name="M:AnimLib.Animations.SwitchTextureFrame.#ctor(System.Int32,System.Int32,System.Int32,System.String)">
             <summary>
@@ -451,7 +444,8 @@
             <param name="x">X position of the tile. This will be cast to a <see cref="T:System.Byte"/>.</param>
             <param name="y">Y position of the tile. This will be cast to a <see cref="T:System.Byte"/>.</param>
             <param name="duration">Duration of the frame. This will be cast to a <see cref="T:System.UInt16"/>.</param>
-            /// <param name="texturePath">Spritesheet that this track will switch to.</param>
+            <param name="texturePath">Spritesheet that this track will switch to.</param>
+            <exception cref="T:System.ArgumentException"><paramref name="texturePath"/> is <see langword="null"/> or white space.</exception>
         </member>
         <member name="M:AnimLib.Animations.SwitchTextureFrame.#ctor(System.Byte,System.Byte,System.UInt16,System.String)">
             <summary>
@@ -461,6 +455,7 @@
             <param name="y">Y position of the tile.</param>
             <param name="duration">Duration of the frame.</param>
             <param name="texturePath">Spritesheet that this track will switch to upon reaching this frame.</param>
+            <exception cref="T:System.ArgumentException"><paramref name="texturePath"/> is <see langword="null"/> or white space.</exception>
         </member>
         <member name="P:AnimLib.Animations.SwitchTextureFrame.tile">
             <inheritdoc/>
@@ -484,7 +479,7 @@
             Animation Track, stores frame values. This is constructed on startup, contains <see cref="T:AnimLib.Animations.Frame"/> data.
             </summary>
         </member>
-        <member name="M:AnimLib.Animations.Track.Range(AnimLib.Animations.IFrame,AnimLib.Animations.IFrame)">
+        <member name="M:AnimLib.Animations.Track.Range(AnimLib.Animations.Frame,AnimLib.Animations.Frame)">
             <summary>
             Creates a track with <see cref="F:AnimLib.Animations.LoopMode.Always"/> and <see cref="F:AnimLib.Animations.Direction.Forward"/>, with a <see cref="T:AnimLib.Animations.Frame"/> array ranging from <paramref name="start"/> to <paramref name="end"/>.
             <para>The range is created along the Y axis, going downward.</para>
@@ -493,7 +488,7 @@
             <param name="end">Last <see cref="T:AnimLib.Animations.Frame"/> of the track.</param>
             <returns>A new <see cref="T:AnimLib.Animations.Track"/> with the frames ranging from <paramref name="start"/> to <paramref name="end"/>.</returns>
         </member>
-        <member name="M:AnimLib.Animations.Track.Range(AnimLib.Animations.LoopMode,AnimLib.Animations.IFrame,AnimLib.Animations.IFrame)">
+        <member name="M:AnimLib.Animations.Track.Range(AnimLib.Animations.LoopMode,AnimLib.Animations.Frame,AnimLib.Animations.Frame)">
             <summary>
             Creates a track with the given <see cref="T:AnimLib.Animations.LoopMode"/> and using <see cref="F:AnimLib.Animations.Direction.Forward"/>, with a <see cref="T:AnimLib.Animations.Frame"/> array ranging from <paramref name="start"/> to <paramref name="end"/>.
             <para>The range is created along the Y axis, going downward.</para>
@@ -503,7 +498,7 @@
             <param name="end">Last <see cref="T:AnimLib.Animations.Frame"/> of the track.</param>
             <returns>A new <see cref="T:AnimLib.Animations.Track"/> with the frames ranging from <paramref name="start"/> to <paramref name="end"/>.</returns>
         </member>
-        <member name="M:AnimLib.Animations.Track.Range(AnimLib.Animations.LoopMode,AnimLib.Animations.Direction,AnimLib.Animations.IFrame,AnimLib.Animations.IFrame)">
+        <member name="M:AnimLib.Animations.Track.Range(AnimLib.Animations.LoopMode,AnimLib.Animations.Direction,AnimLib.Animations.Frame,AnimLib.Animations.Frame)">
             <summary>
             Creates a track with the given <see cref="T:AnimLib.Animations.LoopMode"/> and <see cref="T:AnimLib.Animations.Direction"/>, with a <see cref="T:AnimLib.Animations.Frame"/> array ranging from <paramref name="start"/> to <paramref name="end"/>.
             <para>The range is created along the Y axis, going downward.</para>
@@ -521,27 +516,53 @@
             Creates a track that consists of a single <see cref="T:AnimLib.Animations.Frame"/>.
             </summary>
             <param name="frame">Assigns to <see cref="F:AnimLib.Animations.Track.frames"/> as a single <see cref="T:AnimLib.Animations.Frame"/>.</param>
+            <returns>A new <see cref="T:AnimLib.Animations.Track"/> with a single <see cref="T:AnimLib.Animations.Frame"/>.</returns>
         </member>
-        <member name="M:AnimLib.Animations.Track.#ctor(AnimLib.Animations.LoopMode,AnimLib.Animations.Direction,AnimLib.Animations.IFrame[])">
+        <member name="M:AnimLib.Animations.Track.#ctor(AnimLib.Animations.Frame[])">
             <summary>
-            Creates a track with the given <see cref="T:AnimLib.Animations.LoopMode"/>, <see cref="T:AnimLib.Animations.Direction"/>, and <see cref="T:AnimLib.Animations.Frame"/> array. This may be used as range parameters instead, if desired.
+            Creates a track using <see cref="F:AnimLib.Animations.LoopMode.Always"/> and <see cref="F:AnimLib.Animations.Direction.Forward"/>, and with the given <see cref="T:AnimLib.Animations.Frame"/> array.
             </summary>
-            <param name="loopMode"><see cref="T:AnimLib.Animations.LoopMode"/> of the track.</param>
-            <param name="direction"><see cref="T:AnimLib.Animations.Direction"/> of the track.</param>
-            <param name="frames">Assigns to <see cref="F:AnimLib.Animations.Track.frames"/>.</param>
+            <inheritdoc cref="M:AnimLib.Animations.Track.#ctor(AnimLib.Animations.LoopMode,AnimLib.Animations.Direction,AnimLib.Animations.Frame[])"/>
         </member>
-        <member name="M:AnimLib.Animations.Track.#ctor(AnimLib.Animations.LoopMode,AnimLib.Animations.IFrame[])">
+        <member name="M:AnimLib.Animations.Track.#ctor(AnimLib.Animations.LoopMode,AnimLib.Animations.Frame[])">
             <summary>
-            Creates a track with the given <see cref="T:AnimLib.Animations.LoopMode"/>, <see cref="F:AnimLib.Animations.Direction.Forward"/>, and the given <see cref="T:AnimLib.Animations.Frame"/> array. This may be used as range parameters instead, if desired.
+            Creates a track with the given <see cref="T:AnimLib.Animations.LoopMode"/>, using <see cref="F:AnimLib.Animations.Direction.Forward"/>, and the given <see cref="T:AnimLib.Animations.Frame"/> array.
             </summary>
-            <param name="loopMode"><see cref="T:AnimLib.Animations.LoopMode"/> of the track.</param>
+            <inheritdoc cref="M:AnimLib.Animations.Track.#ctor(AnimLib.Animations.LoopMode,AnimLib.Animations.Direction,AnimLib.Animations.Frame[])"/>
+        </member>
+        <member name="M:AnimLib.Animations.Track.#ctor(AnimLib.Animations.LoopMode,AnimLib.Animations.Direction,AnimLib.Animations.Frame[])">
+            <summary>
+            Creates a track with the given <see cref="T:AnimLib.Animations.LoopMode"/>, <see cref="T:AnimLib.Animations.Direction"/>, and <see cref="T:AnimLib.Animations.Frame"/> array.
+            <para>If you want to have your <see cref="T:AnimLib.Animations.Track"/> use multiple textures, use the constructor <see cref="M:AnimLib.Animations.Track.#ctor(AnimLib.Animations.LoopMode,AnimLib.Animations.Direction,AnimLib.Animations.IFrame[])"/>.</para>
+            </summary>
+            <param name="loopMode">The <see cref="T:AnimLib.Animations.LoopMode"/> of the track.</param>
+            <param name="direction">The <see cref="T:AnimLib.Animations.Direction"/> of the track.</param>
             <param name="frames">Assigns to <see cref="F:AnimLib.Animations.Track.frames"/>.</param>
+            <exception cref="T:System.ArgumentNullException"><paramref name="frames"/> is <see langword="null"/>.</exception>
         </member>
         <member name="M:AnimLib.Animations.Track.#ctor(AnimLib.Animations.IFrame[])">
             <summary>
             Creates a track using <see cref="F:AnimLib.Animations.LoopMode.Always"/> and <see cref="F:AnimLib.Animations.Direction.Forward"/>, and with the given <see cref="T:AnimLib.Animations.Frame"/> array.
+            <inheritdoc cref="M:AnimLib.Animations.Track.#ctor(AnimLib.Animations.LoopMode,AnimLib.Animations.Direction,AnimLib.Animations.IFrame[])"/>
             </summary>
-            <param name="frames">Assigns to <see cref="F:AnimLib.Animations.Track.frames"/>.</param> 
+            <inheritdoc cref="M:AnimLib.Animations.Track.#ctor(AnimLib.Animations.LoopMode,AnimLib.Animations.Direction,AnimLib.Animations.IFrame[])"/>
+        </member>
+        <member name="M:AnimLib.Animations.Track.#ctor(AnimLib.Animations.LoopMode,AnimLib.Animations.IFrame[])">
+            <summary>
+            Creates a track with the given <see cref="T:AnimLib.Animations.LoopMode"/>, <see cref="T:AnimLib.Animations.Direction"/>, and <see cref="T:AnimLib.Animations.Frame"/> array.
+            <inheritdoc cref="M:AnimLib.Animations.Track.#ctor(AnimLib.Animations.LoopMode,AnimLib.Animations.Direction,AnimLib.Animations.IFrame[])"/>
+            </summary>
+            <inheritdoc cref="M:AnimLib.Animations.Track.#ctor(AnimLib.Animations.LoopMode,AnimLib.Animations.Direction,AnimLib.Animations.IFrame[])"/>
+        </member>
+        <member name="M:AnimLib.Animations.Track.#ctor(AnimLib.Animations.LoopMode,AnimLib.Animations.Direction,AnimLib.Animations.IFrame[])">
+            <summary>
+            <para>Using an <see cref="T:AnimLib.Animations.IFrame"/>[], this allows for multiple textures within the <see cref="T:AnimLib.Animations.Track"/>, by using either
+            <see cref="M:AnimLib.Animations.Frame.WithTexture(System.String)"/> or <see cref="M:AnimLib.Animations.SwitchTextureFrame.#ctor(System.Byte,System.Byte,System.UInt16,System.String)"/>.</para>
+            </summary>
+            <param name="loopMode"><see cref="T:AnimLib.Animations.LoopMode"/> of the track.</param>
+            <param name="direction"><see cref="T:AnimLib.Animations.Direction"/> of the track.</param>
+            <param name="frames">Assigns to <see cref="F:AnimLib.Animations.Track.frames"/> as a <see cref="T:AnimLib.Animations.Frame"/> array. All <see cref="T:AnimLib.Animations.SwitchTextureFrame"/>s will have their textures added to this <see cref="T:AnimLib.Animations.Track"/>, and all <see cref="T:AnimLib.Animations.IFrame"/>s will be cast to <see cref="T:AnimLib.Animations.Frame"/></param>
+            <exception cref="T:System.ArgumentNullException"><paramref name="frames"/> is <see langword="null"/> -or- <paramref name="frames"/> contains a <see langword="null"/> value.</exception>
         </member>
         <member name="F:AnimLib.Animations.Track.frames">
             <summary>
@@ -559,14 +580,10 @@
         <member name="F:AnimLib.Animations.Track.direction">
             <inheritdoc cref="T:AnimLib.Animations.Direction"/>
         </member>
-        <member name="P:AnimLib.Animations.Track.multiTexture">
+        <member name="P:AnimLib.Animations.Track.hasTexture">
             <summary>
-            Whether or not any <see cref="T:AnimLib.Animations.IFrame"/> in <see cref="F:AnimLib.Animations.Track.frames"/> is a <see cref="T:AnimLib.Animations.SwitchTextureFrame"/> (from <see cref="!:Frame.WithNextSpritesheet(Texture2D)"/>).
-            </summary>
-        </member>
-        <member name="P:AnimLib.Animations.Track.trackTexture">
-            <summary>
-            Texture of the track itself. If you have used any <see cref="T:AnimLib.Animations.SwitchTextureFrame"/>s (from <see cref="M:AnimLib.Animations.Frame.WithNextSpritesheet(System.String)"/>), use <see cref="M:AnimLib.Animations.Track.GetTexture(System.Int32)"/> instead.
+            Whether or not this track uses any textures that are not from <see cref="P:AnimLib.Animations.AnimationSource.texture"/>.
+            <para>This is only <see langword="true"/> if this track construction used <see cref="M:AnimLib.Animations.Track.WithTexture(System.String)"/>, <see cref="M:AnimLib.Animations.Frame.WithTexture(System.String)"/>, or new <see cref="M:AnimLib.Animations.SwitchTextureFrame.#ctor(System.Byte,System.Byte,System.UInt16,System.String)"/></para>
             </summary>
         </member>
         <member name="M:AnimLib.Animations.Track.GetTexture(System.Int32)">
@@ -582,6 +599,15 @@
             <summary>
             Assign a spritesheet that will be used instead of <see cref="P:AnimLib.Animations.AnimationSource.texture"/>.
             </summary>
+        </member>
+        <member name="M:AnimLib.Animations.Track.TryGetTexture(System.Int32,Microsoft.Xna.Framework.Graphics.Texture2D@)">
+            <summary>
+            Attempts to get the 
+            </summary>
+            <param name="frameIdx">Index of the frame. This value <strong>must</strong> be a key for <see cref="F:AnimLib.Animations.Track.texturePaths"/>.</param>
+            <param name="texture">The texture from the index of <see cref="F:AnimLib.Animations.Track.texturePaths"/>, or the texture for "ModLoader/MysteryTile" if it does not exist.</param>
+            <returns></returns>
+            <exception cref="T:System.Collections.Generic.KeyNotFoundException"><paramref name="frameIdx"/> is not a valid key for <see cref="F:AnimLib.Animations.Track.texturePaths"/>.</exception>
         </member>
         <member name="F:AnimLib.Animations.Track.transferTo">
             <summary>

@@ -285,7 +285,7 @@ namespace AnimLib.Animations {
       }
 
       Track track = MainAnimation.source[trackName];
-      IFrame[] frames = track.frames;
+      Frame[] frames = track.frames;
       int lastFrame = frames.Length - 1;
 
       if (frameIndex != null && frameIndex >= 0 && frameIndex <= lastFrame) {

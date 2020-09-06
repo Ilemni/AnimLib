@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Exceptions;
@@ -16,7 +17,7 @@ namespace AnimLib.Animations {
     /// <param name="start">First <see cref="Frame"/> of the track.</param>
     /// <param name="end">Last <see cref="Frame"/> of the track.</param>
     /// <returns>A new <see cref="Track"/> with the frames ranging from <paramref name="start"/> to <paramref name="end"/>.</returns>
-    public static Track Range(IFrame start, IFrame end) => Range(LoopMode.Always, Direction.Forward, start, end);
+    public static Track Range(Frame start, Frame end) => Range(LoopMode.Always, Direction.Forward, start, end);
 
     /// <summary>
     /// Creates a track with the given <see cref="LoopMode"/> and using <see cref="Direction.Forward"/>, with a <see cref="Frame"/> array ranging from <paramref name="start"/> to <paramref name="end"/>.
@@ -26,7 +27,7 @@ namespace AnimLib.Animations {
     /// <param name="start">First <see cref="Frame"/> of the track.</param>
     /// <param name="end">Last <see cref="Frame"/> of the track.</param>
     /// <returns>A new <see cref="Track"/> with the frames ranging from <paramref name="start"/> to <paramref name="end"/>.</returns>
-    public static Track Range(LoopMode loopMode, IFrame start, IFrame end) => Range(loopMode, Direction.Forward, start, end);
+    public static Track Range(LoopMode loopMode, Frame start, Frame end) => Range(loopMode, Direction.Forward, start, end);
 
     /// <summary>
     /// Creates a track with the given <see cref="LoopMode"/> and <see cref="Direction"/>, with a <see cref="Frame"/> array ranging from <paramref name="start"/> to <paramref name="end"/>.
@@ -39,7 +40,7 @@ namespace AnimLib.Animations {
     /// <returns>A new <see cref="Track"/> with the frames ranging from <paramref name="start"/> to <paramref name="end"/>.</returns>
     /// <exception cref="ArgumentException">The X values of <paramref name="start"/> and <paramref name="end"/> must be equal.</exception>
     /// <exception cref="ArgumentOutOfRangeException">The Y value of <paramref name="start"/> must be less than the Y value of <paramref name="end"/>.</exception>
-    public static Track Range(LoopMode loopMode, Direction direction, IFrame start, IFrame end) {
+    public static Track Range(LoopMode loopMode, Direction direction, Frame start, Frame end) {
       // Fill range of frames
       // I.e. if given [(0,1), (0,4)], we make [(0,1), (0,2), (0,3), (0,4)]
       if (start.tile.X != end.tile.X) {
@@ -61,45 +62,99 @@ namespace AnimLib.Animations {
     /// Creates a track that consists of a single <see cref="Frame"/>.
     /// </summary>
     /// <param name="frame">Assigns to <see cref="frames"/> as a single <see cref="Frame"/>.</param>
-    public static Track Single(Frame frame) => new Track(new IFrame[] { frame });
+    /// <returns>A new <see cref="Track"/> with a single <see cref="Frame"/>.</returns>
+    public static Track Single(Frame frame) => new Track(new Frame[] { frame });
 
-    /// <summary>
-    /// Creates a track with the given <see cref="LoopMode"/>, <see cref="Direction"/>, and <see cref="Frame"/> array. This may be used as range parameters instead, if desired.
-    /// </summary>
-    /// <param name="loopMode"><see cref="LoopMode"/> of the track.</param>
-    /// <param name="direction"><see cref="Direction"/> of the track.</param>
-    /// <param name="frames">Assigns to <see cref="frames"/>.</param>
-    public Track(LoopMode loopMode, Direction direction, IFrame[] frames) {
-      loop = loopMode;
-      this.direction = direction;
-      this.frames = frames;
-      Length = frames.Length;
-      foreach (var frame in frames) {
-        if (frame is SwitchTextureFrame) {
-          multiTexture = true;
-          break;
-        }
-      }
-    }
-
-    /// <summary>
-    /// Creates a track with the given <see cref="LoopMode"/>, <see cref="Direction.Forward"/>, and the given <see cref="Frame"/> array. This may be used as range parameters instead, if desired.
-    /// </summary>
-    /// <param name="loopMode"><see cref="LoopMode"/> of the track.</param>
-    /// <param name="frames">Assigns to <see cref="frames"/>.</param>
-    public Track(LoopMode loopMode, IFrame[] frames) : this(loopMode, Direction.Forward, frames) { }
 
     /// <summary>
     /// Creates a track using <see cref="LoopMode.Always"/> and <see cref="Direction.Forward"/>, and with the given <see cref="Frame"/> array.
     /// </summary>
-    /// <param name="frames">Assigns to <see cref="frames"/>.</param> 
+    /// <inheritdoc cref="Track(LoopMode, Direction, Frame[])"/>
+    public Track(Frame[] frames) : this(LoopMode.Always, Direction.Forward, frames) { }
+
+    /// <summary>
+    /// Creates a track with the given <see cref="LoopMode"/>, using <see cref="Direction.Forward"/>, and the given <see cref="Frame"/> array.
+    /// </summary>
+    /// <inheritdoc cref="Track(LoopMode, Direction, Frame[])"/>
+    public Track(LoopMode loopMode, Frame[] frames) : this(loopMode, Direction.Forward, frames) { }
+
+    /// <summary>
+    /// Creates a track with the given <see cref="LoopMode"/>, <see cref="Direction"/>, and <see cref="Frame"/> array.
+    /// <para>If you want to have your <see cref="Track"/> use multiple textures, use the constructor <see cref="Track(LoopMode, Direction, IFrame[])"/>.</para>
+    /// </summary>
+    /// <param name="loopMode">The <see cref="LoopMode"/> of the track.</param>
+    /// <param name="direction">The <see cref="Direction"/> of the track.</param>
+    /// <param name="frames">Assigns to <see cref="frames"/>.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="frames"/> is <see langword="null"/>.</exception>
+    public Track(LoopMode loopMode, Direction direction, Frame[] frames) {
+      loop = loopMode;
+      this.direction = direction;
+      this.frames = frames ?? throw new ArgumentNullException(nameof(frames));
+      Length = frames.Length;
+    }
+
+
+    /// <summary>
+    /// Creates a track using <see cref="LoopMode.Always"/> and <see cref="Direction.Forward"/>, and with the given <see cref="Frame"/> array.
+    /// <inheritdoc cref="Track(LoopMode, Direction, IFrame[])"/>
+    /// </summary>
+    /// <inheritdoc cref="Track(LoopMode, Direction, IFrame[])"/>
     public Track(IFrame[] frames) : this(LoopMode.Always, Direction.Forward, frames) { }
+
+    /// <summary>
+    /// Creates a track with the given <see cref="LoopMode"/>, <see cref="Direction"/>, and <see cref="Frame"/> array.
+    /// <inheritdoc cref="Track(LoopMode, Direction, IFrame[])"/>
+    /// </summary>
+    /// <inheritdoc cref="Track(LoopMode, Direction, IFrame[])"/>
+    public Track(LoopMode loopMode, IFrame[] frames) : this(loopMode, Direction.Forward, frames) { }
+
+    /// <summary>
+    /// <para>Using an <see cref="IFrame"/>[], this allows for multiple textures within the <see cref="Track"/>, by using either
+    /// <see cref="Frame.WithTexture(string)"/> or <see cref="SwitchTextureFrame(byte, byte, ushort, string)"/>.</para>
+    /// </summary>
+    /// <param name="loopMode"><see cref="LoopMode"/> of the track.</param>
+    /// <param name="direction"><see cref="Direction"/> of the track.</param>
+    /// <param name="frames">Assigns to <see cref="frames"/> as a <see cref="Frame"/> array. All <see cref="SwitchTextureFrame"/>s will have their textures added to this <see cref="Track"/>, and all <see cref="IFrame"/>s will be cast to <see cref="Frame"/></param>
+    /// <exception cref="ArgumentNullException"><paramref name="frames"/> is <see langword="null"/> -or- <paramref name="frames"/> contains a <see langword="null"/> value.</exception>
+    public Track(LoopMode loopMode, Direction direction, IFrame[] frames) {
+      if (frames is null) {
+        throw new ArgumentNullException(nameof(frames));
+      }
+
+      loop = loopMode;
+      this.direction = direction;
+      var newFrames = new Frame[frames.Length];
+
+      // We want Frame[] instead of IFrame[]. Frame is a small struct, but IFrame[] treats them as reference types
+      // Storing an IFrame[] would make AnimationSource significantly larger than it needs to be.
+      this.frames = newFrames;
+
+      for (int i = 0; i < frames.Length; i++) {
+        switch (frames[i]) {
+          case SwitchTextureFrame stf:
+            if (!(stf.texturePath is null)) {
+              // Structs... can't trust 'em to not have default values
+              AddTexturePathToFrameIndex(stf.texturePath, i);
+            }
+            newFrames[i] = (Frame)stf;
+            break;
+          case Frame frame:
+            newFrames[i] = frame;
+            break;
+          case IFrame f:
+            newFrames[i] = new Frame(f.tile.X, f.tile.Y, f.duration);
+            break;
+          case null:
+            throw new ArgumentNullException(nameof(frames), $"{nameof(frames)} contains a null value.");
+        }
+      }
+    }
 
 
     /// <summary>
     /// All frames used for this track.
     /// </summary>
-    public readonly IFrame[] frames;
+    public readonly Frame[] frames;
 
     /// <summary>
     /// The number of frames in this <see cref="Track"/>.
@@ -113,24 +168,12 @@ namespace AnimLib.Animations {
     public readonly Direction direction = Direction.Forward;
 
     /// <summary>
-    /// Whether or not any <see cref="IFrame"/> in <see cref="frames"/> is a <see cref="SwitchTextureFrame"/> (from <see cref="Frame.WithNextSpritesheet(Texture2D)"/>).
+    /// Whether or not this track uses any textures that are not from <see cref="AnimationSource.texture"/>.
+    /// <para>This is only <see langword="true"/> if this track construction used <see cref="WithTexture(string)"/>, <see cref="Frame.WithTexture(string)"/>, or new <see cref="SwitchTextureFrame(byte, byte, ushort, string)"/></para>
     /// </summary>
-    public bool multiTexture { get; }
+    public bool hasTexture => !(texturePaths is null);
 
-    /// <summary>
-    /// Texture of the track itself. If you have used any <see cref="SwitchTextureFrame"/>s (from <see cref="Frame.WithNextSpritesheet(string)"/>), use <see cref="GetTexture(int)"/> instead.
-    /// </summary>
-    public Texture2D trackTexture {
-      get {
-        if (texturePath is null) {
-          return null;
-        }
-        return _trackTexture ?? (_trackTexture = LoadTexture());
-      }
-    }
-
-    private Texture2D _trackTexture;
-    private string texturePath;
+    private SortedDictionary<int, string> texturePaths;
 
     /// <summary>
     /// Optional spritesheet that may be used instead of <see cref="AnimationSource.texture"/>.
@@ -140,48 +183,82 @@ namespace AnimLib.Animations {
     /// <param name="frameIdx">Index of the <see cref="IFrame"/> currently being played.</param>
     /// <returns>A valid <see cref="Texture2D"/> if <see cref="AnimationSource.texture"/> should be overridden, else <see langword="null"/>.</returns>
     public Texture2D GetTexture(int frameIdx) {
-      if (frameIdx > Length - 1) {
-        frameIdx = Length - 1;
+      if (texturePaths is null) {
+        return null;
       }
-      if (frameIdx < 0) {
-        throw new ArgumentOutOfRangeException(nameof(frameIdx), $"Expected value greater than or equal to 0, got {frameIdx}");
+
+      frameIdx = (int)MathHelper.Clamp(frameIdx, 0, Length - 1);
+
+      // Short-circuit if this frame has texture.
+      if (texturePaths.ContainsKey(frameIdx)) {
+        TryGetTexture(frameIdx, out var texture);
+        return texture;
       }
-      // TODO: Proper support for multiple textures per frame
-      /*if (multiTexture) {
-        while (frameIdx >= 0) {
-          if (frames[frameIdx] is SwitchTextureFrame stf) {
-            return stf.texturePath;
-          }
-          frameIdx--;
+
+      // Get the highest key before
+      int currentIdx = -1;
+      foreach (var key in texturePaths.Keys) {
+        if (key > currentIdx && key < frameIdx) {
+          currentIdx = key;
         }
-      }*/
-      return trackTexture;
+      }
+      if (currentIdx >= 0) {
+        TryGetTexture(frameIdx, out var texture);
+        return texture;
+      }
+
+      return null;
     }
 
     /// <summary>
     /// Assign a spritesheet that will be used instead of <see cref="AnimationSource.texture"/>.
     /// </summary>
     public Track WithTexture(string texturePath) {
-      if (string.IsNullOrWhiteSpace(texturePath)) {
-        throw new ArgumentException($"{nameof(texturePath)} cannot be null or empty.", nameof(texturePath));
-      }
-      if (this.texturePath == null) {
-        this.texturePath = texturePath;
-      }
-      else {
-        AnimLibMod.Instance.Logger.Warn("Cannot set the track's texture twice.");
-      }
+      AddTexturePathToFrameIndex(texturePath, 0);
       return this;
     }
 
-    private Texture2D LoadTexture() {
+    private void AddTexturePathToFrameIndex(string texturePath, int frameIndex) {
+      if (string.IsNullOrWhiteSpace(texturePath)) {
+        throw new ArgumentException($"{nameof(texturePath)} cannot be null or empty.", nameof(texturePath));
+      }
+      if (frameIndex < 0 || frameIndex >= Length) {
+        throw new ArgumentOutOfRangeException(nameof(frameIndex), $"{nameof(frameIndex)} must be non-negative and less than the length of tracks.");
+      }
+
+      if (texturePaths is null) {
+        texturePaths = new SortedDictionary<int, string> { [frameIndex] = texturePath };
+      }
+      else if (texturePaths.ContainsKey(frameIndex)) {
+        AnimLibMod.Instance.Logger.Warn("Cannot set the track's texture twice.");
+      }
+      else {
+        texturePaths[0] = texturePath;
+      }
+    }
+
+    /// <summary>
+    /// Attempts to get the 
+    /// </summary>
+    /// <param name="frameIdx">Index of the frame. This value <strong>must</strong> be a key for <see cref="texturePaths"/>.</param>
+    /// <param name="texture">The texture from the index of <see cref="texturePaths"/>, or the texture for "ModLoader/MysteryTile" if it does not exist.</param>
+    /// <returns></returns>
+    /// <exception cref="KeyNotFoundException"><paramref name="frameIdx"/> is not a valid key for <see cref="texturePaths"/>.</exception>
+    private void TryGetTexture(int frameIdx, out Texture2D texture) {
+      if (texturePaths is null) {
+        texture = null;
+        return;
+      }
+      if (!texturePaths.ContainsKey(frameIdx)) {
+        throw new KeyNotFoundException("The specified value was not found in the texturePaths list.");
+      }
       try {
-        var result = ModContent.GetTexture(texturePath);
-        return result;
+        texture = ModContent.GetTexture(texturePaths[frameIdx]);
       }
       catch (MissingResourceException ex) {
-        AnimLibMod.Instance.Logger.Error("Animation Track texture missing: ", ex);
-        return ModContent.GetTexture("ModLoader/MysteryTile");
+        AnimLibMod.Instance.Logger.Error("Animation Track texture missing, replacing with tML's MysteryTile", ex);
+        texturePaths[frameIdx] = "ModLoader/MysteryTile";
+        texture = ModContent.GetTexture("ModLoader/MysteryTile");
       }
     }
 
