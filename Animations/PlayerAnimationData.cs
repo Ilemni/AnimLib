@@ -293,6 +293,10 @@ namespace AnimLib.Animations {
         FrameTime = 0;
       }
 
+      if (AnimDebugCommand.DebugEnabled) {
+        Main.NewText($"Frame called: Tile [{MainAnimation.CurrentFrame.tile}],{(MainAnimation.CurrentTrack.hasTexture ? $" {MainAnimation.CurrentTexture.Name}" : "")} {TrackName}{(Reversed ? " (Reversed)" : "")} Time: {FrameTime}, AnimIndex: {FrameIndex}/{MainAnimation.CurrentTrack.Length}");
+      }
+
       // Loop logic
       PostIncrementFrame(duration, loop, direction);
     }
