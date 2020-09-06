@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -86,7 +86,11 @@ namespace AnimLib.Animations {
     /// <param name="direction">The <see cref="Direction"/> of the track.</param>
     /// <param name="frames">Assigns to <see cref="frames"/>.</param>
     /// <exception cref="ArgumentNullException"><paramref name="frames"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="frames"/> is empty.</exception>
     public Track(LoopMode loopMode, Direction direction, Frame[] frames) {
+      if (frames.Length == 0) {
+        throw new ArgumentException($"{nameof(frames)} cannot be empty", nameof(frames));
+      }
       loop = loopMode;
       this.direction = direction;
       this.frames = frames ?? throw new ArgumentNullException(nameof(frames));
@@ -116,15 +120,19 @@ namespace AnimLib.Animations {
     /// <param name="direction"><see cref="Direction"/> of the track.</param>
     /// <param name="frames">Assigns to <see cref="frames"/> as a <see cref="Frame"/> array. All <see cref="SwitchTextureFrame"/>s will have their textures added to this <see cref="Track"/>, and all <see cref="IFrame"/>s will be cast to <see cref="Frame"/></param>
     /// <exception cref="ArgumentNullException"><paramref name="frames"/> is <see langword="null"/> -or- <paramref name="frames"/> contains a <see langword="null"/> value.</exception>
+    /// <exception cref="ArgumentException"><paramref name="frames"/> is empty.</exception>
     public Track(LoopMode loopMode, Direction direction, IFrame[] frames) {
       if (frames is null) {
         throw new ArgumentNullException(nameof(frames));
+      }
+      if (frames.Length == 0) {
+        throw new ArgumentException($"{nameof(frames)} cannot be empty", nameof(frames));
       }
 
       loop = loopMode;
       this.direction = direction;
       var newFrames = new Frame[frames.Length];
-
+      Length = newFrames.Length;
       // We want Frame[] instead of IFrame[]. Frame is a small struct, but IFrame[] treats them as reference types
       // Storing an IFrame[] would make AnimationSource significantly larger than it needs to be.
       this.frames = newFrames;
