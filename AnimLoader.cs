@@ -172,5 +172,17 @@ namespace AnimLib {
       source = null;
       return false;
     }
+
+    internal static void OnUnload() {
+      // In case other mods set a static reference to an AnimationSource, let's just clear out the dicts
+      var sources = Instance.animationSources;
+      if (!(sources is null)) {
+        foreach (var modSources in sources.Values) {
+          foreach (var source in modSources) {
+            source.tracks?.Clear();
+          }
+        }
+      }
+    }
   }
 }

@@ -128,6 +128,7 @@ namespace AnimLib {
 
     /// <inheritdoc/>
     public override void Unload() {
+      AnimLoader.OnUnload();
       OnUnload?.Invoke();
       OnUnload = null;
       Instance = null;

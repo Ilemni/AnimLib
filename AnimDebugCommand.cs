@@ -1,7 +1,7 @@
 ﻿using Terraria.ModLoader;
 
 namespace AnimLib {
-  class AnimDebugCommand : ModCommand {
+  internal class AnimDebugCommand : ModCommand {
     public override string Command => "animdebug";
 
     public override CommandType Type => CommandType.Chat;
