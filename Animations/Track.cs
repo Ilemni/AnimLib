@@ -203,7 +203,7 @@ namespace AnimLib.Animations {
         }
       }
       if (currentIdx >= 0) {
-        TryGetTexture(frameIdx, out var texture);
+        TryGetTexture(currentIdx, out var texture);
         return texture;
       }
 
