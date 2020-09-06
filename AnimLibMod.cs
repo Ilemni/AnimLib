@@ -69,6 +69,41 @@ namespace AnimLib {
     }
 
     /// <summary>
+    /// Gets the <see cref="AnimationSource"/> of the given type from the given <see cref="Mod"/>.
+    /// Use this if you want to access one of your <see cref="AnimationSource"/>s.
+    /// <para>This <strong>cannot</strong> be used during the <see cref="Mod.PostSetupContent"/> method or earlier.</para>
+    /// </summary>
+    /// <typeparam name="T">Type of <see cref="AnimationSource"/> to get.</typeparam>
+    /// <typeparam name="TMod">Your mod type.</typeparam>
+    /// <returns>A <see cref="AnimationSource"/> of type <typeparamref name="T"/>.</returns>
+    public static T GetAnimationSource<T, TMod>() where T : AnimationSource where TMod : Mod {
+      var srcs = AnimLoader.Instance.animationSources;
+      foreach (var mod in srcs.Keys) {
+        if (mod is TMod) {
+          return GetAnimationSource<T>(mod);
+        }
+      }
+      return null;
+    }
+
+    /// <summary>
+    /// Gets the <see cref="AnimationSource"/> of the given type.
+    /// Use this if you want to access one of your <see cref="AnimationSource"/>s.
+    /// <para>This <strong>cannot</strong> be used during the <see cref="Mod.PostSetupContent"/> method or earlier.</para>
+    /// </summary>
+    /// <param name="mod">Your mod.</param>
+    /// <typeparam name="T">Type of <see cref="AnimationSource"/> to get.</typeparam>
+    /// <returns>A <see cref="AnimationSource"/> of type <typeparamref name="T"/>.</returns>
+    public static T GetAnimationSource<T>(Mod mod) where T : AnimationSource {
+      foreach (var source in AnimLoader.Instance.animationSources[mod]) {
+        if (source is T t) {
+          return t;
+        }
+      }
+      return null;
+    }
+
+    /// <summary>
     /// Use this to null static reference types on unload.
     /// </summary>
     internal static event Action OnUnload;
