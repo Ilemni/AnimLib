@@ -125,11 +125,11 @@ namespace AnimLib.Animations {
         if (texturePath is null) {
           return null;
         }
-        return _tTxt ?? (_tTxt = LoadTexture());
+        return _trackTexture ?? (_trackTexture = LoadTexture());
       }
     }
 
-    private Texture2D _tTxt;
+    private Texture2D _trackTexture;
     private string texturePath;
 
     /// <summary>
