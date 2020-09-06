@@ -95,12 +95,6 @@
             After initialization, values should not be modified.
             </summary>
         </member>
-        <member name="M:AnimLib.Animations.AnimationSource.#ctor">
-            <summary>
-            Base constructor. Ensures that this is not constructed on a server.
-            </summary>
-            <exception cref="T:System.InvalidOperationException">Animation classes are not allowed to be constructed on servers.</exception>
-        </member>
         <member name="P:AnimLib.Animations.AnimationSource.spriteSize">
             <inheritdoc/>
         </member>
