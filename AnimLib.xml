@@ -131,6 +131,13 @@
             </summary>
             <inheritdoc cref="M:AnimLib.Animations.Frame.#ctor(System.Int32,System.Int32,System.Int32)"/>
         </member>
+        <member name="M:AnimLib.Animations.AnimationSource.F(System.String,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            <para>Shorthand for <see cref="M:AnimLib.Animations.SwitchTextureFrame.#ctor(System.Byte,System.Byte,System.UInt16,System.String)"/>. Use this to switch the texture at this frame.</para>
+            <inheritdoc cref="M:AnimLib.Animations.SwitchTextureFrame.#ctor(System.Byte,System.Byte,System.UInt16,System.String)"/>
+            </summary>
+            <inheritdoc cref="M:AnimLib.Animations.SwitchTextureFrame.#ctor(System.Byte,System.Byte,System.UInt16,System.String)"/>
+        </member>
         <member name="T:AnimLib.Animations.Direction">
             <summary>
             Used to determine the direction that frames in a track are played.
