@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -233,7 +233,7 @@ namespace AnimLib.Animations {
         AnimLibMod.Instance.Logger.Warn("Cannot set the track's texture twice.");
       }
       else {
-        texturePaths[0] = texturePath;
+        texturePaths[frameIndex] = texturePath;
       }
     }
 
