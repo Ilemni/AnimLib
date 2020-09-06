@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -140,7 +140,7 @@ namespace AnimLib.Animations {
       for (int i = 0; i < frames.Length; i++) {
         switch (frames[i]) {
           case SwitchTextureFrame stf:
-            AddTexturePathToFrameIndex(stf.texturePath, i);
+            SetTexturePathAtFrameIndex(stf.texturePath, i);
             newFrames[i] = (Frame)stf;
             break;
           case Frame frame:
@@ -223,7 +223,7 @@ namespace AnimLib.Animations {
         throw new ArgumentException("The first frame that uses a texture replacement cannot be null.", nameof(texturePath));
       }
 
-      AddTexturePathToFrameIndex(texturePath, 0);
+      SetTexturePathAtFrameIndex(texturePath, 0);
       return this;
     }
 
@@ -233,20 +233,16 @@ namespace AnimLib.Animations {
     /// <param name="texturePath">Path to the texture, -or- <see langword="null"/> to use the <see cref="AnimationSource"/>'s texture.</param>
     /// <param name="frameIndex">Index of the frame that this texture will be used for.</param>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="frameIndex"/> cannot be less than 0 or greater than the length of frames.</exception>
-    private void AddTexturePathToFrameIndex(string texturePath, int frameIndex) {
+    public void SetTexturePathAtFrameIndex(string texturePath, int frameIndex) {
       if (frameIndex < 0 || frameIndex >= Length) {
-        throw new ArgumentOutOfRangeException(nameof(frameIndex), $"{nameof(frameIndex)} must be non-negative and less than the length of tracks.");
+        throw new ArgumentOutOfRangeException(nameof(frameIndex), $"{nameof(frameIndex)} must be non-negative and less than the length of frames.");
       }
 
       if (texturePaths is null) {
-        texturePaths = new SortedDictionary<int, string> { [frameIndex] = texturePath };
+        texturePaths = new SortedDictionary<int, string>();
       }
-      else if (texturePaths.ContainsKey(frameIndex)) {
-        AnimLibMod.Instance.Logger.Warn("Cannot set the track's texture twice.");
-      }
-      else {
-        texturePaths[frameIndex] = texturePath;
-      }
+
+      texturePaths[frameIndex] = texturePath;
     }
 
     /// <summary>
