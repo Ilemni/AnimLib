@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using AnimLib.Animations;
+using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ModLoader;
 
@@ -22,7 +24,13 @@ namespace AnimLib {
     /// </summary>
     public override void PostUpdate() {
       foreach (var anim in animationDatas.Values) {
-        anim.Update();
+        try {
+          anim.Update();
+        }
+        catch (Exception ex) {
+          AnimLibMod.Instance.Logger.Error($"[{anim.mod.Name}] Caught exception while updating animations.", ex);
+          Main.NewText($"AnimLib -> {anim.mod.Name}: Caught exception while updating animations. See client.log for more information.", Color.Red);
+        }
       }
     }
   }
