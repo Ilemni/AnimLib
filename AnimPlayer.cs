@@ -16,6 +16,10 @@ namespace AnimLib {
     /// Constructs and collects all <see cref="AnimationController"/>s across all mods onto this <see cref="Player"/>.
     /// </summary>
     public override void Initialize() {
+      if (!AnimLoader.UseAnimations) {
+        return;
+      }
+
       AnimLoader.CreateAnimationControllersForPlayer(this);
     }
 
@@ -23,6 +27,10 @@ namespace AnimLib {
     /// Updates all <see cref="AnimationController"/>s on this <see cref="Player"/>.
     /// </summary>
     public override void PostUpdate() {
+      if (!AnimLoader.UseAnimations) {
+        return;
+      }
+
       foreach (var anim in animationControllers.Values) {
         // Probably not a good idea to crash when a purely cosmetic effect fails.
         try {
