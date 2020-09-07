@@ -164,58 +164,17 @@ namespace AnimLib.Animations {
 
 
     /// <summary>
-    /// Plays the <see cref="Track"/> of the given name.
+    /// Plays the <see cref="Track"/> of the given name, using default values.
     /// </summary>
+    /// <param name="trackName">
+    /// Name of the animation track to play/continue.
+    /// <para>This must be a valid key in the <see cref="AnimationSource"/> for <see cref="MainAnimation"/>.</para>
+    /// </param>
     /// <exception cref="ArgumentException"><paramref name="trackName"/> was null or whitespace.</exception>
     /// <exception cref="KeyNotFoundException">The value of <paramref name="trackName"/> was not a key in the main <see cref="AnimationSource.tracks"/>.</exception>
     protected void IncrementFrame(string trackName)
       => IncrementFrame(trackName, null, null, null, 0, null, null);
-
-    /// <summary>
-    /// Plays the <see cref="Track"/> with the given rotation.
-    /// </summary>
-    /// <inheritdoc cref="IncrementFrame(string, int?, float?, int?, float, LoopMode?, Direction?)"/>
-    protected void IncrementFrame(string trackName, float rotation)
-      => IncrementFrame(trackName, null, null, null, rotation, null, null);
-
-    /// <summary>
-    /// Plays the <see cref="Track"/> with the given speed.
-    /// </summary>
-    /// <inheritdoc cref="IncrementFrame(string, int?, float?, int?, float, LoopMode?, Direction?)"/>
-    protected void IncrementFrame(string trackName, float? speed)
-      => IncrementFrame(trackName, null, speed, null, 0, null, null);
-
-    /// <summary>
-    /// Plays the <see cref="Track"/> with the given speed and rotation.
-    /// </summary>
-    /// <inheritdoc cref="IncrementFrame(string, int?, float?, int?, float, LoopMode?, Direction?)"/>
-    protected void IncrementFrame(string trackName, float? speed, float rotation)
-      => IncrementFrame(trackName, null, speed, null, rotation, null, null);
-
-    /// <summary>
-    /// Plays the <see cref="Track"/> with the given frame. If <paramref name="frameIndex"/> is non-<see langword="null"/>, this prevents normal playback.
-    /// </summary>
-    /// <inheritdoc cref="IncrementFrame(string, int?, float?, int?, float, LoopMode?, Direction?)"/>
-    protected void IncrementFrame(string trackName, int? frameIndex)
-      => IncrementFrame(trackName, frameIndex, null, null, 0, null, null);
-
-    /// <summary>
-    /// Plays the <see cref="Track"/> with the given frame and rotation. This prevents normal playback.
-    /// </summary>
-    /// <inheritdoc cref="IncrementFrame(string, int?, float?, int?, float, LoopMode?, Direction?)"/>
-    protected void IncrementFrame(string trackName, int? frameIndex, float rotation)
-      => IncrementFrame(trackName, frameIndex, null, null, rotation, null, null);
-
-    /// <summary>
-    /// Plays the <see cref="Track"/> in the given <see cref="Direction"/>.
-    /// </summary>
-    /// <param name="trackName">Name of the animation track to play/continue. This must be a valid key in the <see cref="AnimationSource"/> for <see cref="MainAnimation"/>.</param>
-    /// <param name="direction"><see cref="Direction"/> for the track to play.</param>
-    /// <exception cref="ArgumentException"><paramref name="trackName"/> was null or whitespace.</exception>
-    /// <exception cref="KeyNotFoundException">The value of <paramref name="trackName"/> was not a key in the main <see cref="AnimationSource.tracks"/>.</exception>
-    protected void IncrementFrame(string trackName, Direction? direction)
-      => IncrementFrame(trackName, null, null, null, 0, null, direction);
-
+    
     /// <summary>
     /// Plays the <see cref="Track"/> with the given name. How the animation advances is based on the given input parameters.
     /// </summary>
@@ -232,7 +191,7 @@ namespace AnimLib.Animations {
     /// <para>This must be a non-negative value. To play in reverse, use <paramref name="direction"/>.</para>
     /// </param>
     /// <param name="duration">
-    /// Duration of the frame, -or- <see langword="null"/> to use the <see cref="Frame"/>'s duration.
+    /// Duration of the frame, -or- 0 to stop playback, -or- <see langword="null"/> to use the <see cref="Frame"/>'s duration.
     /// <para>This must be a positive value.</para>
     /// </param>
     /// <param name="rotation">
@@ -248,7 +207,7 @@ namespace AnimLib.Animations {
     /// <exception cref="ArgumentException"><paramref name="trackName"/> was null or whitespace.</exception>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="frameIndex"/> is less than 0, or greater than the count of <paramref name="trackName"/>'s frames, -or- <paramref name="speed"/> was negative, -or- <paramref name="duration"/> was negative or 0.</exception>
     /// <exception cref="KeyNotFoundException">The value of <paramref name="trackName"/> was not a key in the main <see cref="AnimationSource.tracks"/>.</exception>
-    protected void IncrementFrame(string trackName, int? frameIndex, float? speed, int? duration, float rotation, LoopMode? loop, Direction? direction) {
+    protected void IncrementFrame(string trackName, int? frameIndex = null, float? speed = null, int? duration = null, float rotation = 0, LoopMode? loop = null, Direction? direction = null) {
       if (string.IsNullOrWhiteSpace(trackName)) {
         throw new ArgumentException($"{nameof(trackName)} cannot be null or whitespace.", nameof(trackName));
       }
