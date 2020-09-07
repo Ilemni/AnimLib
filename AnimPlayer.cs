@@ -10,7 +10,7 @@ namespace AnimLib {
   /// Main <see cref="ModPlayer"/> class for <see cref="AnimLibMod"/>, contains and updates <see cref="AnimationController"/>.
   /// </summary>
   public sealed class AnimPlayer : ModPlayer {
-    internal readonly Dictionary<Mod, AnimationController> animationControllers = new Dictionary<Mod, AnimationController>();
+    internal Dictionary<Mod, AnimationController> animationControllers { get; private set; }
 
     /// <summary>
     /// Constructs and collects all <see cref="AnimationController"/>s across all mods onto this <see cref="Player"/>.
@@ -20,6 +20,7 @@ namespace AnimLib {
         return;
       }
 
+      animationControllers = new Dictionary<Mod, AnimationController>();
       AnimLoader.CreateAnimationControllersForPlayer(this);
     }
 
