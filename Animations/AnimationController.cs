@@ -22,11 +22,6 @@ namespace AnimLib.Animations {
       }
     }
 
-    /// <summary>
-    /// Allows you to do things after this <see cref="AnimationController"/> is constructed.
-    /// Useful for getting references to <see cref="Animation"/>s via <see cref="GetAnimation{T}"/>.
-    /// </summary>
-    public virtual void Initialize() { }
 
     /// <summary>
     /// All <see cref="Animation"/>s that belong to this mod.
@@ -49,32 +44,11 @@ namespace AnimLib.Animations {
     /// </summary>
     public Animation MainAnimation { get; private set; }
 
-    /// <summary>
-    /// Sets the main <see cref="Animation"/> of this player to the given <see cref="Animation"/>.
-    /// This can be useful for things like player transformations that use multiple <see cref="AnimationSource"/>s.
-    /// </summary>
-    /// <param name="animation">Animation to set this player's <see cref="MainAnimation"/> to.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="animation"/> is null.</exception>
-    public void SetMainAnimation(Animation animation) {
-      MainAnimation = animation ?? throw new ArgumentNullException(nameof(animation));
-    }
 
     /// <summary>
-    /// Sets the main <see cref="Animation"/> of this player to the animation whose source is <typeparamref name="T"/>.
-    /// This can be useful for things like player transformations that use multiple <see cref="AnimationSource"/>s.
+    /// The name of the animation track currently playing. This value cannot be set to a null or whitespace value.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public void SetMainAnimation<T>() where T : AnimationSource {
-      var result = GetAnimation<T>();
-      // This shouldn't ever be null
-      if (result != null) {
-        MainAnimation = result;
-      }
-    }
-
-    /// <summary>
-    /// The name of the animation track currently playing.
-    /// </summary>
+    /// <exception cref="ArgumentException">A set operation cannot be performed with a null or whitespace value.</exception>
     public string TrackName {
       get => _trackName;
       set {
@@ -85,7 +59,6 @@ namespace AnimLib.Animations {
         }
       }
     }
-    private string _trackName = "Default";
 
     /// <summary>
     /// Current index of the <see cref="Track"/> being played.
@@ -107,48 +80,18 @@ namespace AnimLib.Animations {
     /// </summary>
     public bool Reversed { get; private set; }
 
-    /// <summary>
-    /// Gets the <see cref="Animation"/> from this <see cref="animations"/> where its <see cref="AnimationSource"/> is of type <typeparamref name="T"/>.
-    /// </summary>
-    /// <remarks>
-    /// In theory this shouldn't ever return <see langword="null"/>, unless this <see cref="AnimationController"/> was constructed prior to <see cref="AnimLibMod.PostSetupContent"/>.
-    /// </remarks>
-    /// <typeparam name="T">Type of <see cref="AnimationSource"/></typeparam>
-    /// <returns>The <see cref="Animation"/> with the matching <see cref="AnimationSource"/>.</returns>
-    /// <exception cref="ArgumentException"><typeparamref name="T"/> and <see cref="mod"/> are from different assemblies.</exception>
-    public Animation GetAnimation<T>() where T : AnimationSource {
-      foreach (var anim in animations) {
-        if (anim.source is T) {
-          return anim;
-        }
-      }
-      string tAsmName = typeof(T).Assembly.FullName;
-      string modAsmName = mod.Code.FullName;
-      if (tAsmName != modAsmName) {
-        throw new ArgumentException($"Assembly mismatch: {typeof(T)} is from {tAsmName}; this {nameof(AnimationController)} is from {modAsmName}");
-      }
-      AnimLibMod.Instance.Logger.Warn($"{GetType().Name}.GetAnimation<{typeof(T).Name}>() failed.");
-      return null;
-    }
 
     /// <summary>
-    /// Check if the <see cref="Animation"/>s will be valid when the given track name.
-    /// If <paramref name="updateValue"/> is <see langword="true"/>, all <see cref="Animation.Valid"/> states will be updated.
-    /// Returns <see langword="true"/> if the main <see cref="Animation"/> is valid; otherwise, <see langword="false"/>.
+    /// Allows you to do things after this <see cref="AnimationController"/> is constructed.
+    /// Useful for getting references to <see cref="Animation"/>s via <see cref="GetAnimation{T}"/>.
     /// </summary>
-    /// <param name="newTrackName">New value of <see cref="TrackName"/>.</param>
-    /// <param name="updateValue">Whether or not to update <see cref="Animation.Valid"/>.</param>
-    /// <returns><see langword="true"/> if the main <see cref="Animation"/> is valid; otherwise, <see langword="false"/>.</returns>
-    private bool Validate(string newTrackName, bool updateValue) {
-      if (!updateValue) {
-        return MainAnimation.CheckIfValid(newTrackName);
-      }
+    public virtual void Initialize() { }
 
-      foreach (var anim in animations) {
-        anim.CheckIfValid(newTrackName, updateValue);
-      }
-      return MainAnimation.Valid;
-    }
+    /// <summary>
+    /// Determines whether or not the animation should update. Return <see langword="false"/> to stop the animation from updating. Returns <see langword="true"/> by default.
+    /// </summary>
+    /// <returns><see langword="true"/> to update the animation, or <see langword="false"/> to stop it.</returns>
+    public virtual bool PreUpdate() => true;
 
     /// <summary>
     /// Updates the player animation by one frame. This is where you choose what tracks are played, and how they are played.
@@ -173,6 +116,52 @@ namespace AnimLib.Animations {
     /// </code>
     /// </example>
     public abstract void Update();
+
+
+    /// <summary>
+    /// Gets the <see cref="Animation"/> where the <see cref="AnimationSource"/> is of type <typeparamref name="T"/>.
+    /// </summary>
+    /// <typeparam name="T">Type of <see cref="AnimationSource"/></typeparam>
+    /// <returns>The <see cref="Animation"/> with the matching <see cref="AnimationSource"/>.</returns>
+    /// <exception cref="ArgumentException"><typeparamref name="T"/> and <see cref="mod"/> are from different assemblies.</exception>
+    public Animation GetAnimation<T>() where T : AnimationSource {
+      foreach (var anim in animations) {
+        if (anim.source is T) {
+          return anim;
+        }
+      }
+      string tAsmName = typeof(T).Assembly.FullName;
+      string modAsmName = mod.Code.FullName;
+      if (tAsmName != modAsmName) {
+        throw new ArgumentException($"Assembly mismatch: {typeof(T)} is from {tAsmName}; this {nameof(AnimationController)} is from {modAsmName}");
+      }
+      AnimLibMod.Instance.Logger.Warn($"{GetType().Name}.GetAnimation<{typeof(T).Name}>() failed.");
+      return null;
+    }
+
+    /// <summary>
+    /// Sets the main <see cref="Animation"/> of this player to the given <see cref="Animation"/>.
+    /// This can be useful for things like player transformations that use multiple <see cref="AnimationSource"/>s.
+    /// </summary>
+    /// <param name="animation">Animation to set this player's <see cref="MainAnimation"/> to.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="animation"/> is null.</exception>
+    public void SetMainAnimation(Animation animation) {
+      MainAnimation = animation ?? throw new ArgumentNullException(nameof(animation));
+    }
+
+    /// <summary>
+    /// Sets the main <see cref="Animation"/> of this player to the animation whose source is <typeparamref name="T"/>.
+    /// This can be useful for things like player transformations that use multiple <see cref="AnimationSource"/>s.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public void SetMainAnimation<T>() where T : AnimationSource {
+      var result = GetAnimation<T>();
+      // This shouldn't ever be null
+      if (result != null) {
+        MainAnimation = result;
+      }
+    }
+
 
     /// <summary>
     /// Plays the <see cref="Track"/> of the given name.
@@ -294,16 +283,17 @@ namespace AnimLib.Animations {
       }
 
       if (AnimDebugCommand.DebugEnabled) {
-        Main.NewText($"Frame called: Tile [{MainAnimation.CurrentFrame.tile}],{(MainAnimation.CurrentTrack.hasTexture ? $" {MainAnimation.CurrentTexture.Name}" : "")} {TrackName}{(Reversed ? " (Reversed)" : "")} Time: {FrameTime}, AnimIndex: {FrameIndex}/{MainAnimation.CurrentTrack.Length}");
+        Main.NewText($"Frame called: Tile [{MainAnimation.CurrentFrame.tile}],{(MainAnimation.CurrentTrack.hasTextures ? $" {MainAnimation.CurrentTexture.Name}" : "")} {TrackName}{(Reversed ? " (Reversed)" : "")} Time: {FrameTime}, AnimIndex: {FrameIndex}/{MainAnimation.CurrentTrack.Length}");
       }
 
       // Loop logic
       PostIncrementFrame(duration, loop, direction);
     }
 
+
     private void PostIncrementFrame(int? overrideDuration, LoopMode? overrideLoopMode, Direction? overrideDirection) {
       var track = MainAnimation.CurrentTrack;
-      var loop = overrideLoopMode ?? track.loop;
+      var loop = overrideLoopMode ?? track.loopMode;
       var duration = overrideDuration ?? MainAnimation.CurrentFrame.duration;
       var direction = overrideDirection ?? track.direction;
 
@@ -324,14 +314,7 @@ namespace AnimLib.Animations {
         case Direction.Forward: {
             Reversed = false;
             if (FrameIndex == lastFrame) {
-              // Forward, end of track w/ transfer: transfer to next track
-              if (loop == LoopMode.Transfer) {
-                TrackName = track.transferTo;
-                FrameIndex = 0;
-                FrameTime = 0;
-              }
-              // Forward, end of track, always loop: replay track forward
-              else if (loop == LoopMode.Always) {
+              if (loop == LoopMode.Always) {
                 FrameIndex = 0;
               }
             }
@@ -362,11 +345,6 @@ namespace AnimLib.Animations {
             Reversed = true;
             // Reverse, if loop: replay track backwards
             if (FrameIndex == 0) {
-              if (loop == LoopMode.Transfer) {
-                TrackName = track.transferTo;
-                FrameIndex = 0;
-                FrameTime = 0;
-              }
               if (loop == LoopMode.Always) {
                 FrameIndex = lastFrame;
               }
@@ -393,5 +371,27 @@ namespace AnimLib.Animations {
         FrameIndex = Reversed ? (track.Length - 1) : 0;
       }
     }
+
+    /// <summary>
+    /// Check if the <see cref="Animation"/>s will be valid when the given track name.
+    /// If <paramref name="updateValue"/> is <see langword="true"/>, all <see cref="Animation.Valid"/> states will be updated.
+    /// Returns <see langword="true"/> if the main <see cref="Animation"/> is valid; otherwise, <see langword="false"/>.
+    /// </summary>
+    /// <param name="newTrackName">New value of <see cref="TrackName"/>.</param>
+    /// <param name="updateValue">Whether or not to update <see cref="Animation.Valid"/>.</param>
+    /// <returns><see langword="true"/> if the main <see cref="Animation"/> is valid; otherwise, <see langword="false"/>.</returns>
+    private bool Validate(string newTrackName, bool updateValue) {
+      if (!updateValue) {
+        return MainAnimation.CheckIfValid(newTrackName);
+      }
+
+      foreach (var anim in animations) {
+        anim.CheckIfValid(newTrackName, updateValue);
+      }
+      return MainAnimation.Valid;
+    }
+
+
+    private string _trackName = "Default";
   }
 }

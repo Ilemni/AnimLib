@@ -1,7 +1,7 @@
-﻿using Microsoft.Xna.Framework.Graphics;
-
-namespace AnimLib.Animations {
-  /// <inheritdoc cref="IFrame"/>
+﻿namespace AnimLib.Animations {
+  /// <summary>
+  /// Single frame of animation. Stores sprite position on the sprite sheet, and duration of the frame.
+  /// </summary>
   public readonly struct Frame : IFrame {
     /// <summary>
     /// Creates a <see cref="Frame"/> with the given X and Y position, and frame duration to play. These values will be cast to smaller data types.
@@ -27,12 +27,6 @@ namespace AnimLib.Animations {
 
     /// <inheritdoc/>
     public ushort duration { get; }
-
-    /// <summary>
-    /// For a <see cref="Track"/>, adds another <see cref="Texture2D"/> to the track, and switches to that texture when this track is played.
-    /// </summary>
-    /// <param name="texturePath">Path of the texture to play, or <see langword="null"/> to use the <see cref="AnimationSource"/>'s texture.</param>
-    public SwitchTextureFrame WithTexture(string texturePath) => new SwitchTextureFrame(tile.X, tile.Y, duration, texturePath);
 
     /// <summary>
     /// Returns a <see cref="string"/> containing the X and Y value of the <see cref="tile"/>, and the <see cref="duration"/> of this instance.

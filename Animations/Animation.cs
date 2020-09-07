@@ -27,6 +27,7 @@ namespace AnimLib.Animations {
       CheckIfValid(container.TrackName);
     }
 
+
     /// <summary>
     /// <see cref="AnimationController"/> this <see cref="Animation"/> belongs to. This is used to get the current <see cref="Track"/>s and <see cref="Frame"/>s.
     /// </summary>
@@ -36,6 +37,7 @@ namespace AnimLib.Animations {
     /// <see cref="AnimationSource"/> database used for this <see cref="Animation"/>.
     /// </summary>
     public readonly AnimationSource source;
+
 
     /// <summary>
     /// Whether or not the current <see cref="AnimationController.TrackName"/> maps to a valid <see cref="Track"/> on this <see cref="AnimationSource"/>.
@@ -78,6 +80,7 @@ namespace AnimLib.Animations {
     /// </summary>
     public Texture2D CurrentTexture => CurrentTrack.GetTexture(controller.FrameIndex) ?? source.texture;
 
+
     /// <summary>
     /// Attempts to insert the <see cref="PlayerLayer"/> of this <see cref="Animation"/> to <paramref name="layers"/>. If <see cref="Valid"/> is <see langword="false"/>, this will fail and return <see langword="false"/>.
     /// </summary>
@@ -91,17 +94,6 @@ namespace AnimLib.Animations {
         return true;
       }
       return false;
-    }
-
-    /// <summary>
-    /// Updates <see cref="Valid"/> by checking if <paramref name="name"/> is a valid track.
-    /// </summary>
-    /// <param name="name">Track name to check.</param>
-    /// <param name="updateValue">Whether or not to set <see cref="Valid"/> to the result of this method.</param>
-    public bool CheckIfValid(string name, bool updateValue = true) {
-      bool result = source.tracks.ContainsKey(name);
-      if (updateValue) Valid = source.tracks.ContainsKey(name);
-      return result;
     }
 
     /// <summary>
@@ -133,6 +125,18 @@ namespace AnimLib.Animations {
       }
 
       return new DrawData(texture, pos, rect, Color.White, player.direction * controller.SpriteRotation, orig, 1, effect, 0);
+    }
+
+
+    /// <summary>
+    /// Updates <see cref="Valid"/> by checking if <paramref name="name"/> is a valid track.
+    /// </summary>
+    /// <param name="name">Track name to check.</param>
+    /// <param name="updateValue">Whether or not to set <see cref="Valid"/> to the result of this method.</param>
+    internal bool CheckIfValid(string name, bool updateValue = true) {
+      bool result = source.tracks.ContainsKey(name);
+      if (updateValue) Valid = source.tracks.ContainsKey(name);
+      return result;
     }
   }
 }

@@ -11,9 +11,5 @@
     /// When the last frame ends, the animation loops back to the start of the track.
     /// </summary>
     Always = 1,
-    /// <summary>
-    /// When the last frame ends, the animation plays the specified track.
-    /// </summary>
-    Transfer = 2,
   }
 }

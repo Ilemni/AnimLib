@@ -5,12 +5,25 @@ using AnimLib.Animations;
 using Terraria.ModLoader;
 
 namespace AnimLib {
+  /// <summary>
+  /// Manages the construction and distribution of all <see cref="AnimationSource"/>s and <see cref="AnimationController"/>s.
+  /// <para><strong><see cref="AnimationSource"/></strong></para>
+  /// <para>On <see cref="Mod.Load"/>, all <see cref="AnimationSource"/>s are constructed.</para>
+  /// <para>On <see cref="Mod.PostSetupContent"/>, all <see cref="AnimationSource"/>s have their Textures assigned.</para>
+  /// 
+  /// <para><strong><see cref="AnimationController"/></strong></para>
+  /// <para>On <see cref="Mod.Load"/>, all <see cref="Type"/>s of <see cref="AnimationController"/> are collected.</para>
+  /// <para>On <see cref="ModPlayer.Initialize"/>, all <see cref="AnimationController"/>s are constructed and added to the <see cref="AnimPlayer"/>.</para>
+  /// </summary>
   internal class AnimLoader : SingleInstance<AnimLoader> {
     public static bool UseAnimations => Terraria.Main.netMode != Terraria.ID.NetmodeID.Server;
     
     internal Dictionary<Mod, AnimationSource[]> animationSources = new Dictionary<Mod, AnimationSource[]>();
     internal Dictionary<Mod, Type> animationControllerTypes = new Dictionary<Mod, Type>();
 
+    /// <summary>
+    /// Searches all mods for any and all classes extending <see cref="AnimationSource"/> and <see cref="AnimationController"/>.
+    /// </summary>
     internal static void Load() {
       Initialize();
       var sources = Instance.animationSources;
@@ -44,6 +57,9 @@ namespace AnimLib {
       }
     }
 
+    /// <summary>
+    /// Calls <see cref="AnimationSource.Load(ref string)"/> on all <see cref="AnimationSource"/>s, and assigns their textures.
+    /// </summary>
     internal static void PostSetupContent() {
       var sources = Instance.animationSources;
       if (sources is null) {
@@ -64,6 +80,9 @@ namespace AnimLib {
       }
     }
 
+    /// <summary>
+    /// Searches all types from the given <see cref="Mod"/> for <see cref="AnimationSource"/>, and checks if they should be included.
+    /// </summary>
     private static List<AnimationSource> GetAnimationSourcesFromTypes(IEnumerable<Type> types, Mod mod) {
       List<AnimationSource> sources = new List<AnimationSource>();
 
@@ -73,7 +92,7 @@ namespace AnimLib {
         }
         try {
           if (TryConstructAnimationSource(type, mod, out var source)) {
-            string _ = source.GetType().FullName;
+            string _ = source.GetType().FullName.Replace('.', '/');
             if (source.Load(ref _)) {
               sources.Add(source);
               AnimLibMod.Instance.Logger.Info($"From mod {mod.Name} collected {nameof(AnimationSource)} \"{type.SafeTypeName(nameof(AnimationSource))}\"");
@@ -91,6 +110,31 @@ namespace AnimLib {
       return sources;
     }
 
+    /// <summary>
+    /// Attempts to construct the animation source, and rejects any that have bad inputs.
+    /// </summary>
+    private static bool TryConstructAnimationSource(Type type, Mod mod, out AnimationSource source) {
+      source = Activator.CreateInstance(type, true) as AnimationSource;
+      bool doAdd = true;
+      if (source.tracks is null) {
+        AnimLibMod.Instance.Logger.Error($"Error constructing {nameof(AnimationSource)} from [{mod.Name}:{type.FullName}]: Tracks is null.");
+        doAdd = false;
+      }
+      if (source.spriteSize.X == 0 || source.spriteSize.Y == 0) {
+        AnimLibMod.Instance.Logger.Error($"Error constructing {nameof(AnimationSource)} from [{mod.Name}:{type.FullName}]: Sprite Size cannot contain a value of 0.");
+        doAdd = false;
+      }
+      if (doAdd) {
+        source.mod = mod;
+        return true;
+      }
+      source = null;
+      return false;
+    }
+
+    /// <summary>
+    /// Searches for a single type of <see cref="AnimationController"/> from the given <see cref="Mod"/>, and rejects others if more than one if found.
+    /// </summary>
     private static Type GetAnimationControllerTypeFromTypes(IEnumerable<Type> types, Mod mod) {
       Type result = null;
       foreach (var type in types) {
@@ -106,28 +150,28 @@ namespace AnimLib {
       }
       return result;
     }
-
-    internal static void PlayerInitialize(AnimPlayer animPlayer) {
-      var types = Instance.animationControllerTypes;
-      if ((types?.Count ?? 0) > 0) {
-        foreach (var pair in types) {
-          var mod = pair.Key;
-          var type = pair.Value;
-          try {
-            var controller = CreateAnimationControllerForPlayer(animPlayer, mod, type);
-            controller.Initialize();
-            animPlayer.animationControllers[mod] = controller;
-          }
-          catch (Exception ex) {
-            AnimLibMod.Instance.Logger.Error($"Exception thrown when constructing {nameof(AnimationController)} from [{mod.Name}:{type.FullName}]", ex);
-          }
-        }
-      }
-      else {
-        if (AnimDebugCommand.DebugEnabled) {
-          AnimLibMod.Instance.Logger.Debug("AnimPlayer instance initialized without animations.");
-        }
+    
+    internal static void CreateAnimationControllersForPlayer(AnimPlayer animPlayer) {
+      if (!(animPlayer.animationControllers is null)) {
         return;
+      }
+
+      var types = Instance.animationControllerTypes;
+      if (types is null || types.Count == 0) {
+        return;
+      }
+
+      foreach (var pair in types) {
+        var mod = pair.Key;
+        var type = pair.Value;
+        try {
+          var controller = CreateAnimationControllerForPlayer(animPlayer, mod, type);
+          controller.Initialize();
+          animPlayer.animationControllers[mod] = controller;
+        }
+        catch (Exception ex) {
+          AnimLibMod.Instance.Logger.Error($"Exception thrown when constructing {nameof(AnimationController)} from [{mod.Name}:{type.FullName}]", ex);
+        }
       }
     }
 
@@ -154,24 +198,6 @@ namespace AnimLib {
       return controller;
     }
 
-    private static bool TryConstructAnimationSource(Type type, Mod mod, out AnimationSource source) {
-      source = Activator.CreateInstance(type, true) as AnimationSource;
-      bool doAdd = true;
-      if (source.tracks is null) {
-        AnimLibMod.Instance.Logger.Error($"Error constructing {nameof(AnimationSource)} from [{mod.Name}:{type.FullName}]: Tracks is null.");
-        doAdd = false;
-      }
-      if (source.spriteSize.X == 0 || source.spriteSize.Y == 0) {
-        AnimLibMod.Instance.Logger.Error($"Error constructing {nameof(AnimationSource)} from [{mod.Name}:{type.FullName}]: Sprite Size cannot be 0 width or 0 height.");
-        doAdd = false;
-      }
-      if (doAdd) {
-        source.mod = mod;
-        return true;
-      }
-      source = null;
-      return false;
-    }
 
     internal static void OnUnload() {
       // In case other mods set a static reference to an AnimationSource, let's just clear out the dicts

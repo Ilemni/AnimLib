@@ -66,13 +66,6 @@
             <param name="idx">Position to insert into.</param>
             <returns><see langword="true"/> if <paramref name="playerLayer"/> was inserted; otherwise, <see langword="false"/>.</returns>
         </member>
-        <member name="M:AnimLib.Animations.Animation.CheckIfValid(System.String,System.Boolean)">
-            <summary>
-            Updates <see cref="P:AnimLib.Animations.Animation.Valid"/> by checking if <paramref name="name"/> is a valid track.
-            </summary>
-            <param name="name">Track name to check.</param>
-            <param name="updateValue">Whether or not to set <see cref="P:AnimLib.Animations.Animation.Valid"/> to the result of this method.</param>
-        </member>
         <member name="M:AnimLib.Animations.Animation.GetDrawData(Terraria.ModLoader.PlayerDrawInfo)">
             <summary>
             Gets a <see cref="T:Terraria.DataStructures.DrawData"/> that is based on this <see cref="T:AnimLib.Animations.Animation"/>.
@@ -88,6 +81,13 @@
             <param name="drawInfo">Parameter of <see cref="M:Terraria.ModLoader.PlayerLayer.#ctor(System.String,System.String,System.Action{Terraria.ModLoader.PlayerDrawInfo})"/>.</param>
             <returns>A <see cref="T:Terraria.DataStructures.DrawData"/> based on this <see cref="T:AnimLib.Animations.Animation"/></returns>
         </member>
+        <member name="M:AnimLib.Animations.Animation.CheckIfValid(System.String,System.Boolean)">
+            <summary>
+            Updates <see cref="P:AnimLib.Animations.Animation.Valid"/> by checking if <paramref name="name"/> is a valid track.
+            </summary>
+            <param name="name">Track name to check.</param>
+            <param name="updateValue">Whether or not to set <see cref="P:AnimLib.Animations.Animation.Valid"/> to the result of this method.</param>
+        </member>
         <member name="T:AnimLib.Animations.AnimationController">
             <summary>
             This class plays various <see cref="T:AnimLib.Animations.Animation"/>s and manages advancement of frames.
@@ -101,12 +101,6 @@
             Base constructor. Ensures that this is not constructed on a server.
             </summary>
             <exception cref="T:System.InvalidOperationException">Animation classes are not allowed to be constructed on servers.</exception>
-        </member>
-        <member name="M:AnimLib.Animations.AnimationController.Initialize">
-            <summary>
-            Allows you to do things after this <see cref="T:AnimLib.Animations.AnimationController"/> is constructed.
-            Useful for getting references to <see cref="T:AnimLib.Animations.Animation"/>s via <see cref="M:AnimLib.Animations.AnimationController.GetAnimation``1"/>.
-            </summary>
         </member>
         <member name="P:AnimLib.Animations.AnimationController.animations">
             <summary>
@@ -129,25 +123,11 @@
             <para>By default this is the first <see cref="T:AnimLib.Animations.Animation"/> in <see cref="P:AnimLib.Animations.AnimationController.animations"/>.</para>
             </summary>
         </member>
-        <member name="M:AnimLib.Animations.AnimationController.SetMainAnimation(AnimLib.Animations.Animation)">
-            <summary>
-            Sets the main <see cref="T:AnimLib.Animations.Animation"/> of this player to the given <see cref="T:AnimLib.Animations.Animation"/>.
-            This can be useful for things like player transformations that use multiple <see cref="T:AnimLib.Animations.AnimationSource"/>s.
-            </summary>
-            <param name="animation">Animation to set this player's <see cref="P:AnimLib.Animations.AnimationController.MainAnimation"/> to.</param>
-            <exception cref="T:System.ArgumentNullException"><paramref name="animation"/> is null.</exception>
-        </member>
-        <member name="M:AnimLib.Animations.AnimationController.SetMainAnimation``1">
-            <summary>
-            Sets the main <see cref="T:AnimLib.Animations.Animation"/> of this player to the animation whose source is <typeparamref name="T"/>.
-            This can be useful for things like player transformations that use multiple <see cref="T:AnimLib.Animations.AnimationSource"/>s.
-            </summary>
-            <typeparam name="T"></typeparam>
-        </member>
         <member name="P:AnimLib.Animations.AnimationController.TrackName">
             <summary>
-            The name of the animation track currently playing.
+            The name of the animation track currently playing. This value cannot be set to a null or whitespace value.
             </summary>
+            <exception cref="T:System.ArgumentException">A set operation cannot be performed with a null or whitespace value.</exception>
         </member>
         <member name="P:AnimLib.Animations.AnimationController.FrameIndex">
             <summary>
@@ -169,26 +149,17 @@
             Whether or not the animation is currently being played in reverse.
             </summary>
         </member>
-        <member name="M:AnimLib.Animations.AnimationController.GetAnimation``1">
+        <member name="M:AnimLib.Animations.AnimationController.Initialize">
             <summary>
-            Gets the <see cref="T:AnimLib.Animations.Animation"/> from this <see cref="P:AnimLib.Animations.AnimationController.animations"/> where its <see cref="T:AnimLib.Animations.AnimationSource"/> is of type <typeparamref name="T"/>.
+            Allows you to do things after this <see cref="T:AnimLib.Animations.AnimationController"/> is constructed.
+            Useful for getting references to <see cref="T:AnimLib.Animations.Animation"/>s via <see cref="M:AnimLib.Animations.AnimationController.GetAnimation``1"/>.
             </summary>
-            <remarks>
-            In theory this shouldn't ever return <see langword="null"/>, unless this <see cref="T:AnimLib.Animations.AnimationController"/> was constructed prior to <see cref="M:AnimLib.AnimLibMod.PostSetupContent"/>.
-            </remarks>
-            <typeparam name="T">Type of <see cref="T:AnimLib.Animations.AnimationSource"/></typeparam>
-            <returns>The <see cref="T:AnimLib.Animations.Animation"/> with the matching <see cref="T:AnimLib.Animations.AnimationSource"/>.</returns>
-            <exception cref="T:System.ArgumentException"><typeparamref name="T"/> and <see cref="P:AnimLib.Animations.AnimationController.mod"/> are from different assemblies.</exception>
         </member>
-        <member name="M:AnimLib.Animations.AnimationController.Validate(System.String,System.Boolean)">
+        <member name="M:AnimLib.Animations.AnimationController.CheckActive">
             <summary>
-            Check if the <see cref="T:AnimLib.Animations.Animation"/>s will be valid when the given track name.
-            If <paramref name="updateValue"/> is <see langword="true"/>, all <see cref="P:AnimLib.Animations.Animation.Valid"/> states will be updated.
-            Returns <see langword="true"/> if the main <see cref="T:AnimLib.Animations.Animation"/> is valid; otherwise, <see langword="false"/>.
+            Check whether or not the animation should update. Return <see langword="false"/> to stop the animation from updating. Returns <see langword="true"/> by default.
             </summary>
-            <param name="newTrackName">New value of <see cref="P:AnimLib.Animations.AnimationController.TrackName"/>.</param>
-            <param name="updateValue">Whether or not to update <see cref="P:AnimLib.Animations.Animation.Valid"/>.</param>
-            <returns><see langword="true"/> if the main <see cref="T:AnimLib.Animations.Animation"/> is valid; otherwise, <see langword="false"/>.</returns>
+            <returns><see langword="true"/> to update the animation, or <see langword="false"/> to stop it.</returns>
         </member>
         <member name="M:AnimLib.Animations.AnimationController.Update">
             <summary>
@@ -213,6 +184,29 @@
             }
             </code>
             </example>
+        </member>
+        <member name="M:AnimLib.Animations.AnimationController.GetAnimation``1">
+            <summary>
+            Gets the <see cref="T:AnimLib.Animations.Animation"/> where the <see cref="T:AnimLib.Animations.AnimationSource"/> is of type <typeparamref name="T"/>.
+            </summary>
+            <typeparam name="T">Type of <see cref="T:AnimLib.Animations.AnimationSource"/></typeparam>
+            <returns>The <see cref="T:AnimLib.Animations.Animation"/> with the matching <see cref="T:AnimLib.Animations.AnimationSource"/>.</returns>
+            <exception cref="T:System.ArgumentException"><typeparamref name="T"/> and <see cref="P:AnimLib.Animations.AnimationController.mod"/> are from different assemblies.</exception>
+        </member>
+        <member name="M:AnimLib.Animations.AnimationController.SetMainAnimation(AnimLib.Animations.Animation)">
+            <summary>
+            Sets the main <see cref="T:AnimLib.Animations.Animation"/> of this player to the given <see cref="T:AnimLib.Animations.Animation"/>.
+            This can be useful for things like player transformations that use multiple <see cref="T:AnimLib.Animations.AnimationSource"/>s.
+            </summary>
+            <param name="animation">Animation to set this player's <see cref="P:AnimLib.Animations.AnimationController.MainAnimation"/> to.</param>
+            <exception cref="T:System.ArgumentNullException"><paramref name="animation"/> is null.</exception>
+        </member>
+        <member name="M:AnimLib.Animations.AnimationController.SetMainAnimation``1">
+            <summary>
+            Sets the main <see cref="T:AnimLib.Animations.Animation"/> of this player to the animation whose source is <typeparamref name="T"/>.
+            This can be useful for things like player transformations that use multiple <see cref="T:AnimLib.Animations.AnimationSource"/>s.
+            </summary>
+            <typeparam name="T"></typeparam>
         </member>
         <member name="M:AnimLib.Animations.AnimationController.IncrementFrame(System.String)">
             <summary>
@@ -294,6 +288,16 @@
             <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="frameIndex"/> is less than 0, or greater than the count of <paramref name="trackName"/>'s frames, -or- <paramref name="speed"/> was negative, -or- <paramref name="duration"/> was negative or 0.</exception>
             <exception cref="T:System.Collections.Generic.KeyNotFoundException">The value of <paramref name="trackName"/> was not a key in the main <see cref="P:AnimLib.Animations.AnimationSource.tracks"/>.</exception>
         </member>
+        <member name="M:AnimLib.Animations.AnimationController.Validate(System.String,System.Boolean)">
+            <summary>
+            Check if the <see cref="T:AnimLib.Animations.Animation"/>s will be valid when the given track name.
+            If <paramref name="updateValue"/> is <see langword="true"/>, all <see cref="P:AnimLib.Animations.Animation.Valid"/> states will be updated.
+            Returns <see langword="true"/> if the main <see cref="T:AnimLib.Animations.Animation"/> is valid; otherwise, <see langword="false"/>.
+            </summary>
+            <param name="newTrackName">New value of <see cref="P:AnimLib.Animations.AnimationController.TrackName"/>.</param>
+            <param name="updateValue">Whether or not to update <see cref="P:AnimLib.Animations.Animation.Valid"/>.</param>
+            <returns><see langword="true"/> if the main <see cref="T:AnimLib.Animations.Animation"/> is valid; otherwise, <see langword="false"/>.</returns>
+        </member>
         <member name="T:AnimLib.Animations.AnimationSource">
             <summary>
             Contains all animation data for a single animation set. This animation data is used for all players. 
@@ -308,19 +312,30 @@
             <exception cref="T:System.InvalidOperationException">Animation classes are not allowed to be constructed on servers.</exception>
         </member>
         <member name="P:AnimLib.Animations.AnimationSource.spriteSize">
-            <inheritdoc/>
+            <summary>
+            Size of all sprites in the spritesheet.
+            </summary>
         </member>
         <member name="P:AnimLib.Animations.AnimationSource.tracks">
-            <inheritdoc/>
+            <summary>
+            All <see cref="T:AnimLib.Animations.Track"/>s in the animation set.
+            </summary>
         </member>
         <member name="P:AnimLib.Animations.AnimationSource.texture">
-            <inheritdoc/>
+            <summary>
+            Default spritesheet used for animations.
+            <para>This may be overwritten if you have any of your <see cref="T:AnimLib.Animations.Track"/>s use their own textures.</para>
+            </summary>
         </member>
         <member name="P:AnimLib.Animations.AnimationSource.mod">
-            <inheritdoc/>
+            <summary>
+            The mod that this <see cref="T:AnimLib.Animations.AnimationSource"/> belongs to.
+            </summary>
         </member>
         <member name="P:AnimLib.Animations.AnimationSource.Item(System.String)">
-            <inheritdoc/>
+            <summary>
+            Shorthand for accessing <see cref="P:AnimLib.Animations.AnimationSource.tracks"/>.
+            </summary>
         </member>
         <member name="M:AnimLib.Animations.AnimationSource.Load(System.String@)">
             <summary>
@@ -328,7 +343,7 @@
             Returns <see langword="true"/> by default.
             </summary>
             <param name="texturePath">The file name of this <see cref="T:AnimLib.Animations.AnimationSource"/>'s texture file in the mod loader's file space.</param>
-            <returns></returns>
+            <returns><see langword="true"/> if you want this <see cref="T:AnimLib.Animations.AnimationSource"/> to be loaded; otherwise, false.</returns>
         </member>
         <member name="M:AnimLib.Animations.AnimationSource.F(System.Int32,System.Int32,System.Int32)">
             <summary>
@@ -365,7 +380,9 @@
             </summary>
         </member>
         <member name="T:AnimLib.Animations.Frame">
-            <inheritdoc cref="T:AnimLib.Animations.IFrame"/>
+            <summary>
+            Single frame of animation. Stores sprite position on the sprite sheet, and duration of the frame.
+            </summary>
         </member>
         <member name="M:AnimLib.Animations.Frame.#ctor(System.Int32,System.Int32,System.Int32)">
             <summary>
@@ -389,12 +406,6 @@
         <member name="P:AnimLib.Animations.Frame.duration">
             <inheritdoc/>
         </member>
-        <member name="M:AnimLib.Animations.Frame.WithTexture(System.String)">
-            <summary>
-            For a <see cref="T:AnimLib.Animations.Track"/>, adds another <see cref="T:Microsoft.Xna.Framework.Graphics.Texture2D"/> to the track, and switches to that texture when this track is played.
-            </summary>
-            <param name="texturePath">Path of the texture to play, or <see langword="null"/> to use the <see cref="T:AnimLib.Animations.AnimationSource"/>'s texture.</param>
-        </member>
         <member name="M:AnimLib.Animations.Frame.ToString">
             <summary>
             Returns a <see cref="T:System.String"/> containing the X and Y value of the <see cref="P:AnimLib.Animations.Frame.tile"/>, and the <see cref="P:AnimLib.Animations.Frame.duration"/> of this instance.
@@ -406,7 +417,7 @@
         </member>
         <member name="T:AnimLib.Animations.IFrame">
             <summary>
-            Single frame of animation. Stores sprite position on the sprite sheet, and duration of the frame.
+            Single frame of animation. Stores sprite position on the sprite sheet, and duration of the frame. This may be either a <see cref="T:AnimLib.Animations.Frame"/> or <see cref="T:AnimLib.Animations.SwitchTextureFrame"/>.
             </summary>
         </member>
         <member name="P:AnimLib.Animations.IFrame.tile">
@@ -432,11 +443,6 @@
         <member name="F:AnimLib.Animations.LoopMode.Always">
             <summary>
             When the last frame ends, the animation loops back to the start of the track.
-            </summary>
-        </member>
-        <member name="F:AnimLib.Animations.LoopMode.Transfer">
-            <summary>
-            When the last frame ends, the animation plays the specified track.
             </summary>
         </member>
         <member name="T:AnimLib.Animations.SwitchTextureFrame">
@@ -567,7 +573,7 @@
         <member name="M:AnimLib.Animations.Track.#ctor(AnimLib.Animations.LoopMode,AnimLib.Animations.Direction,AnimLib.Animations.IFrame[])">
             <summary>
             <para>Using an <see cref="T:AnimLib.Animations.IFrame"/>[], this allows for multiple textures within the <see cref="T:AnimLib.Animations.Track"/>, by using either
-            <see cref="M:AnimLib.Animations.Frame.WithTexture(System.String)"/> or <see cref="M:AnimLib.Animations.SwitchTextureFrame.#ctor(System.Byte,System.Byte,System.UInt16,System.String)"/>.</para>
+            <see cref="M:AnimLib.Animations.AnimationSource.F(System.String,System.Int32,System.Int32,System.Int32)"/> or <see cref="M:AnimLib.Animations.SwitchTextureFrame.#ctor(System.Byte,System.Byte,System.UInt16,System.String)"/>.</para>
             </summary>
             <param name="loopMode"><see cref="T:AnimLib.Animations.LoopMode"/> of the track.</param>
             <param name="direction"><see cref="T:AnimLib.Animations.Direction"/> of the track.</param>
@@ -580,21 +586,21 @@
             All frames used for this track.
             </summary>
         </member>
-        <member name="P:AnimLib.Animations.Track.Length">
+        <member name="F:AnimLib.Animations.Track.Length">
             <summary>
             The number of frames in this <see cref="T:AnimLib.Animations.Track"/>.
             </summary>
         </member>
-        <member name="F:AnimLib.Animations.Track.loop">
+        <member name="F:AnimLib.Animations.Track.loopMode">
             <inheritdoc cref="T:AnimLib.Animations.LoopMode"/>
         </member>
         <member name="F:AnimLib.Animations.Track.direction">
             <inheritdoc cref="T:AnimLib.Animations.Direction"/>
         </member>
-        <member name="P:AnimLib.Animations.Track.hasTexture">
+        <member name="P:AnimLib.Animations.Track.hasTextures">
             <summary>
             Whether or not this track uses any textures that are not from <see cref="P:AnimLib.Animations.AnimationSource.texture"/>.
-            <para>This is only <see langword="true"/> if this track construction used <see cref="M:AnimLib.Animations.Track.WithTexture(System.String)"/>, <see cref="M:AnimLib.Animations.Frame.WithTexture(System.String)"/>, or new <see cref="M:AnimLib.Animations.SwitchTextureFrame.#ctor(System.Byte,System.Byte,System.UInt16,System.String)"/></para>
+            <para>This is only <see langword="true"/> if this track construction used <see cref="M:AnimLib.Animations.Track.WithTexture(System.String)"/>, <see cref="M:AnimLib.Animations.AnimationSource.F(System.String,System.Int32,System.Int32,System.Int32)"/>, or new <see cref="M:AnimLib.Animations.SwitchTextureFrame.#ctor(System.Byte,System.Byte,System.UInt16,System.String)"/></para>
             </summary>
         </member>
         <member name="M:AnimLib.Animations.Track.GetTexture(System.Int32)">
@@ -630,24 +636,9 @@
             <returns></returns>
             <exception cref="T:System.Collections.Generic.KeyNotFoundException"><paramref name="frameIdx"/> is not a valid key for <see cref="F:AnimLib.Animations.Track.texturePaths"/>.</exception>
         </member>
-        <member name="F:AnimLib.Animations.Track.transferTo">
-            <summary>
-            Animation track to transfer to, if <see cref="F:AnimLib.Animations.LoopMode.Transfer"/> is used.
-            </summary>
-        </member>
         <member name="T:AnimLib.AnimLibMod">
             <summary>
             Interface for any mods using this mod to interact with.
-            </summary>
-        </member>
-        <member name="M:AnimLib.AnimLibMod.#ctor">
-            <summary>
-            Creates a new instance of <see cref="T:AnimLib.AnimLibMod"/>. Only for use by tModloader.
-            </summary>
-        </member>
-        <member name="P:AnimLib.AnimLibMod.Instance">
-            <summary>
-            The active instance of <see cref="T:AnimLib.AnimLibMod"/>.
             </summary>
         </member>
         <member name="M:AnimLib.AnimLibMod.GetAnimationController``1(Terraria.ModLoader.ModPlayer)">
@@ -658,7 +649,7 @@
             </summary>
             <typeparam name="T">Type of <see cref="T:AnimLib.Animations.AnimationController"/> to get.</typeparam>
             <param name="modPlayer">The <see cref="T:Terraria.ModLoader.ModPlayer"/>.</param>
-            <returns>A <see cref="T:AnimLib.Animations.AnimationController"/> of type <typeparamref name="T"/>.</returns>
+            <returns>An <see cref="T:AnimLib.Animations.AnimationController"/> of type <typeparamref name="T"/>.</returns>
             <exception cref="T:System.ArgumentNullException"><paramref name="modPlayer"/> cannot be null.</exception>
         </member>
         <member name="M:AnimLib.AnimLibMod.GetAnimationController``1(Terraria.Player)">
@@ -669,18 +660,8 @@
             </summary>
             <typeparam name="T">Type of <see cref="T:AnimLib.Animations.AnimationController"/> to get.</typeparam>
             <param name="player">The <see cref="T:Terraria.Player"/>.</param>
-            <returns>A <see cref="T:AnimLib.Animations.AnimationController"/> of type <typeparamref name="T"/>.</returns>
+            <returns>An <see cref="T:AnimLib.Animations.AnimationController"/> of type <typeparamref name="T"/>.</returns>
             <exception cref="T:System.ArgumentNullException"><paramref name="player"/> cannot be null.</exception>
-        </member>
-        <member name="M:AnimLib.AnimLibMod.GetAnimationSource``2">
-            <summary>
-            Gets the <see cref="T:AnimLib.Animations.AnimationSource"/> of the given type from the given <see cref="T:Terraria.ModLoader.Mod"/>.
-            Use this if you want to access one of your <see cref="T:AnimLib.Animations.AnimationSource"/>s.
-            <para>This <strong>cannot</strong> be used during the <see cref="M:Terraria.ModLoader.Mod.PostSetupContent"/> method or earlier.</para>
-            </summary>
-            <typeparam name="T">Type of <see cref="T:AnimLib.Animations.AnimationSource"/> to get.</typeparam>
-            <typeparam name="TMod">Your mod type.</typeparam>
-            <returns>A <see cref="T:AnimLib.Animations.AnimationSource"/> of type <typeparamref name="T"/>.</returns>
         </member>
         <member name="M:AnimLib.AnimLibMod.GetAnimationSource``1(Terraria.ModLoader.Mod)">
             <summary>
@@ -690,7 +671,18 @@
             </summary>
             <param name="mod">Your mod.</param>
             <typeparam name="T">Type of <see cref="T:AnimLib.Animations.AnimationSource"/> to get.</typeparam>
-            <returns>A <see cref="T:AnimLib.Animations.AnimationSource"/> of type <typeparamref name="T"/>.</returns>
+            <returns>An <see cref="T:AnimLib.Animations.AnimationSource"/> of type <typeparamref name="T"/>.</returns>
+            <exception cref="T:System.ArgumentException"><paramref name="mod"/> has no <see cref="T:AnimLib.Animations.AnimationSource"/>.</exception>
+        </member>
+        <member name="M:AnimLib.AnimLibMod.#ctor">
+            <summary>
+            Creates a new instance of <see cref="T:AnimLib.AnimLibMod"/>.
+            </summary>
+        </member>
+        <member name="P:AnimLib.AnimLibMod.Instance">
+            <summary>
+            The active instance of <see cref="T:AnimLib.AnimLibMod"/>.
+            </summary>
         </member>
         <member name="E:AnimLib.AnimLibMod.OnUnload">
             <summary>
@@ -709,6 +701,24 @@
         </member>
         <member name="M:AnimLib.AnimLibMod.Unload">
             <inheritdoc/>
+        </member>
+        <member name="M:AnimLib.AnimLoader.Load">
+            <summary>
+            Searches all mods for any and all classes extending <see cref="T:AnimLib.Animations.AnimationSource"/> and <see cref="T:AnimLib.Animations.AnimationController"/>.
+            </summary>
+        </member>
+        <member name="M:AnimLib.AnimLoader.PostSetupContent">
+            <summary>
+            Calls <see cref="M:AnimLib.Animations.AnimationSource.Load(System.String@)"/> on all <see cref="T:AnimLib.Animations.AnimationSource"/>s, and assigns their textures.
+            </summary>
+        </member>
+        <member name="M:AnimLib.AnimLoader.GetAnimationSourcesFromTypes(System.Collections.Generic.IEnumerable{System.Type},Terraria.ModLoader.Mod)">
+            <summary>
+            Searches all types from the given <see cref="T:Terraria.ModLoader.Mod"/> for <see cref="T:AnimLib.Animations.AnimationSource"/>, and checks if they should be included.
+            </summary>
+            <param name="types"></param>
+            <param name="mod"></param>
+            <returns></returns>
         </member>
         <member name="T:AnimLib.AnimPlayer">
             <summary>
@@ -812,7 +822,7 @@
         </member>
         <member name="M:AnimLib.Utils.SafeTypeName(System.Type,System.String)">
             <summary>
-            Returns the name of the <see cref="T:System.Type"/> if it is not equal to the given <see cref="T:System.String"/>, otherwise returns the full name of the <see cref="T:System.Type"/>.
+            Returns the name of the <see cref="T:System.Type"/> if it is not equal to the given <see cref="T:System.String"/>; otherwise, returns the full name of the <see cref="T:System.Type"/>.
             </summary>
             <param name="type">Type to get the name or full name of.</param>
             <param name="compareTo">String to compare against the name.</param>

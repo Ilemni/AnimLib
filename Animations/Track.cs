@@ -87,13 +87,15 @@ namespace AnimLib.Animations {
     /// <param name="frames">Assigns to <see cref="frames"/>.</param>
     /// <exception cref="ArgumentNullException"><paramref name="frames"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException"><paramref name="frames"/> is empty.</exception>
-    public Track(LoopMode loopMode, Direction direction, Frame[] frames) {
+    public Track(LoopMode loopMode, Direction direction, Frame[] frames) : this(loopMode, direction) {
+      if (frames is null) {
+        throw new ArgumentNullException(nameof(frames));
+      }
       if (frames.Length == 0) {
         throw new ArgumentException($"{nameof(frames)} cannot be empty", nameof(frames));
       }
-      loop = loopMode;
-      this.direction = direction;
-      this.frames = frames ?? throw new ArgumentNullException(nameof(frames));
+
+      this.frames = frames;
       Length = frames.Length;
     }
 
@@ -114,14 +116,14 @@ namespace AnimLib.Animations {
 
     /// <summary>
     /// <para>Using an <see cref="IFrame"/>[], this allows for multiple textures within the <see cref="Track"/>, by using either
-    /// <see cref="Frame.WithTexture(string)"/> or <see cref="SwitchTextureFrame(byte, byte, ushort, string)"/>.</para>
+    /// <see cref="AnimationSource.F(string, int, int, int)"/> or <see cref="SwitchTextureFrame(byte, byte, ushort, string)"/>.</para>
     /// </summary>
     /// <param name="loopMode"><see cref="LoopMode"/> of the track.</param>
     /// <param name="direction"><see cref="Direction"/> of the track.</param>
     /// <param name="frames">Assigns to <see cref="frames"/> as a <see cref="Frame"/> array. All <see cref="SwitchTextureFrame"/>s will have their textures added to this <see cref="Track"/>, and all <see cref="IFrame"/>s will be cast to <see cref="Frame"/></param>
     /// <exception cref="ArgumentNullException"><paramref name="frames"/> is <see langword="null"/> -or- <paramref name="frames"/> contains a <see langword="null"/> value.</exception>
     /// <exception cref="ArgumentException"><paramref name="frames"/> is empty.</exception>
-    public Track(LoopMode loopMode, Direction direction, IFrame[] frames) {
+    public Track(LoopMode loopMode, Direction direction, IFrame[] frames) : this(loopMode, direction) {
       if (frames is null) {
         throw new ArgumentNullException(nameof(frames));
       }
@@ -129,8 +131,6 @@ namespace AnimLib.Animations {
         throw new ArgumentException($"{nameof(frames)} cannot be empty", nameof(frames));
       }
 
-      loop = loopMode;
-      this.direction = direction;
       var newFrames = new Frame[frames.Length];
       Length = newFrames.Length;
       // We want Frame[] instead of IFrame[]. Frame is a small struct, but IFrame[] treats them as reference types
@@ -156,6 +156,12 @@ namespace AnimLib.Animations {
     }
 
 
+    private Track(LoopMode loopMode, Direction direction) {
+      this.loopMode = loopMode;
+      this.direction = direction;
+    }
+
+
     /// <summary>
     /// All frames used for this track.
     /// </summary>
@@ -164,22 +170,22 @@ namespace AnimLib.Animations {
     /// <summary>
     /// The number of frames in this <see cref="Track"/>.
     /// </summary>
-    public int Length { get; }
+    public readonly int Length;
 
     /// <inheritdoc cref="LoopMode"/>
-    public readonly LoopMode loop = LoopMode.Always;
+    public readonly LoopMode loopMode = LoopMode.Always;
 
     /// <inheritdoc cref="Direction"/>
     public readonly Direction direction = Direction.Forward;
 
+
     /// <summary>
     /// Whether or not this track uses any textures that are not from <see cref="AnimationSource.texture"/>.
-    /// <para>This is only <see langword="true"/> if this track construction used <see cref="WithTexture(string)"/>, <see cref="Frame.WithTexture(string)"/>, or new <see cref="SwitchTextureFrame(byte, byte, ushort, string)"/></para>
+    /// <para>This is only <see langword="true"/> if this track construction used <see cref="WithTexture(string)"/>, <see cref="AnimationSource.F(string, int, int, int)"/>, or new <see cref="SwitchTextureFrame(byte, byte, ushort, string)"/></para>
     /// </summary>
-    public bool hasTexture => !(texturePaths is null);
+    public bool hasTextures => !(texturePaths is null);
 
-    private SortedDictionary<int, string> texturePaths;
-
+    
     /// <summary>
     /// Optional spritesheet that may be used instead of <see cref="AnimationSource.texture"/>.
     /// <para>If any frame after or including the current frame (at <paramref name="frameIdx"/>) is a <see cref="SwitchTextureFrame"/>, that <see cref="SwitchTextureFrame.texturePath"/> will be returned.</para>
@@ -245,6 +251,7 @@ namespace AnimLib.Animations {
       texturePaths[frameIndex] = texturePath;
     }
 
+
     /// <summary>
     /// Attempts to get the texture from the path at the given frame index, and return the texture with that path.
     /// If the path is <see langword="null"/>, this returns <see langword="null"/>.
@@ -278,12 +285,6 @@ namespace AnimLib.Animations {
       }
     }
 
-
-    // This value is currently unused
-    /// <summary>
-    /// Animation track to transfer to, if <see cref="LoopMode.Transfer"/> is used.
-    /// </summary>
-    // Use: /// <param name="transferTo">Track to transfer to. Requires <paramref name="loop"/> to be <see cref="LoopMode.Transfer"/>.</param>
-    public readonly string transferTo;
+    private SortedDictionary<int, string> texturePaths;
   }
 }

@@ -16,7 +16,7 @@ namespace AnimLib {
     /// Constructs and collects all <see cref="AnimationController"/>s across all mods onto this <see cref="Player"/>.
     /// </summary>
     public override void Initialize() {
-      AnimLoader.PlayerInitialize(this);
+      AnimLoader.CreateAnimationControllersForPlayer(this);
     }
 
     /// <summary>
@@ -24,12 +24,15 @@ namespace AnimLib {
     /// </summary>
     public override void PostUpdate() {
       foreach (var anim in animationControllers.Values) {
+        // Probably not a good idea to crash when a purely cosmetic effect fails.
         try {
-          anim.Update();
+          if (anim.PreUpdate()) {
+            anim.Update();
+          }
         }
         catch (Exception ex) {
           AnimLibMod.Instance.Logger.Error($"- :[{anim.mod.Name}]: Caught exception while updating animations for {anim.GetType().SafeTypeName(nameof(AnimationController))}.", ex);
-          Main.NewText($"AnimLib -> {anim.mod.Name}: Caught exception while updating animations. See client.txt for more information.", Color.Red);
+          Main.NewText($"AnimLib -> {anim.mod.Name}: Caught exception while updating animations. See client.log for more information.", Color.Red);
         }
       }
     }

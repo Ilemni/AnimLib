@@ -20,19 +20,31 @@ namespace AnimLib.Animations {
       }
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Size of all sprites in the spritesheet.
+    /// </summary>
     public abstract PointByte spriteSize { get; }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// All <see cref="Track"/>s in the animation set.
+    /// </summary>
     public abstract Dictionary<string, Track> tracks { get; }
 
-    /// <inheritdoc/>
+
+    /// <summary>
+    /// Default spritesheet used for animations.
+    /// <para>This may be overwritten if you have any of your <see cref="Track"/>s use their own textures.</para>
+    /// </summary>
     public Texture2D texture { get; internal set; }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// The mod that this <see cref="AnimationSource"/> belongs to.
+    /// </summary>
     public Mod mod { get; internal set; }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Shorthand for accessing <see cref="tracks"/>.
+    /// </summary>
     public Track this[string name] => tracks[name];
 
 
@@ -41,8 +53,9 @@ namespace AnimLib.Animations {
     /// Returns <see langword="true"/> by default.
     /// </summary>
     /// <param name="texturePath">The file name of this <see cref="AnimationSource"/>'s texture file in the mod loader's file space.</param>
-    /// <returns></returns>
+    /// <returns><see langword="true"/> if you want this <see cref="AnimationSource"/> to be loaded; otherwise, false.</returns>
     public virtual bool Load(ref string texturePath) => true;
+
 
     /// <summary>
     /// <para>Shorthand for <see cref="Frame(byte, byte, ushort)"/></para>
