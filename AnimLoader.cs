@@ -152,10 +152,6 @@ namespace AnimLib {
     }
     
     internal static void CreateAnimationControllersForPlayer(AnimPlayer animPlayer) {
-      if (!(animPlayer.animationControllers is null)) {
-        return;
-      }
-
       var types = Instance.animationControllerTypes;
       if (types is null || types.Count == 0) {
         return;
