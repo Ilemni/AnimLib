@@ -191,7 +191,7 @@ namespace AnimLib.Animations {
     /// <para>If any frame after or including the current frame (at <paramref name="frameIdx"/>) is a <see cref="SwitchTextureFrame"/>, that <see cref="SwitchTextureFrame.texturePath"/> will be returned.</para>
     /// <para>If this track uses its own <see cref="Texture2D"/> (assigned with <see cref="WithTexture(string)"/> during construction), that is returned. Otherwise, returns <see langword="null"/></para>
     /// </summary>
-    /// <param name="frameIdx">Index of the <see cref="IFrame"/> currently being played.</param>
+    /// <param name="frameIdx">Index of the <see cref="Frame"/> currently being played.</param>
     /// <returns>A valid <see cref="Texture2D"/> if <see cref="AnimationSource.texture"/> should be overridden, else <see langword="null"/>.</returns>
     public Texture2D GetTexture(int frameIdx) {
       if (texturePaths is null) {

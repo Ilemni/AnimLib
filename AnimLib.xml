@@ -28,11 +28,6 @@
             <see cref="T:AnimLib.Animations.AnimationSource"/> database used for this <see cref="T:AnimLib.Animations.Animation"/>.
             </summary>
         </member>
-        <member name="P:AnimLib.Animations.Animation.Valid">
-            <summary>
-            Whether or not the current <see cref="P:AnimLib.Animations.AnimationController.TrackName"/> maps to a valid <see cref="T:AnimLib.Animations.Track"/> on this <see cref="T:AnimLib.Animations.AnimationSource"/>.
-            </summary>
-        </member>
         <member name="P:AnimLib.Animations.Animation.CurrentTrack">
             <summary>
             Current <see cref="T:AnimLib.Animations.Track"/> that is being played.
@@ -57,20 +52,16 @@
             <para>If <see cref="M:AnimLib.Animations.Track.GetTexture(System.Int32)"/> is not <see langword="null"/>, that is returned; otherwise, returns the <see cref="T:AnimLib.Animations.AnimationSource"/>'s <see cref="T:Microsoft.Xna.Framework.Graphics.Texture2D"/>.</para>
             </summary>
         </member>
-        <member name="M:AnimLib.Animations.Animation.TryInsertInLayers(System.Collections.Generic.List{Terraria.ModLoader.PlayerLayer},Terraria.ModLoader.PlayerLayer,System.Int32)">
+        <member name="P:AnimLib.Animations.Animation.Valid">
             <summary>
-            Attempts to insert the <see cref="T:Terraria.ModLoader.PlayerLayer"/> of this <see cref="T:AnimLib.Animations.Animation"/> to <paramref name="layers"/>. If <see cref="P:AnimLib.Animations.Animation.Valid"/> is <see langword="false"/>, this will fail and return <see langword="false"/>.
+            Whether or not the current <see cref="P:AnimLib.Animations.AnimationController.TrackName"/> maps to a valid <see cref="T:AnimLib.Animations.Track"/> on this <see cref="T:AnimLib.Animations.AnimationSource"/>.
             </summary>
-            <param name="layers">The <see cref="T:System.Collections.Generic.List`1"/> of <see cref="T:Terraria.ModLoader.PlayerLayer"/> to insert in.</param>
-            <param name="playerLayer"><see cref="T:Terraria.ModLoader.PlayerLayer"/> to use for this <see cref="T:AnimLib.Animations.Animation"/>.</param>
-            <param name="idx">Position to insert into.</param>
-            <returns><see langword="true"/> if <paramref name="playerLayer"/> was inserted; otherwise, <see langword="false"/>.</returns>
         </member>
         <member name="M:AnimLib.Animations.Animation.GetDrawData(Terraria.ModLoader.PlayerDrawInfo)">
             <summary>
             Gets a <see cref="T:Terraria.DataStructures.DrawData"/> that is based on this <see cref="T:AnimLib.Animations.Animation"/>.
             <list type="bullet">
-            <item><see cref="F:Terraria.DataStructures.DrawData.texture"/> is <see cref="T:Microsoft.Xna.Framework.Graphics.Texture"/> (recommended)</item>
+            <item><see cref="F:Terraria.DataStructures.DrawData.texture"/> is <see cref="P:AnimLib.Animations.Animation.CurrentTexture"/> (recommended)</item>
             <item><see cref="F:Terraria.DataStructures.DrawData.position"/> is the center of the <see cref="F:Terraria.ModLoader.PlayerDrawInfo.drawPlayer"/>, in screen-space. (recommended)</item>
             <item><see cref="F:Terraria.DataStructures.DrawData.sourceRect"/> is <see cref="P:AnimLib.Animations.Animation.CurrentTile"/> (recommended)</item>
             <item><see cref="F:Terraria.DataStructures.DrawData.rotation"/> is <see cref="F:Terraria.Entity.direction"/> <see langword="*"/> <see cref="P:AnimLib.Animations.AnimationController.SpriteRotation"/> (recommended)</item>
@@ -78,8 +69,21 @@
             <item><see cref="F:Terraria.DataStructures.DrawData.effect"/> is based on <see cref="F:Terraria.Entity.direction"/> and <see cref="F:Terraria.Player.gravDir"/>. (recommended)</item>
             </list>
             </summary>
+            <remarks>
+            If your sprites are asymmetrical and cannot be flipped (i.e. Samus from Metroid), you should modify <see cref="F:Terraria.DataStructures.DrawData.effect"/> and <see cref="F:Terraria.DataStructures.DrawData.rotation"/>.
+            If your sprites are not correctly positioned in the world, you may need to tweak <see cref="F:Terraria.DataStructures.DrawData.origin"/>.
+            </remarks>
             <param name="drawInfo">Parameter of <see cref="M:Terraria.ModLoader.PlayerLayer.#ctor(System.String,System.String,System.Action{Terraria.ModLoader.PlayerDrawInfo})"/>.</param>
-            <returns>A <see cref="T:Terraria.DataStructures.DrawData"/> based on this <see cref="T:AnimLib.Animations.Animation"/></returns>
+            <returns>A <see cref="T:Terraria.DataStructures.DrawData"/> based on this <see cref="T:AnimLib.Animations.Animation"/>.</returns>
+        </member>
+        <member name="M:AnimLib.Animations.Animation.TryAddToLayers(System.Collections.Generic.List{Terraria.ModLoader.PlayerLayer},Terraria.ModLoader.PlayerLayer,System.Nullable{System.Int32})">
+            <summary>
+            Attempts to add or insert the given <see cref="T:Terraria.ModLoader.PlayerLayer"/> to <paramref name="layers"/>. If <see cref="P:AnimLib.Animations.Animation.Valid"/> is <see langword="false"/>, this will do nothing and return <see langword="false"/>.
+            </summary>
+            <param name="layers">The <see cref="T:System.Collections.Generic.List`1"/> of <see cref="T:Terraria.ModLoader.PlayerLayer"/> to insert in.</param>
+            <param name="playerLayer"><see cref="T:Terraria.ModLoader.PlayerLayer"/> to use for this <see cref="T:AnimLib.Animations.Animation"/>.</param>
+            <param name="idx">Position to insert into -or- <see langword="null"/> to add to the list.</param>
+            <returns><see langword="true"/> if <paramref name="playerLayer"/> was inserted; otherwise, <see langword="false"/>.</returns>
         </member>
         <member name="M:AnimLib.Animations.Animation.CheckIfValid(System.String,System.Boolean)">
             <summary>
@@ -155,9 +159,9 @@
             Useful for getting references to <see cref="T:AnimLib.Animations.Animation"/>s via <see cref="M:AnimLib.Animations.AnimationController.GetAnimation``1"/>.
             </summary>
         </member>
-        <member name="M:AnimLib.Animations.AnimationController.CheckActive">
+        <member name="M:AnimLib.Animations.AnimationController.PreUpdate">
             <summary>
-            Check whether or not the animation should update. Return <see langword="false"/> to stop the animation from updating. Returns <see langword="true"/> by default.
+            Determines whether or not the animation should update. Return <see langword="false"/> to stop the animation from updating. Returns <see langword="true"/> by default.
             </summary>
             <returns><see langword="true"/> to update the animation, or <see langword="false"/> to stop it.</returns>
         </member>
@@ -609,7 +613,7 @@
             <para>If any frame after or including the current frame (at <paramref name="frameIdx"/>) is a <see cref="T:AnimLib.Animations.SwitchTextureFrame"/>, that <see cref="P:AnimLib.Animations.SwitchTextureFrame.texturePath"/> will be returned.</para>
             <para>If this track uses its own <see cref="T:Microsoft.Xna.Framework.Graphics.Texture2D"/> (assigned with <see cref="M:AnimLib.Animations.Track.WithTexture(System.String)"/> during construction), that is returned. Otherwise, returns <see langword="null"/></para>
             </summary>
-            <param name="frameIdx">Index of the <see cref="T:AnimLib.Animations.IFrame"/> currently being played.</param>
+            <param name="frameIdx">Index of the <see cref="T:AnimLib.Animations.Frame"/> currently being played.</param>
             <returns>A valid <see cref="T:Microsoft.Xna.Framework.Graphics.Texture2D"/> if <see cref="P:AnimLib.Animations.AnimationSource.texture"/> should be overridden, else <see langword="null"/>.</returns>
         </member>
         <member name="M:AnimLib.Animations.Track.WithTexture(System.String)">
@@ -702,6 +706,18 @@
         <member name="M:AnimLib.AnimLibMod.Unload">
             <inheritdoc/>
         </member>
+        <member name="T:AnimLib.AnimLoader">
+            <summary>
+            Manages the construction and distribution of all <see cref="T:AnimLib.Animations.AnimationSource"/>s and <see cref="T:AnimLib.Animations.AnimationController"/>s.
+            <para><strong><see cref="T:AnimLib.Animations.AnimationSource"/></strong></para>
+            <para>On <see cref="M:Terraria.ModLoader.Mod.Load"/>, all <see cref="T:AnimLib.Animations.AnimationSource"/>s are constructed.</para>
+            <para>On <see cref="M:Terraria.ModLoader.Mod.PostSetupContent"/>, all <see cref="T:AnimLib.Animations.AnimationSource"/>s have their Textures assigned.</para>
+            
+            <para><strong><see cref="T:AnimLib.Animations.AnimationController"/></strong></para>
+            <para>On <see cref="M:Terraria.ModLoader.Mod.Load"/>, all <see cref="T:System.Type"/>s of <see cref="T:AnimLib.Animations.AnimationController"/> are collected.</para>
+            <para>On <see cref="M:Terraria.ModLoader.ModPlayer.Initialize"/>, all <see cref="T:AnimLib.Animations.AnimationController"/>s are constructed and added to the <see cref="T:AnimLib.AnimPlayer"/>.</para>
+            </summary>
+        </member>
         <member name="M:AnimLib.AnimLoader.Load">
             <summary>
             Searches all mods for any and all classes extending <see cref="T:AnimLib.Animations.AnimationSource"/> and <see cref="T:AnimLib.Animations.AnimationController"/>.
@@ -716,9 +732,16 @@
             <summary>
             Searches all types from the given <see cref="T:Terraria.ModLoader.Mod"/> for <see cref="T:AnimLib.Animations.AnimationSource"/>, and checks if they should be included.
             </summary>
-            <param name="types"></param>
-            <param name="mod"></param>
-            <returns></returns>
+        </member>
+        <member name="M:AnimLib.AnimLoader.TryConstructAnimationSource(System.Type,Terraria.ModLoader.Mod,AnimLib.Animations.AnimationSource@)">
+            <summary>
+            Attempts to construct the animation source, and rejects any that have bad inputs.
+            </summary>
+        </member>
+        <member name="M:AnimLib.AnimLoader.GetAnimationControllerTypeFromTypes(System.Collections.Generic.IEnumerable{System.Type},Terraria.ModLoader.Mod)">
+            <summary>
+            Searches for a single type of <see cref="T:AnimLib.Animations.AnimationController"/> from the given <see cref="T:Terraria.ModLoader.Mod"/>, and rejects others if more than one if found.
+            </summary>
         </member>
         <member name="T:AnimLib.AnimPlayer">
             <summary>
