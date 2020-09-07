@@ -9,6 +9,16 @@ namespace AnimLib {
   /// </summary>
   public sealed class AnimLibMod : Mod {
     /// <summary>
+    /// GitHub profile that the mod's repository is stored on.
+    /// </summary>
+    public static string GithubUserName => "TwiliChaos";
+
+    /// <summary>
+    /// Name of the GitHub repository this mod is stored on.
+    /// </summary>
+    public static string GithubProjectName => "AnimLib";
+
+    /// <summary>
     /// Gets the <see cref="AnimationController"/> of the given type from the given <see cref="ModPlayer"/>.
     /// Use this if you want your code to use values such as the current track and frame.
     /// <para>This <strong>cannot</strong> be used during the <see cref="ModPlayer.Initialize"/> method.</para>
