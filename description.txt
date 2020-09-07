@@ -3,6 +3,6 @@ As a library mod, this does nothing on it's own.
 The purpose of this mod is for other mods to easily create
 more complicated animations for sprites of their players.
 
-For modders interested in using the mod to create their own
-animations, visit the GitHub repository at
+For modders interested in using the mod to create animations,
+visit the GitHub repository at
 https://www.github.com/TwiliChaos/AnimLib
