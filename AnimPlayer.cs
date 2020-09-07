@@ -45,5 +45,21 @@ namespace AnimLib {
         }
       }
     }
+
+    /// <summary>
+    /// Gets the <see cref="AnimationController"/> of the given type from this <see cref="AnimPlayer"/>.
+    /// Use this if you want your code to use values such as the current track and frame.
+    /// <para>This <strong>cannot</strong> be used during the <see cref="ModPlayer.Initialize"/> method.</para>
+    /// </summary>
+    /// <typeparam name="T">Type of <see cref="AnimationController"/> to get.</typeparam>
+    /// <returns>An <see cref="AnimationController"/> of type <typeparamref name="T"/>.</returns>
+    public T GetAnimationController<T>() where T : AnimationController {
+      foreach (var controller in animationControllers.Values) {
+        if (controller is T t) {
+          return t;
+        }
+      }
+      return null;
+    }
   }
 }

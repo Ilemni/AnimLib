@@ -32,7 +32,7 @@ namespace AnimLib {
         throw new ArgumentNullException(nameof(modPlayer));
       }
 
-      return GetAnimationController<T>(modPlayer.player);
+      return modPlayer.player.GetModPlayer<AnimPlayer>().GetAnimationController<T>();
     }
 
     /// <summary>
@@ -50,12 +50,7 @@ namespace AnimLib {
       }
 
       var animPlayer = player.GetModPlayer<AnimPlayer>();
-      foreach (var controller in animPlayer.animationControllers.Values) {
-        if (controller is T t) {
-          return t;
-        }
-      }
-      return null;
+      return animPlayer.GetAnimationController<T>();
     }
 
     /// <summary>
