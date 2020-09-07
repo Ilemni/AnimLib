@@ -68,7 +68,7 @@ namespace AnimLib {
     /// <returns>An <see cref="AnimationSource"/> of type <typeparamref name="T"/>.</returns>
     /// <exception cref="ArgumentException"><paramref name="mod"/> has no <see cref="AnimationSource"/>.</exception>
     public static T GetAnimationSource<T>(Mod mod) where T : AnimationSource {
-      var sources = AnimLoader.Instance.animationSources;
+      var sources = AnimLoader.animationSources;
       if (!sources.ContainsKey(mod)) {
         throw new ArgumentException($"The mod {mod.Name} has no {nameof(AnimationSource)}");
       }

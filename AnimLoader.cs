@@ -15,20 +15,33 @@ namespace AnimLib {
   /// <para>On <see cref="Mod.Load"/>, all <see cref="Type"/>s of <see cref="AnimationController"/> are collected.</para>
   /// <para>On <see cref="ModPlayer.Initialize"/>, all <see cref="AnimationController"/>s are constructed and added to the <see cref="AnimPlayer"/>.</para>
   /// </summary>
-  internal class AnimLoader : SingleInstance<AnimLoader> {
+  internal static class AnimLoader {
+    static AnimLoader() => AnimLibMod.OnUnload += Unload;
+
+    private static void Unload() {
+      animationSources = null;
+      animationControllerTypes = null;
+    }
+
+    /// <summary>
+    /// Whether or not to use animations during this session. Returns <see langword="true"/> if this is not run on a server; otherwise, <see langword="false"/>.
+    /// </summary>
     public static bool UseAnimations => Terraria.Main.netMode != Terraria.ID.NetmodeID.Server;
+
+    /// <summary>
+    /// Collection of all <see cref="animationSources"/>, constructed during <see cref="Mod.Load"/>.
+    /// </summary>
+    internal static Dictionary<Mod, AnimationSource[]> animationSources { get; private set; } = new Dictionary<Mod, AnimationSource[]>();
     
-    internal Dictionary<Mod, AnimationSource[]> animationSources = new Dictionary<Mod, AnimationSource[]>();
-    internal Dictionary<Mod, Type> animationControllerTypes = new Dictionary<Mod, Type>();
+    /// <summary>
+    /// Collection of all <see cref="Type"/>s of <see cref="AnimationController"/>, collected during <see cref="Mod.Load"/> and constructed during <see cref="ModPlayer.Initialize"/>.
+    /// </summary>
+    internal static Dictionary<Mod, Type> animationControllerTypes { get; private set; } = new Dictionary<Mod, Type>();
 
     /// <summary>
     /// Searches all mods for any and all classes extending <see cref="AnimationSource"/> and <see cref="AnimationController"/>.
     /// </summary>
     internal static void Load() {
-      Initialize();
-      var sources = Instance.animationSources;
-      var controllerTypes = Instance.animationControllerTypes;
-
       foreach (var mod in ModLoader.Mods) {
         if (mod is AnimLibMod || mod.Code is null) {
           continue;
@@ -43,8 +56,8 @@ namespace AnimLib {
         if (list.Count > 0) {
           var type = GetAnimationControllerTypeFromTypes(types, mod);
           if (type != null) {
-            sources[mod] = list.ToArray();
-            controllerTypes[mod] = type;
+            animationSources[mod] = list.ToArray();
+            animationControllerTypes[mod] = type;
           }
           else {
             AnimLibMod.Instance.Logger.Error($"{mod.Name} error: {mod.Name} contains {(list.Count > 1 ? "classes" : "a class")} extending {nameof(AnimationSource)}, but does not contain any classes extending {nameof(AnimationController)}s");
@@ -52,7 +65,7 @@ namespace AnimLib {
         }
       }
 
-      if (!Instance.animationSources.Any() && !Instance.animationControllerTypes.Any()) {
+      if (!animationSources.Any() && !animationControllerTypes.Any()) {
         AnimLibMod.Instance.Logger.Warn($"AnimLibMod loaded; no mods contained any {nameof(AnimationSource)}s or {nameof(AnimationController)}s. Currently there is no reason for this mod to be enabled.");
       }
     }
@@ -61,12 +74,11 @@ namespace AnimLib {
     /// Calls <see cref="AnimationSource.Load(ref string)"/> on all <see cref="AnimationSource"/>s, and assigns their textures.
     /// </summary>
     internal static void PostSetupContent() {
-      var sources = Instance.animationSources;
-      if (sources is null) {
+      if (animationSources is null) {
         return;
       }
 
-      foreach (var modSources in sources.Values) {
+      foreach (var modSources in animationSources.Values) {
         foreach (var source in modSources) {
           string texturePath = source.GetType().FullName.Replace('.', '/');
           source.Load(ref texturePath);
@@ -150,14 +162,13 @@ namespace AnimLib {
       }
       return result;
     }
-    
+
     internal static void CreateAnimationControllersForPlayer(AnimPlayer animPlayer) {
-      var types = Instance.animationControllerTypes;
-      if (types is null || types.Count == 0) {
+      if (animationControllerTypes is null) {
         return;
       }
 
-      foreach (var pair in types) {
+      foreach (var pair in animationControllerTypes) {
         var mod = pair.Key;
         var type = pair.Value;
         try {
@@ -176,7 +187,7 @@ namespace AnimLib {
       controller.player = animPlayer.player;
       controller.mod = mod;
 
-      var modSources = Instance.animationSources[mod];
+      var modSources = animationSources[mod];
       var animations = new Animation[modSources.Length];
       controller.animations = animations;
 
@@ -197,9 +208,8 @@ namespace AnimLib {
 
     internal static void OnUnload() {
       // In case other mods set a static reference to an AnimationSource, let's just clear out the dicts
-      var sources = Instance.animationSources;
-      if (!(sources is null)) {
-        foreach (var modSources in sources.Values) {
+      if (!(animationSources is null)) {
+        foreach (var modSources in animationSources.Values) {
           foreach (var source in modSources) {
             source.tracks?.Clear();
           }
