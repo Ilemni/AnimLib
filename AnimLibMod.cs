@@ -84,6 +84,7 @@ namespace AnimLib {
         Instance = this;
       }
       Properties = new ModProperties() {
+        // We don't want anything loaded on servers
         Autoload = AnimLoader.UseAnimations,
       };
     }
@@ -98,28 +99,17 @@ namespace AnimLib {
     /// </summary>
     internal static event Action OnUnload;
 
-
-    /// <summary>
-    /// Collects the classes extending <see cref="AnimationSource"/> and <see cref="AnimationController"/> from all mods.
-    /// </summary>
-    public override void Load() {
-      if (AnimLoader.UseAnimations) {
-        AnimLoader.Load();
-      }
-    }
-
     /// <summary>
     /// Collects and constructs all <see cref="AnimationSource"/>s across all other <see cref="Mod"/>s.
     /// </summary>
     public override void PostSetupContent() {
       if (AnimLoader.UseAnimations) {
-        AnimLoader.PostSetupContent();
+        AnimLoader.Load();
       }
     }
 
     /// <inheritdoc/>
     public override void Unload() {
-      AnimLoader.OnUnload();
       OnUnload?.Invoke();
       OnUnload = null;
       Instance = null;

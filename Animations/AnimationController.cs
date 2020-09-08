@@ -12,6 +12,13 @@ namespace AnimLib.Animations {
   /// To get your <see cref="AnimationController"/> instance on the player, use <see cref="AnimLibMod.GetAnimationController{T}(Player)"/></para>
   /// </summary>
   public abstract class AnimationController {
+    // TODO: maybe automate playerlayers
+    // There's a PR in tML to overhaul them to be more OoP, and that can go a long ways to automating them here.
+    // Currently, PlayerLayers require IndexOf() for inserting in the list in ModifyDrawLayers to get desirable results.
+    // That cannot be automated with desirable results without making this code clunky AF
+    // Or making the assumption that all playerlayers should be inserted in the same point OriMod's do.
+    // Let's not make that assumption.
+
     /// <summary>
     /// Base constructor. Ensures that this is not constructed on a server.
     /// </summary>
@@ -129,7 +136,7 @@ namespace AnimLib.Animations {
           return anim;
         }
       }
-      
+
       AnimLibMod.Instance.Logger.Warn($"{GetType().Name}.GetAnimation<{typeof(T).Name}>() failed.");
       return null;
     }
@@ -169,7 +176,7 @@ namespace AnimLib.Animations {
     /// <exception cref="KeyNotFoundException">The value of <paramref name="trackName"/> was not a key in the main <see cref="AnimationSource.tracks"/>.</exception>
     protected void IncrementFrame(string trackName)
       => IncrementFrame(trackName, null, null, null, 0, null, null);
-    
+
     /// <summary>
     /// Plays the <see cref="Track"/> with the given name. How the animation advances is based on the given input parameters.
     /// </summary>

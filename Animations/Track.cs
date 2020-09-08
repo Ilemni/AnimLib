@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria.ModLoader;
-using Terraria.ModLoader.Exceptions;
 
 namespace AnimLib.Animations {
   /// <summary>
@@ -140,7 +139,7 @@ namespace AnimLib.Animations {
       for (int i = 0; i < frames.Length; i++) {
         switch (frames[i]) {
           case SwitchTextureFrame stf:
-            SetTexturePathAtFrameIndex(stf.texturePath, i);
+            SetTextureAtFrameIndex(stf.texturePath, i);
             newFrames[i] = (Frame)stf;
             break;
           case Frame frame:
@@ -183,9 +182,9 @@ namespace AnimLib.Animations {
     /// Whether or not this track uses any textures that are not from <see cref="AnimationSource.texture"/>.
     /// <para>This is only <see langword="true"/> if this track construction used <see cref="WithTexture(string)"/>, <see cref="AnimationSource.F(string, int, int, int)"/>, or new <see cref="SwitchTextureFrame(byte, byte, ushort, string)"/></para>
     /// </summary>
-    public bool hasTextures => !(texturePaths is null);
+    public bool hasTextures => !(textures is null);
 
-    
+
     /// <summary>
     /// Optional spritesheet that may be used instead of <see cref="AnimationSource.texture"/>.
     /// <para>If any frame after or including the current frame (at <paramref name="frameIdx"/>) is a <see cref="SwitchTextureFrame"/>, that <see cref="SwitchTextureFrame.texturePath"/> will be returned.</para>
@@ -194,30 +193,28 @@ namespace AnimLib.Animations {
     /// <param name="frameIdx">Index of the <see cref="Frame"/> currently being played.</param>
     /// <returns>A valid <see cref="Texture2D"/> if <see cref="AnimationSource.texture"/> should be overridden, else <see langword="null"/>.</returns>
     public Texture2D GetTexture(int frameIdx) {
-      if (texturePaths is null) {
+      if (textures is null) {
         return null;
       }
 
       frameIdx = (int)MathHelper.Clamp(frameIdx, 0, Length - 1);
 
       // Short-circuit if this frame has texture.
-      if (texturePaths.ContainsKey(frameIdx)) {
-        TryGetTexture(frameIdx, out var texture);
-        return texture;
+      if (textures.ContainsKey(frameIdx)) {
+        return textures[frameIdx];
       }
 
       // Get the highest key before
-      int currentIdx = -1;
-      foreach (var key in texturePaths.Keys) {
-        if (key > currentIdx && key < frameIdx) {
-          currentIdx = key;
+      int idx = -1;
+      foreach (var key in textures.Keys) {
+        if (key > idx && key < frameIdx) {
+          idx = key;
         }
       }
-      if (currentIdx >= 0) {
-        TryGetTexture(currentIdx, out var texture);
-        return texture;
-      }
 
+      if (textures.ContainsKey(idx)) {
+        return textures[idx];
+      }
       return null;
     }
 
@@ -225,11 +222,7 @@ namespace AnimLib.Animations {
     /// Assign a spritesheet to the first frame of this track that will be used instead of <see cref="AnimationSource.texture"/>.
     /// </summary>
     public Track WithTexture(string texturePath) {
-      if (string.IsNullOrWhiteSpace(texturePath)) {
-        throw new ArgumentException("The first frame that uses a texture replacement cannot be null.", nameof(texturePath));
-      }
-
-      SetTexturePathAtFrameIndex(texturePath, 0);
+      SetTextureAtFrameIndex(texturePath, 0);
       return this;
     }
 
@@ -239,52 +232,16 @@ namespace AnimLib.Animations {
     /// <param name="texturePath">Path to the texture, -or- <see langword="null"/> to use the <see cref="AnimationSource"/>'s texture.</param>
     /// <param name="frameIndex">Index of the frame that this texture will be used for.</param>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="frameIndex"/> cannot be less than 0 or greater than the length of frames.</exception>
-    public void SetTexturePathAtFrameIndex(string texturePath, int frameIndex) {
+    public void SetTextureAtFrameIndex(string texturePath, int frameIndex) {
       if (frameIndex < 0 || frameIndex >= Length) {
         throw new ArgumentOutOfRangeException(nameof(frameIndex), $"{nameof(frameIndex)} must be non-negative and less than the length of frames.");
       }
-
-      if (texturePaths is null) {
-        texturePaths = new SortedDictionary<int, string>();
+      if (textures is null) {
+        textures = new SortedDictionary<int, Texture2D>();
       }
-
-      texturePaths[frameIndex] = texturePath;
+      textures[frameIndex] = ModContent.GetTexture(texturePath);
     }
 
-
-    /// <summary>
-    /// Attempts to get the texture from the path at the given frame index, and return the texture with that path.
-    /// If the path is <see langword="null"/>, this returns <see langword="null"/>.
-    /// If the path is not a valid texture, the path is replaced with "ModLoader/MysteryTile"
-    /// </summary>
-    /// <param name="frameIdx">Index of the frame. This value <strong>must</strong> be a key for <see cref="texturePaths"/>.</param>
-    /// <param name="texture">The texture from the index of <see cref="texturePaths"/>, or the texture for "ModLoader/MysteryTile" if it does not exist.</param>
-    /// <returns></returns>
-    /// <exception cref="KeyNotFoundException"><paramref name="frameIdx"/> is not a valid key for <see cref="texturePaths"/>.</exception>
-    private void TryGetTexture(int frameIdx, out Texture2D texture) {
-      if (texturePaths is null) {
-        texture = null;
-        return;
-      }
-      if (!texturePaths.ContainsKey(frameIdx)) {
-        throw new KeyNotFoundException("The specified value was not found in the texturePaths list.");
-      }
-      var texturePath = texturePaths[frameIdx];
-      if (texturePath is null) {
-        texture = null;
-        return;
-      }
-
-      try {
-        texture = ModContent.GetTexture(texturePaths[frameIdx]);
-      }
-      catch (MissingResourceException ex) {
-        AnimLibMod.Instance.Logger.Error("Animation Track texture missing, replacing with tML's MysteryTile", ex);
-        texturePaths[frameIdx] = "ModLoader/MysteryTile";
-        texture = ModContent.GetTexture("ModLoader/MysteryTile");
-      }
-    }
-
-    private SortedDictionary<int, string> texturePaths;
+    internal SortedDictionary<int, Texture2D> textures;
   }
 }

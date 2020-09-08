@@ -32,7 +32,7 @@ namespace AnimLib {
     /// Collection of all <see cref="animationSources"/>, constructed during <see cref="Mod.Load"/>.
     /// </summary>
     internal static Dictionary<Mod, AnimationSource[]> animationSources { get; private set; } = new Dictionary<Mod, AnimationSource[]>();
-    
+
     /// <summary>
     /// Collection of all <see cref="Type"/>s of <see cref="AnimationController"/>, collected during <see cref="Mod.Load"/> and constructed during <see cref="ModPlayer.Initialize"/>.
     /// </summary>
@@ -40,6 +40,7 @@ namespace AnimLib {
 
     /// <summary>
     /// Searches all mods for any and all classes extending <see cref="AnimationSource"/> and <see cref="AnimationController"/>.
+    /// <para>For <see cref="AnimationSource"/>s, they will be constructed, check for loading, log errors and skip if applicible, and added to the dict.</para>
     /// </summary>
     internal static void Load() {
       foreach (var mod in ModLoader.Mods) {
@@ -66,29 +67,7 @@ namespace AnimLib {
       }
 
       if (!animationSources.Any() && !animationControllerTypes.Any()) {
-        AnimLibMod.Instance.Logger.Warn($"AnimLibMod loaded; no mods contained any {nameof(AnimationSource)}s or {nameof(AnimationController)}s. Currently there is no reason for this mod to be enabled.");
-      }
-    }
-
-    /// <summary>
-    /// Calls <see cref="AnimationSource.Load(ref string)"/> on all <see cref="AnimationSource"/>s, and assigns their textures.
-    /// </summary>
-    internal static void PostSetupContent() {
-      if (animationSources is null) {
-        return;
-      }
-
-      foreach (var modSources in animationSources.Values) {
-        foreach (var source in modSources) {
-          string texturePath = source.GetType().FullName.Replace('.', '/');
-          source.Load(ref texturePath);
-          if (ModContent.TextureExists(texturePath)) {
-            source.texture = ModContent.GetTexture(texturePath);
-          }
-          else {
-            AnimLibMod.Instance.Logger.Error($"Mod {source.mod.Name}: {source.GetType().Name}.Load() texturePath \"{texturePath}\" is not a valid texture path.");
-          }
-        }
+        AnimLibMod.Instance.Logger.Info($"AnimLibMod loaded; no mods contained any {nameof(AnimationSource)}s or {nameof(AnimationController)}s. Currently there is no reason for this mod to be enabled.");
       }
     }
 
@@ -104,14 +83,8 @@ namespace AnimLib {
         }
         try {
           if (TryConstructAnimationSource(type, mod, out var source)) {
-            string _ = source.GetType().FullName.Replace('.', '/');
-            if (source.Load(ref _)) {
-              sources.Add(source);
-              AnimLibMod.Instance.Logger.Info($"From mod {mod.Name} collected {nameof(AnimationSource)} \"{type.SafeTypeName(nameof(AnimationSource))}\"");
-            }
-            else {
-              AnimLibMod.Instance.Logger.Info($"Skipped {mod.Name} {nameof(AnimationSource)} \"{type.SafeTypeName(nameof(AnimationSource))}\", Load() returned false.");
-            }
+            sources.Add(source);
+            AnimLibMod.Instance.Logger.Info($"From mod {mod.Name} collected {nameof(AnimationSource)} \"{type.SafeTypeName(nameof(AnimationSource))}\"");
           }
         }
         catch (Exception ex) {
@@ -127,6 +100,13 @@ namespace AnimLib {
     /// </summary>
     private static bool TryConstructAnimationSource(Type type, Mod mod, out AnimationSource source) {
       source = Activator.CreateInstance(type, true) as AnimationSource;
+
+      string texturePath = source.GetType().FullName.Replace('.', '/');
+      if (!source.Load(ref texturePath)) {
+        source = null;
+        return false;
+      }
+
       bool doAdd = true;
       if (source.tracks is null) {
         AnimLibMod.Instance.Logger.Error($"Error constructing {nameof(AnimationSource)} from [{mod.Name}:{type.FullName}]: Tracks is null.");
@@ -136,8 +116,14 @@ namespace AnimLib {
         AnimLibMod.Instance.Logger.Error($"Error constructing {nameof(AnimationSource)} from [{mod.Name}:{type.FullName}]: Sprite Size cannot contain a value of 0.");
         doAdd = false;
       }
+      if (!ModContent.TextureExists(texturePath)) {
+        AnimLibMod.Instance.Logger.Error($"Error constructing {nameof(AnimationSource)} from [{mod.Name}:{type.FullName}]: Texture path \"{texturePath}\" is not a valid texture path.");
+        doAdd = false;
+      }
+
       if (doAdd) {
         source.mod = mod;
+        source.texture = ModContent.GetTexture(texturePath);
         return true;
       }
       source = null;
@@ -203,18 +189,6 @@ namespace AnimLib {
         AnimLibMod.Instance.Logger.Debug($"{nameof(AnimationController)} for mod {mod.Name} created with {animations.Length} animations. Its MainAnimation is {controller.MainAnimation?.source.GetType().Name ?? "null"}");
       }
       return controller;
-    }
-
-
-    internal static void OnUnload() {
-      // In case other mods set a static reference to an AnimationSource, let's just clear out the dicts
-      if (!(animationSources is null)) {
-        foreach (var modSources in animationSources.Values) {
-          foreach (var source in modSources) {
-            source.tracks?.Clear();
-          }
-        }
-      }
     }
   }
 }
