@@ -31,18 +31,21 @@ namespace AnimLib {
     /// <summary>
     /// Collection of all <see cref="animationSources"/>, constructed during <see cref="Mod.Load"/>.
     /// </summary>
-    internal static Dictionary<Mod, AnimationSource[]> animationSources { get; private set; } = new Dictionary<Mod, AnimationSource[]>();
+    internal static Dictionary<Mod, AnimationSource[]> animationSources { get; private set; }
 
     /// <summary>
     /// Collection of all <see cref="Type"/>s of <see cref="AnimationController"/>, collected during <see cref="Mod.Load"/> and constructed during <see cref="ModPlayer.Initialize"/>.
     /// </summary>
-    internal static Dictionary<Mod, Type> animationControllerTypes { get; private set; } = new Dictionary<Mod, Type>();
+    internal static Dictionary<Mod, Type> animationControllerTypes { get; private set; }
 
     /// <summary>
     /// Searches all mods for any and all classes extending <see cref="AnimationSource"/> and <see cref="AnimationController"/>.
     /// <para>For <see cref="AnimationSource"/>s, they will be constructed, check for loading, log errors and skip if applicible, and added to the dict.</para>
     /// </summary>
     internal static void Load() {
+      animationSources = new Dictionary<Mod, AnimationSource[]>();
+      animationControllerTypes = new Dictionary<Mod, Type>();
+
       foreach (var mod in ModLoader.Mods) {
         if (mod is AnimLibMod || mod.Code is null) {
           continue;
