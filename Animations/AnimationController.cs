@@ -123,18 +123,13 @@ namespace AnimLib.Animations {
     /// </summary>
     /// <typeparam name="T">Type of <see cref="AnimationSource"/></typeparam>
     /// <returns>The <see cref="Animation"/> with the matching <see cref="AnimationSource"/>.</returns>
-    /// <exception cref="ArgumentException"><typeparamref name="T"/> and <see cref="mod"/> are from different assemblies.</exception>
     public Animation GetAnimation<T>() where T : AnimationSource {
       foreach (var anim in animations) {
         if (anim.source is T) {
           return anim;
         }
       }
-      string tAsmName = typeof(T).Assembly.FullName;
-      string modAsmName = mod.Code.FullName;
-      if (tAsmName != modAsmName) {
-        throw new ArgumentException($"Assembly mismatch: {typeof(T)} is from {tAsmName}; this {nameof(AnimationController)} is from {modAsmName}");
-      }
+      
       AnimLibMod.Instance.Logger.Warn($"{GetType().Name}.GetAnimation<{typeof(T).Name}>() failed.");
       return null;
     }
