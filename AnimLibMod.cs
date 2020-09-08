@@ -61,11 +61,16 @@ namespace AnimLib {
     /// <param name="mod">Your mod.</param>
     /// <typeparam name="T">Type of <see cref="AnimationSource"/> to get.</typeparam>
     /// <returns>An <see cref="AnimationSource"/> of type <typeparamref name="T"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="mod"/> cannot be <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException"><paramref name="mod"/> has no <see cref="AnimationSource"/>.</exception>
     public static T GetAnimationSource<T>(Mod mod) where T : AnimationSource {
+      if (mod is null) {
+        throw new ArgumentNullException(nameof(mod));
+      }
+
       var sources = AnimLoader.animationSources;
       if (!sources.ContainsKey(mod)) {
-        throw new ArgumentException($"The mod {mod.Name} has no {nameof(AnimationSource)}");
+        throw new ArgumentException($"The mod {mod.Name} does not have any {nameof(AnimationSource)}s loaded.");
       }
       foreach (var source in sources[mod]) {
         if (source is T t) {
