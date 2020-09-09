@@ -1,4 +1,6 @@
-﻿namespace AnimLib.Animations {
+﻿using Microsoft.Xna.Framework;
+
+namespace AnimLib.Animations {
   /// <summary>
   /// Single frame of animation. Stores sprite position on the sprite sheet, and duration of the frame.
   /// </summary>
@@ -27,6 +29,16 @@
 
     /// <inheritdoc/>
     public ushort duration { get; }
+
+    /// <summary>
+    /// Gets a <see cref="Rectangle"/> that represents the sprite in the <see cref="AnimationSource"/>.
+    /// </summary>
+    /// <param name="source">The <see cref="AnimationSource"/>.</param>
+    /// <returns></returns>
+    public Rectangle ToRectangle(AnimationSource source) {
+      var size = source.spriteSize;
+      return new Rectangle(tile.X * size.X, tile.Y * size.Y, size.X, size.Y);
+    }
 
     /// <summary>
     /// Returns a <see cref="string"/> containing the X and Y value of the <see cref="tile"/>, and the <see cref="duration"/> of this instance.

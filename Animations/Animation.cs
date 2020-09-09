@@ -61,12 +61,26 @@ namespace AnimLib.Animations {
     /// <summary>
     /// Current <see cref="Frame"/>'s sprite position and size on the <see cref="CurrentTexture"/>.
     /// </summary>
-    public Rectangle CurrentTile {
-      get {
-        var size = source.spriteSize;
-        var tile = CurrentFrame.tile;
-        return new Rectangle(tile.X * size.X, tile.Y * size.Y, size.X, size.Y);
-      }
+    public Rectangle CurrentTile => CurrentFrame.ToRectangle(source);
+
+    /// <summary>
+    /// Gets the sprite position and size of the <see cref="Frame"/> at the given index of the current <see cref="Track"/>.
+    /// If you want to get the rect of the current <see cref="Frame"/>, use <see cref="CurrentTile"/> instead.
+    /// </summary>
+    /// <param name="frameIndex">Index of the frame to get.</param>
+    /// <returns>The <see cref="Rectangle"/> of the <see cref="Frame"/> at the given index.</returns>
+    public Rectangle TileAt(int frameIndex) => TileAt(CurrentTrack, frameIndex);
+
+    /// <summary>
+    /// Gets the sprite position and size of the <see cref="Frame"/> at the given index of the given <see cref="Track"/>.
+    /// If you want to get the rect of the current <see cref="Frame"/>, use <see cref="CurrentTile"/> instead.
+    /// </summary>
+    /// <param name="frameIndex">Index of the frame to get.</param>
+    /// <param name="track">Track that the <paramref name="frameIndex"/> is in.</param>
+    /// <returns>The <see cref="Rectangle"/> of the <see cref="Frame"/> at the given index.</returns>
+    public Rectangle TileAt(Track track, int frameIndex) {
+      frameIndex = (int)MathHelper.Clamp(frameIndex, 0, track.Length - 1);
+      return track.frames[frameIndex].ToRectangle(source);
     }
 
     /// <summary>
