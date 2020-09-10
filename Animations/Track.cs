@@ -9,23 +9,22 @@ namespace AnimLib.Animations {
   /// Animation Track, stores frame values. This is constructed on startup, contains <see cref="Frame"/> data.
   /// </summary>
   public sealed class Track {
+    // TODO: Allow Track.Range to use multiple columns of textures
+    // For that to work, Track will require knowing the AnimationSource.spriteSize
+    // and the source's texture's dimensions
+
     /// <summary>
     /// Creates a track with <see cref="LoopMode.Always"/> and <see cref="Direction.Forward"/>, with a <see cref="Frame"/> array ranging from <paramref name="start"/> to <paramref name="end"/>.
     /// <para>The range is created along the Y axis, going downward.</para>
     /// </summary>
-    /// <param name="start">First <see cref="Frame"/> of the track.</param>
-    /// <param name="end">Last <see cref="Frame"/> of the track.</param>
-    /// <returns>A new <see cref="Track"/> with the frames ranging from <paramref name="start"/> to <paramref name="end"/>.</returns>
+    /// <inheritdoc cref="Range(LoopMode, Direction, Frame, Frame)"/>
     public static Track Range(Frame start, Frame end) => Range(LoopMode.Always, Direction.Forward, start, end);
 
     /// <summary>
     /// Creates a track with the given <see cref="LoopMode"/> and using <see cref="Direction.Forward"/>, with a <see cref="Frame"/> array ranging from <paramref name="start"/> to <paramref name="end"/>.
     /// <para>The range is created along the Y axis, going downward.</para>
     /// </summary>
-    /// <param name="loopMode"><see cref="LoopMode"/> of the track.</param>
-    /// <param name="start">First <see cref="Frame"/> of the track.</param>
-    /// <param name="end">Last <see cref="Frame"/> of the track.</param>
-    /// <returns>A new <see cref="Track"/> with the frames ranging from <paramref name="start"/> to <paramref name="end"/>.</returns>
+    /// <inheritdoc cref="Range(LoopMode, Direction, Frame, Frame)"/>
     public static Track Range(LoopMode loopMode, Frame start, Frame end) => Range(loopMode, Direction.Forward, start, end);
 
     /// <summary>
@@ -35,7 +34,7 @@ namespace AnimLib.Animations {
     /// <param name="loopMode"><see cref="LoopMode"/> of the track.</param>
     /// <param name="direction"><see cref="Direction"/> of the track.</param>
     /// <param name="start">First <see cref="Frame"/> of the track.</param>
-    /// <param name="end">Last <see cref="Frame"/> of the track.</param>
+    /// <param name="end">Last <see cref="Frame"/> of the track. Must be in the same column as and below <paramref name="start"/>.</param>
     /// <returns>A new <see cref="Track"/> with the frames ranging from <paramref name="start"/> to <paramref name="end"/>.</returns>
     /// <exception cref="ArgumentException">The X values of <paramref name="start"/> and <paramref name="end"/> must be equal.</exception>
     /// <exception cref="ArgumentOutOfRangeException">The Y value of <paramref name="start"/> must be less than the Y value of <paramref name="end"/>.</exception>
