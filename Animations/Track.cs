@@ -100,7 +100,7 @@ namespace AnimLib.Animations {
             newFrames[i] = new Frame(f.tile.X, f.tile.Y, f.duration);
             break;
           case null:
-            throw new ArgumentNullException(nameof(frames), $"{nameof(frames)} cannot contain a null value.");
+            throw new ArgumentNullException(nameof(frames), $"{nameof(frames)} contains a null value.");
         }
       }
     }
