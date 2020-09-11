@@ -13,30 +13,79 @@ namespace AnimLib.Animations {
     // For that to work, Track will require knowing the AnimationSource.spriteSize
     // and the source's texture's dimensions
 
-    
+    /// <summary>
+    /// Creates a track with <see cref="LoopMode.Always"/> and <see cref="Direction.Forward"/>, with a <see cref="Frame"/> array ranging from <paramref name="start"/> to <paramref name="end"/>.
+    /// <para>The range is created along the Y axis, going downward.</para>
+    /// </summary>
+    /// <inheritdoc cref="Range(LoopMode, Direction, Frame, Frame)"/>
+    public static Track Range(Frame start, Frame end) => Range(LoopMode.Always, Direction.Forward, start, end);
+
+    /// <summary>
+    /// Creates a track with the given <see cref="LoopMode"/> and using <see cref="Direction.Forward"/>, with a <see cref="Frame"/> array ranging from <paramref name="start"/> to <paramref name="end"/>.
+    /// <para>The range is created along the Y axis, going downward.</para>
+    /// </summary>
+    /// <inheritdoc cref="Range(LoopMode, Direction, Frame, Frame)"/>
+    public static Track Range(LoopMode loopMode, Frame start, Frame end) => Range(loopMode, Direction.Forward, start, end);
+
+    /// <summary>
+    /// Creates a track with the given <see cref="LoopMode"/> and <see cref="Direction"/>, with a <see cref="Frame"/> array ranging from <paramref name="start"/> to <paramref name="end"/>.
+    /// <para>The range is created along the Y axis, going downward.</para>
+    /// </summary>
+    /// <param name="loopMode"><see cref="LoopMode"/> of the track.</param>
+    /// <param name="direction"><see cref="Direction"/> of the track.</param>
+    /// <param name="start">First <see cref="Frame"/> of the track.</param>
+    /// <param name="end">Last <see cref="Frame"/> of the track. Must be in the same column as and below <paramref name="start"/>.</param>
+    /// <returns>A new <see cref="Track"/> with the frames ranging from <paramref name="start"/> to <paramref name="end"/>.</returns>
+    /// <exception cref="ArgumentException">The X values of <paramref name="start"/> and <paramref name="end"/> must be equal.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">The Y value of <paramref name="start"/> must be less than the Y value of <paramref name="end"/>.</exception>
+    public static Track Range(LoopMode loopMode, Direction direction, Frame start, Frame end) {
+      // Fill range of frames
+      // I.e. if given [(0,1), (0,4)], we make [(0,1), (0,2), (0,3), (0,4)]
+      if (start.tile.X != end.tile.X) {
+        throw new ArgumentException($"The X values of {nameof(start)} and {nameof(end)} must be equal, instead got {start.tile.X}, {end.tile.X}.");
+      }
+      if (start.tile.Y >= end.tile.Y) {
+        throw new ArgumentOutOfRangeException($"The Y value of {nameof(start)} must be less than the Y value of {nameof(end)}, instead got {start.tile.Y}, {end.tile.Y}.");
+      }
+      var frames = new List<IFrame>();
+      for (int y = start.tile.Y; y < end.tile.Y; y++) {
+        frames.Add(new Frame(start.tile.X, y, start.duration));
+      }
+      frames.Add(end);
+      var track = new Track(loopMode, direction, frames.ToArray());
+      return track;
+    }
+
+    /// <summary>
+    /// Creates a track that consists of a single <see cref="Frame"/>.
+    /// </summary>
+    /// <param name="frame">Assigns to <see cref="frames"/> as a single <see cref="Frame"/>.</param>
+    /// <returns>A new <see cref="Track"/> with a single <see cref="Frame"/>.</returns>
+    public static Track Single(Frame frame) => new Track(new Frame[] { frame });
+
+
     /// <summary>
     /// Creates a track using <see cref="LoopMode.Always"/> and <see cref="Direction.Forward"/>, and with the given <see cref="Frame"/> array.
     /// </summary>
-    /// <inheritdoc cref="Track(AnimationSource, LoopMode, Direction, Frame[])"/>
-    public Track(AnimationSource source, Frame[] frames) : this(source, LoopMode.Always, Direction.Forward, frames) { }
+    /// <inheritdoc cref="Track(LoopMode, Direction, Frame[])"/>
+    public Track(Frame[] frames) : this(LoopMode.Always, Direction.Forward, frames) { }
 
     /// <summary>
     /// Creates a track with the given <see cref="LoopMode"/>, using <see cref="Direction.Forward"/>, and the given <see cref="Frame"/> array.
     /// </summary>
-    /// <inheritdoc cref="Track(AnimationSource, LoopMode, Direction, Frame[])"/>
-    public Track(AnimationSource source, LoopMode loopMode, Frame[] frames) : this(source, loopMode, Direction.Forward, frames) { }
+    /// <inheritdoc cref="Track(LoopMode, Direction, Frame[])"/>
+    public Track(LoopMode loopMode, Frame[] frames) : this(loopMode, Direction.Forward, frames) { }
 
     /// <summary>
     /// Creates a track with the given <see cref="LoopMode"/>, <see cref="Direction"/>, and <see cref="Frame"/> array.
-    /// <para>If you want to have your <see cref="Track"/> use multiple textures, use the constructor <see cref="Track(AnimationSource, LoopMode, Direction, IFrame[])"/>.</para>
+    /// <para>If you want to have your <see cref="Track"/> use multiple textures, use the constructor <see cref="Track(LoopMode, Direction, IFrame[])"/>.</para>
     /// </summary>
-    /// <param name="source">The <see cref="AnimationSource"/> this <see cref="Track"/> will belong to,</param>
     /// <param name="loopMode">The <see cref="LoopMode"/> of the track.</param>
     /// <param name="direction">The <see cref="Direction"/> of the track.</param>
     /// <param name="frames">Assigns to <see cref="frames"/>.</param>
     /// <exception cref="ArgumentNullException"><paramref name="frames"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException"><paramref name="frames"/> is empty.</exception>
-    public Track(AnimationSource source, LoopMode loopMode, Direction direction, Frame[] frames) : this(source, loopMode, direction) {
+    public Track(LoopMode loopMode, Direction direction, Frame[] frames) : this(loopMode, direction) {
       if (frames is null) {
         throw new ArgumentNullException(nameof(frames));
       }
@@ -51,29 +100,28 @@ namespace AnimLib.Animations {
 
     /// <summary>
     /// Creates a track using <see cref="LoopMode.Always"/> and <see cref="Direction.Forward"/>, and with the given <see cref="Frame"/> array.
-    /// <inheritdoc cref="Track(AnimationSource, LoopMode, Direction, IFrame[])"/>
+    /// <inheritdoc cref="Track(LoopMode, Direction, IFrame[])"/>
     /// </summary>
-    /// <inheritdoc cref="Track(AnimationSource, LoopMode, Direction, IFrame[])"/>
-    public Track(AnimationSource source, IFrame[] frames) : this(source, LoopMode.Always, Direction.Forward, frames) { }
+    /// <inheritdoc cref="Track(LoopMode, Direction, IFrame[])"/>
+    public Track(IFrame[] frames) : this(LoopMode.Always, Direction.Forward, frames) { }
 
     /// <summary>
     /// Creates a track with the given <see cref="LoopMode"/>, <see cref="Direction"/>, and <see cref="Frame"/> array.
-    /// <inheritdoc cref="Track(AnimationSource, LoopMode, Direction, IFrame[])"/>
+    /// <inheritdoc cref="Track(LoopMode, Direction, IFrame[])"/>
     /// </summary>
-    /// <inheritdoc cref="Track(AnimationSource, LoopMode, Direction, IFrame[])"/>
-    public Track(AnimationSource source, LoopMode loopMode, IFrame[] frames) : this(source, loopMode, Direction.Forward, frames) { }
+    /// <inheritdoc cref="Track(LoopMode, Direction, IFrame[])"/>
+    public Track(LoopMode loopMode, IFrame[] frames) : this(loopMode, Direction.Forward, frames) { }
 
     /// <summary>
     /// <para>Using an <see cref="IFrame"/>[], this allows for multiple textures within the <see cref="Track"/>, by using either
     /// <see cref="AnimationSource.F(string, int, int, int)"/> or <see cref="SwitchTextureFrame(byte, byte, ushort, string)"/>.</para>
     /// </summary>
-    /// <param name="source">The <see cref="AnimationSource"/> this <see cref="Track"/> will belong to.</param>
     /// <param name="loopMode"><see cref="LoopMode"/> of the track.</param>
     /// <param name="direction"><see cref="Direction"/> of the track.</param>
     /// <param name="frames">Assigns to <see cref="frames"/> as a <see cref="Frame"/> array. All <see cref="SwitchTextureFrame"/>s will have their textures added to this <see cref="Track"/>, and all <see cref="IFrame"/>s will be cast to <see cref="Frame"/></param>
     /// <exception cref="ArgumentNullException"><paramref name="frames"/> is <see langword="null"/> -or- <paramref name="frames"/> contains a <see langword="null"/> value.</exception>
     /// <exception cref="ArgumentException"><paramref name="frames"/> is empty.</exception>
-    public Track(AnimationSource source, LoopMode loopMode, Direction direction, IFrame[] frames) : this(source, loopMode, direction) {
+    public Track(LoopMode loopMode, Direction direction, IFrame[] frames) : this(loopMode, direction) {
       if (frames is null) {
         throw new ArgumentNullException(nameof(frames));
       }
@@ -106,8 +154,7 @@ namespace AnimLib.Animations {
     }
 
 
-    private Track(AnimationSource source, LoopMode loopMode, Direction direction) {
-      this.source = source;
+    private Track(LoopMode loopMode, Direction direction) {
       this.loopMode = loopMode;
       this.direction = direction;
     }
@@ -122,11 +169,6 @@ namespace AnimLib.Animations {
     /// The number of frames in this <see cref="Track"/>.
     /// </summary>
     public readonly int Length;
-
-    /// <summary>
-    /// The <see cref="AnimationSource"/> this <see cref="Track"/> belongs to.
-    /// </summary>
-    public readonly AnimationSource source;
 
     /// <inheritdoc cref="LoopMode"/>
     public readonly LoopMode loopMode = LoopMode.Always;
