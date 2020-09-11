@@ -61,28 +61,29 @@ namespace AnimLib.Animations {
     /// Creates a track with <see cref="LoopMode.Always"/> and <see cref="Direction.Forward"/>, with a <see cref="Frame"/> array ranging from <paramref name="start"/> to <paramref name="end"/>.
     /// <para>The range is created along the Y axis, going downward.</para>
     /// </summary>
-    /// <inheritdoc cref="Range(LoopMode, Direction, Frame, Frame)"/>
-    protected Track Range(Frame start, Frame end) => Range(LoopMode.Always, Direction.Forward, start, end);
+    /// <inheritdoc cref="Range(LoopMode, Direction, Frame, Frame, SpriteRangeDirection)"/>
+    protected Track Range(Frame start, Frame end, SpriteRangeDirection spriteDirection = SpriteRangeDirection.Down) => Range(LoopMode.Always, Direction.Forward, start, end, spriteDirection);
 
     /// <summary>
     /// Creates a track with the given <see cref="LoopMode"/> and using <see cref="Direction.Forward"/>, with a <see cref="Frame"/> array ranging from <paramref name="start"/> to <paramref name="end"/>.
     /// <para>The range is created along the Y axis, going downward.</para>
     /// </summary>
-    /// <inheritdoc cref="Range(LoopMode, Direction, Frame, Frame)"/>
-    protected Track Range(LoopMode loopMode, Frame start, Frame end) => Range(loopMode, Direction.Forward, start, end);
+    /// <inheritdoc cref="Range(LoopMode, Direction, Frame, Frame, SpriteRangeDirection)"/>
+    protected Track Range(LoopMode loopMode, Frame start, Frame end, SpriteRangeDirection spriteDirection = SpriteRangeDirection.Down) => Range(loopMode, Direction.Forward, start, end, spriteDirection);
 
     /// <summary>
     /// Creates a track with the given <see cref="LoopMode"/> and <see cref="Direction"/>, with a <see cref="Frame"/> array ranging from <paramref name="start"/> to <paramref name="end"/>.
     /// <para>The range is created along the Y axis, going downward.</para>
     /// </summary>
     /// <param name="loopMode"><see cref="LoopMode"/> of the track.</param>
-    /// <param name="direction"><see cref="Direction"/> of the track.</param>
+    /// <param name="direction"><see cref="Direction"/> of the track. This is the in-game playback of your animation.</param>
     /// <param name="start">First <see cref="Frame"/> of the track.</param>
     /// <param name="end">Last <see cref="Frame"/> of the track. Must be in the same column as and below <paramref name="start"/>.</param>
+    /// <param name="spriteDirection">This is how you have your sprites laid out on your spritesheet.</param>
     /// <returns>A new <see cref="Track"/> with the frames ranging from <paramref name="start"/> to <paramref name="end"/>.</returns>
     /// <exception cref="ArgumentException">The X values of <paramref name="start"/> and <paramref name="end"/> must be equal.</exception>
     /// <exception cref="ArgumentOutOfRangeException">The Y value of <paramref name="start"/> must be less than the Y value of <paramref name="end"/>.</exception>
-    protected Track Range(LoopMode loopMode, Direction direction, Frame start, Frame end) {
+    protected Track Range(LoopMode loopMode, Direction direction, Frame start, Frame end, SpriteRangeDirection spriteDirection = SpriteRangeDirection.Down) {
       // Fill range of frames
       // I.e. if given [(0,1), (0,4)], we make [(0,1), (0,2), (0,3), (0,4)]
       if (start.tile.X != end.tile.X) {
@@ -91,12 +92,12 @@ namespace AnimLib.Animations {
       if (start.tile.Y >= end.tile.Y) {
         throw new ArgumentOutOfRangeException($"The Y value of {nameof(start)} must be less than the Y value of {nameof(end)}, instead got {start.tile.Y}, {end.tile.Y}.");
       }
-      var frames = new List<IFrame>();
+      var frames = new List<Frame>();
       for (int y = start.tile.Y; y < end.tile.Y; y++) {
         frames.Add(new Frame(start.tile.X, y, start.duration));
       }
       frames.Add(end);
-      var track = new Track(this, loopMode, direction, frames.ToArray());
+      var track = new Track(this, loopMode, direction, TrackHelper.GetRange(this, start, end, spriteDirection));
       return track;
     }
 
