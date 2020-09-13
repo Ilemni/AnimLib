@@ -102,7 +102,7 @@ namespace AnimLib.Animations {
 
     /// <summary>
     /// Updates the player animation by one frame. This is where you choose what tracks are played, and how they are played.
-    /// <para>You must make calls to <see cref="IncrementFrame(string, int?, float?, int?, float, LoopMode?, Direction?)"/>
+    /// <para>You must make calls to <see cref="PlayTrack(string, int?, float?, int?, float, LoopMode?, Direction?)"/>
     /// or its various overloads to continue or change the animation.</para>
     /// </summary>
     /// <example>
@@ -174,8 +174,8 @@ namespace AnimLib.Animations {
     /// </param>
     /// <exception cref="ArgumentException"><paramref name="trackName"/> was null or whitespace.</exception>
     /// <exception cref="KeyNotFoundException">The value of <paramref name="trackName"/> was not a key in the main <see cref="AnimationSource.tracks"/>.</exception>
-    protected void IncrementFrame(string trackName)
-      => IncrementFrame(trackName, null, null, null, 0, null, null);
+    protected void PlayTrack(string trackName)
+      => PlayTrack(trackName, null, null, null, 0, null, null);
 
     /// <summary>
     /// Plays the <see cref="Track"/> with the given name. How the animation advances is based on the given input parameters.
@@ -209,7 +209,7 @@ namespace AnimLib.Animations {
     /// <exception cref="ArgumentException"><paramref name="trackName"/> was null or whitespace.</exception>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="frameIndex"/> is less than 0, or greater than the count of <paramref name="trackName"/>'s frames, -or- <paramref name="speed"/> was negative, -or- <paramref name="duration"/> was negative or 0.</exception>
     /// <exception cref="KeyNotFoundException">The value of <paramref name="trackName"/> was not a key in the main <see cref="AnimationSource.tracks"/>.</exception>
-    protected void IncrementFrame(string trackName, int? frameIndex = null, float? speed = null, int? duration = null, float rotation = 0, LoopMode? loop = null, Direction? direction = null) {
+    protected void PlayTrack(string trackName, int? frameIndex = null, float? speed = null, int? duration = null, float rotation = 0, LoopMode? loop = null, Direction? direction = null) {
       if (string.IsNullOrWhiteSpace(trackName)) {
         throw new ArgumentException($"{nameof(trackName)} cannot be null or whitespace.", nameof(trackName));
       }
@@ -248,11 +248,11 @@ namespace AnimLib.Animations {
       }
 
       // Loop logic
-      PostIncrementFrame(duration, loop, direction);
+      PostPlay(duration, loop, direction);
     }
 
 
-    private void PostIncrementFrame(int? overrideDuration, LoopMode? overrideLoopMode, Direction? overrideDirection) {
+    private void PostPlay(int? overrideDuration, LoopMode? overrideLoopMode, Direction? overrideDirection) {
       var track = MainAnimation.CurrentTrack;
       var loop = overrideLoopMode ?? track.loopMode;
       var duration = overrideDuration ?? MainAnimation.CurrentFrame.duration;
