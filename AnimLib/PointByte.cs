@@ -41,7 +41,7 @@ namespace AnimLib {
     }
 
     /// <inheritdoc/>
-    public override string ToString() => $"{X}, {Y}";
+    public override string ToString() => $"{X},{Y}";
 
     /// <summary>
     /// Indicates whether the current <see cref="PointByte"/> is equal to another instance of <see cref="PointByte"/>.
