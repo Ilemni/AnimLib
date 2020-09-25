@@ -4,7 +4,7 @@ using System.Linq;
 using AnimLib.Animations;
 using Terraria.ModLoader;
 
-namespace AnimLib {
+namespace AnimLib.Internal {
   /// <summary>
   /// Manages the construction and distribution of all <see cref="AnimationSource"/>s and <see cref="AnimationController"/>s.
   /// <para><strong><see cref="AnimationSource"/></strong></para>

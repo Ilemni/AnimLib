@@ -1,5 +1,6 @@
 using System;
 using AnimLib.Animations;
+using AnimLib.Internal;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.ModLoader;

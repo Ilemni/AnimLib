@@ -1,6 +1,6 @@
 ﻿using Terraria.ModLoader;
 
-namespace AnimLib {
+namespace AnimLib.Internal {
   internal class AnimDebugCommand : ModCommand {
     public override string Command => "animdebug";
 

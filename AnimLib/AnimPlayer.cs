@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using AnimLib.Animations;
+using AnimLib.Internal;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ModLoader;
