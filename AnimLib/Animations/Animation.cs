@@ -117,15 +117,9 @@ namespace AnimLib.Animations {
       Texture2D texture = CurrentTexture;
       Vector2 pos = drawInfo.position - Main.screenPosition + player.Size / 2;
       Rectangle rect = CurrentTile;
-      var orig = new Vector2(rect.Width / 2, rect.Height / 2 + 5 * player.gravDir);
-      SpriteEffects effect = SpriteEffects.None;
-      if (player.direction == -1) {
-        effect |= SpriteEffects.FlipHorizontally;
-      }
-
-      if (player.gravDir == -1) {
-        effect |= SpriteEffects.FlipVertically;
-      }
+      SpriteEffects effect = controller.Effects;
+      var flipDir = (effect & SpriteEffects.FlipVertically) == SpriteEffects.FlipVertically ? -1 : 1;
+      var orig = new Vector2(rect.Width / 2, rect.Height / 2 + 5 * flipDir);
 
       return new DrawData(texture, pos, rect, Color.White, player.direction * controller.SpriteRotation, orig, 1, effect, 0);
     }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.ModLoader;
 
@@ -87,6 +88,10 @@ namespace AnimLib.Animations {
     /// </summary>
     public bool Reversed { get; private set; }
 
+    /// <summary>
+    /// <see cref="SpriteEffects"/> that will determine the flip directions of the sprite.
+    /// </summary>
+    public SpriteEffects Effects { get; private set; }
 
     /// <summary>
     /// Allows you to do things after this <see cref="AnimationController"/> is constructed.
@@ -102,8 +107,8 @@ namespace AnimLib.Animations {
 
     /// <summary>
     /// Updates the player animation by one frame. This is where you choose what tracks are played, and how they are played.
-    /// <para>You must make calls to <see cref="PlayTrack(string, int?, float?, int?, float, LoopMode?, Direction?)"/>
-    /// or its various overloads to continue or change the animation.</para>
+    /// <para>You must make calls to <see cref="PlayTrack(string, int?, float?, int?, float, LoopMode?, Direction?, SpriteEffects?)"/>
+    /// to continue or change the animation.</para>
     /// </summary>
     /// <example>
     /// Here is an example of updating the animation based on player movement.
@@ -175,7 +180,7 @@ namespace AnimLib.Animations {
     /// <exception cref="ArgumentException"><paramref name="trackName"/> was null or whitespace.</exception>
     /// <exception cref="KeyNotFoundException">The value of <paramref name="trackName"/> was not a key in the main <see cref="AnimationSource.tracks"/>.</exception>
     protected void PlayTrack(string trackName)
-      => PlayTrack(trackName, null, null, null, 0, null, null);
+      => PlayTrack(trackName, null, null, null, 0, null, null, null);
 
     /// <summary>
     /// Plays the <see cref="Track"/> with the given name. How the animation advances is based on the given input parameters.
@@ -206,10 +211,13 @@ namespace AnimLib.Animations {
     /// <param name="loop">
     /// <see cref="LoopMode"/> to play the track with, -or- <see langword="null"/>, to use the current <see cref="Track"/>'s <see cref="LoopMode"/>.
     /// </param>
-    /// <exception cref="ArgumentException"><paramref name="trackName"/> was null or whitespace.</exception>
+    /// <param name="effects">
+    /// <see cref="SpriteEffects"/> that will determine the flip direction of the sprite, -or- <see langword="null"/>, to use the player directions.
+    /// </param>
+    /// <exception cref="ArgumentException"><paramref name="trackName"/> was <see langword="null"/> or whitespace.</exception>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="frameIndex"/> is less than 0, or greater than the count of <paramref name="trackName"/>'s frames, -or- <paramref name="speed"/> was negative, -or- <paramref name="duration"/> was negative or 0.</exception>
     /// <exception cref="KeyNotFoundException">The value of <paramref name="trackName"/> was not a key in the main <see cref="AnimationSource.tracks"/>.</exception>
-    protected void PlayTrack(string trackName, int? frameIndex = null, float? speed = null, int? duration = null, float rotation = 0, LoopMode? loop = null, Direction? direction = null) {
+    protected void PlayTrack(string trackName, int? frameIndex = null, float? speed = null, int? duration = null, float rotation = 0, LoopMode? loop = null, Direction? direction = null, SpriteEffects? effects = null) {
       if (string.IsNullOrWhiteSpace(trackName)) {
         throw new ArgumentException($"{nameof(trackName)} cannot be null or whitespace.", nameof(trackName));
       }
@@ -224,11 +232,20 @@ namespace AnimLib.Animations {
         throw new ArgumentOutOfRangeException(nameof(speed), $"{nameof(speed)} must be a positive value.");
       }
       if (duration <= 0) {
-        throw new ArgumentOutOfRangeException(nameof(duration), $"{nameof(duration)} must be a positive value.");
+        throw new ArgumentOutOfRangeException(nameof(duration), $"{nameof(duration)} must be a positive, non-zero value.");
       }
 
       FrameTime += speed ?? 1;
       SpriteRotation = rotation;
+      if (effects is null) {
+        Effects = SpriteEffects.None;
+        if (player.direction < 0) {
+          Effects |= SpriteEffects.FlipHorizontally;
+        }
+        if (player.gravDir < 0) {
+          Effects |= SpriteEffects.FlipVertically;
+        }
+      }
 
       if (trackName != TrackName) {
         SwitchTrack(trackName, direction);
@@ -244,7 +261,11 @@ namespace AnimLib.Animations {
       }
 
       if (AnimDebugCommand.DebugEnabled) {
-        Main.NewText($"Frame called: Tile [{MainAnimation.CurrentFrame.tile}],{(MainAnimation.CurrentTrack.hasTextures ? $" {MainAnimation.CurrentTexture.Name}" : "")} {TrackName}{(Reversed ? " (Reversed)" : "")} Time: {FrameTime}, AnimIndex: {FrameIndex}/{MainAnimation.CurrentTrack.Length}");
+        Main.NewText($"Frame called: Tile [{MainAnimation.CurrentFrame.tile}], " +
+          $"{(MainAnimation.CurrentTrack.hasTextures ? $" {MainAnimation.CurrentTexture.Name}" : string.Empty)} " + 
+          $"{TrackName}{(Reversed ? " (Reversed)" : "")} " +
+          $"Time: {FrameTime}, " +
+          $"AnimIndex: {FrameIndex}/{MainAnimation.CurrentTrack.Length}");
       }
 
       // Loop logic
