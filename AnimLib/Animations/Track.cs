@@ -7,6 +7,7 @@ using Terraria.ModLoader;
 namespace AnimLib.Animations {
   /// <summary>
   /// Animation Track, stores frame values. This is constructed on startup, contains <see cref="Frame"/> data.
+  /// <para>This is how the animation knows what parts of your spritesheet to use for the animation, and how long a sprite is played for.</para>
   /// </summary>
   public sealed class Track {
     // TODO: Allow Track.Range to use multiple columns of textures

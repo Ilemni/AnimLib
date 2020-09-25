@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using AnimLib.Internal;
 using Microsoft.Xna.Framework;
@@ -9,10 +9,14 @@ using Terraria.ModLoader;
 namespace AnimLib.Animations {
   /// <summary>
   /// This class plays various <see cref="Animation"/>s and manages advancement of frames.
+  /// Your <see cref="AnimationController"/> is automatically created by <see cref="AnimLibMod"/> when a player is initialized.
   /// <para>For your mod, you must have exactly one class derived from <see cref="AnimationController"/>, else your player cannot be animated.</para>
-  /// <para>Your <see cref="AnimationController"/> is automatically created by <see cref="AnimLibMod"/> when a player is initialized.
-  /// To get your <see cref="AnimationController"/> instance on the player, use <see cref="AnimLibMod.GetAnimationController{T}(Player)"/></para>
+  /// <para>To get your <see cref="AnimationController"/> instance on the player, use <see cref="AnimLibMod.GetAnimationController{T}(Player)"/>.</para>
   /// </summary>
+  /// <remarks>
+  /// Alongside your <see cref="AnimationSource"/>s, that stores what animations are, such as their positions on spritesheets and duration,
+  /// your <see cref="AnimationController"/> determines which track plays depending on whatever conditions you have, and how they are played.
+  /// </remarks>
   public abstract class AnimationController {
     // TODO: maybe automate playerlayers
     // There's a PR in tML to overhaul them to be more OoP, and that can go a long ways to automating them here.

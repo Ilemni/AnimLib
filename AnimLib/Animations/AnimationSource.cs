@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using AnimLib.Internal;
 using Microsoft.Xna.Framework.Graphics;
@@ -9,7 +9,12 @@ namespace AnimLib.Animations {
   /// Contains all animation data for a single animation set. This animation data is used for all players. 
   /// <see cref="AnimationSource"/>s from all mods are collected and created during <see cref="AnimLibMod.PostSetupContent"/>.
   /// After initialization, values should not be modified.
+  /// <para>To get your <see cref="AnimationSource"/> instance, use <see cref="AnimLibMod.GetAnimationSource{T}(Mod)"/>.</para>
   /// </summary>
+  /// <remarks>
+  /// Alongside your <see cref="AnimationController"/>, which determines <i>how</i> track are played,
+  /// your <see cref="AnimationSource"/>s stores what the animations are, including their positions on spritesheets, duration, and other spritesheets.
+  /// </remarks>
   public abstract class AnimationSource {
     /// <summary>
     /// Base constructor. Ensures that this is not constructed on a server.

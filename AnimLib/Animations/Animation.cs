@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using AnimLib.Internal;
 using Microsoft.Xna.Framework;
@@ -10,22 +10,23 @@ using Terraria.ModLoader;
 namespace AnimLib.Animations {
   /// <summary>
   /// Animation for a single player. This class uses runtime data from a <see cref="AnimationController"/> to retrieve values from an <see cref="AnimationSource"/>.
-  /// <para>One of these will be created for each <see cref="AnimationController"/> you have in your mod, per player.</para>
+  /// One of these will be created for each <see cref="AnimationController"/> you have in your mod, per player.
+  /// <para>To get an <see cref="Animation"/> instance from the player, use <see cref="AnimationController.GetAnimation{T}"/>.</para>
   /// </summary>
   public sealed class Animation {
     /// <summary>
     /// Creates a new instance of <see cref="Animation"/> for the given <see cref="AnimPlayer"/>, using the given <see cref="AnimationSource"/> and rendering with <see cref="PlayerLayer"/>.
     /// </summary>
-    /// <param name="container"><see cref="AnimationController"/> instance this will belong to.</param>
+    /// <param name="controller"><see cref="AnimationController"/> instance this will belong to.</param>
     /// <param name="source"><see cref="AnimationSource"/> to determine which sprite is drawn.</param>
     /// <exception cref="System.InvalidOperationException">Animation classes are not allowed to be constructed on a server.</exception>
-    internal Animation(AnimationController container, AnimationSource source) {
+    internal Animation(AnimationController controller, AnimationSource source) {
       if (!AnimLoader.UseAnimations) {
         throw new System.InvalidOperationException($"Animation classes are not allowed to be constructed on servers.");
       }
-      this.controller = container;
+      this.controller = controller;
       this.source = source;
-      CheckIfValid(container.TrackName);
+      CheckIfValid(controller.TrackName);
     }
 
 

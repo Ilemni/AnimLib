@@ -1,6 +1,7 @@
 ﻿namespace AnimLib.Animations {
   /// <summary>
   /// Used to determine how a track behaves after its last frame is played.
+  /// <para>This allows a track to loop, or only play once.</para>
   /// </summary>
   public enum LoopMode : byte {
     /// <summary>

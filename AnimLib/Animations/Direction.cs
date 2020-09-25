@@ -1,6 +1,7 @@
 ﻿namespace AnimLib.Animations {
   /// <summary>
   /// Used to determine the direction that frames in a track are played.
+  /// <para>This allows for playing a track normally, in reverse, or in a "ping-pong" fashion that alternates between forward and reverse.</para>
   /// </summary>
   public enum Direction : byte {
     /// <summary>
