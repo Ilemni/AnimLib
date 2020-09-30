@@ -25,6 +25,8 @@ There is one "main" animation at a given time, that is, how long frames are and 
 If you wish to access your AnimationSource instance, you can get it with `AnimLibMod.GetAnimationSource<MyAnimationSource>()`;
 - AnimLib creates these during `Mod.PostSetupContent()`, so this method cannot be used during this time.
 
+For an example of an AnimationSource, see [OriMod's implementation](https://github.com/TwiliChaos/OriMod/blob/e5a0eabbe973fd24995ef6740ea3f7ebfcd04651/Animations/OriAnimationSources.cs)
+
 ---
 
 ### [AnimationController](AnimLibMod/Animations/AnimationController.cs)
@@ -34,7 +36,8 @@ If you wish to access your AnimationSource instance, you can get it with `AnimLi
 `AnimationController` has one abstract member, and that is `Update()`
 - `Update()` is where you will put the logic for choosing what track is played. In here you will make one call per `Update()` loop to the method `IncrementFrame()`. For this you will specify the track to play. If the track is the same as it was previously, the track plays normally.
 - Example code for `Update()` can be found in the Xmldoc for [AnimationController.Update()](AnimLibMod/Animations/AnimationController.cs).
-- For a more advanced example, see the [OriMod's implementation of AnimationController](https://github.com/TwiliChaos/OriMod/blob/ddae89ac101a33067ceb218e3463a9b4a198e77e/Animations/OriAnimationController.cs#L42).
+
+For an example of an AnimationController, see [OriMod's implementation](https://github.com/TwiliChaos/OriMod/blob/e5a0eabbe973fd24995ef6740ea3f7ebfcd04651/Animations/OriAnimationController.cs#L1).
 
 ---
 
