@@ -34,7 +34,7 @@ For an example of an AnimationSource, see [OriMod's implementation](https://gith
 `AnimationController` is the controller for all animations, and stores current animation data for the player. This also controls how animations are played. Your `AnimationControllers` types are collected by `AnimLibMod` and are constructed during player initialization. There exists one instance per player. You can only have one class derived from `AnimationController`.
 
 `AnimationController` has one abstract member, and that is `Update()`
-- `Update()` is where you will put the logic for choosing what track is played. In here you will make one call per `Update()` loop to the method `IncrementFrame()`. For this you will specify the track to play. If the track is the same as it was previously, the track plays normally.
+- `Update()` is where you will put the logic for choosing what track is played. In here you will make one call per `Update()` loop to the method `PlayTrack()`. For this you will specify the track to play. If the track is the same as it was previously, the track plays normally.
 - Example code for `Update()` can be found in the Xmldoc for [AnimationController.Update()](AnimLibMod/Animations/AnimationController.cs).
 
 For an example of an AnimationController, see [OriMod's implementation](https://github.com/TwiliChaos/OriMod/blob/e5a0eabbe973fd24995ef6740ea3f7ebfcd04651/Animations/OriAnimationController.cs#L1).
@@ -68,11 +68,11 @@ For an example of an AnimationController, see [OriMod's implementation](https://
 
 `Track` construction can take either a `Frame[]` or `IFrame[]`. There's two important differences here.
 - A `Frame[]` is simply used as is. This track is intended to use up to one texture.
-- An `IFrame[]` should only be used if you will include `SwitchTextureFrame`s. These are `IFrames` specifically designed to allow switching spritesheets during a `Track`. The texture is added to the `Track`, and the `SwitchTextureFrame` is converted to a regular `Frame`. This should only be used if your `Track` will switch textures mid-frame.
+- An `IFrame[]` should only be used if you will include `SwitchTextureFrame`s. These are `IFrames` specifically designed to allow switching spritesheets during a `Track`. The texture is added to the `Track`, and the `SwitchTextureFrame` is converted to a regular `Frame`. This should only be used if your `Track` will switch textures mid-track.
 
 [Frames](AnimLibMod/Animations/Frame.cs) represent one frame on the spritesheet. This contains the X and Y position of the frame (in sprite-space), as well as the duration. The duration is optional, and the default value is 0, where the track does not advance.
 
-Frame construction can be shorthanded during Track construction. Instead of using a bunch of
+Frame construction can be shorthanded during Track construction. This uses a method in `AnimationSource` meant for shorthanding. Instead of using a bunch of
 - `new Frame(0, 0, 10), new Frame(0, 1, 10), ...`
 
 You can use a shorthand method `F(x, y, duration)`. So a Track creation can look like
@@ -135,4 +135,4 @@ Use `AnimationController.SetMainAnimation` to change your animation to a differe
 
 Memory usage was an important consideration for this mod. By nature of being a mod that may have to co-exist with hundreds of others, the less memory used, the better. With Frames like this, a single Frame only takes 4 bytes, so a hundred frames takes 400 bytes, rather than 1200 from using all ints. Additionally, there is no need to store values larger than what is used.
 - Frame position is in sprite-space. If a spriteSize in an `AnimationSource` is 128x128, a frame of, say, \[1,4\] is positioned at 128,512. Coupled with how the max texture size is 2048x2048, this is only an issue if sprites are 8 pixels or smaller, *and* there needs to be more tha 65535 sprites for that 8 pixel character. In that case a second spritesheet could be used.
-- Frame duration is in frames (the time...), so the max value would be, at worst, 18 minutes. If a frame needs to be longer than 18 minutes (dear god why), IncrementFrame accepts an int value for overriding it.
+- Frame duration is in frames (the time...), so the max value would be, at worst, 18 minutes. If a frame needs to be longer than 18 minutes (dear god why), `PlayTrack()` duration override accepts an int value.

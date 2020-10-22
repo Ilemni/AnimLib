@@ -16,9 +16,8 @@ namespace AnimLib.Internal {
   /// <para>On <see cref="ModPlayer.Initialize"/>, all <see cref="AnimationController"/>s are constructed and added to the <see cref="AnimPlayer"/>.</para>
   /// </summary>
   internal static class AnimLoader {
-    static AnimLoader() => AnimLibMod.OnUnload += Unload;
-
     private static void Unload() {
+      AnimLibMod.Instance.Logger.Debug($"{nameof(AnimLoader)}.{nameof(Unload)} called.");
       animationSources = null;
       animationControllerTypes = null;
     }
@@ -43,6 +42,8 @@ namespace AnimLib.Internal {
     /// <para>For <see cref="AnimationSource"/>s, they will be constructed, check for loading, log errors and skip if applicible, and added to the dict.</para>
     /// </summary>
     internal static void Load() {
+      AnimLibMod.OnUnload += Unload;
+
       animationSources = new Dictionary<Mod, AnimationSource[]>();
       animationControllerTypes = new Dictionary<Mod, Type>();
 
