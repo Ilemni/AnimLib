@@ -16,7 +16,7 @@ namespace AnimLib.Projectiles {
     /// <summary>
     /// Correlates to a <see cref="Ability.Id"/>.
     /// </summary>
-    public abstract byte Id { get; }
+    public abstract int Id { get; }
 
     /// <summary>
     /// The level of the <see cref="Ability"/> when this <see cref="AbilityProjectile"/> was created.

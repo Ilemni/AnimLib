@@ -20,16 +20,9 @@ namespace AnimLib.Abilities {
     /// <typeparam name="T">The ability type.</typeparam>
     /// <returns>The <see cref="Ability"/> of type <typeparamref name="T"/>.</returns>
     /// <exception cref="ArgumentException"><typeparamref name="T"/> does not belong to this <see cref="mod"/></exception>
-    public T Get<T>() where T : Ability {
-      return abilityArray.FirstOrDefault(a => a is T) as T
-             ?? throw new ArgumentException($"{typeof(T).Name} does not belong to {mod}");
-    }
-
-    internal void PostUpdate() {
-      if (!CanUseAnyAbilities()) return;
-
-      foreach (Ability ability in UnlockedAbilities) ability.PostUpdate();
-    }
+    public T Get<T>() where T : Ability =>
+      abilityArray.FirstOrDefault(a => a is T) as T
+      ?? throw new ArgumentException($"{typeof(T).Name} does not belong to {mod}");
 
     #region Properties - Common
     // Initialized properties that are set by other mods (virtual or abstract properties) are kept in this region.
@@ -75,13 +68,7 @@ namespace AnimLib.Abilities {
     /// Provides an enumerator that supports iterating through all unlocked <see cref="Ability"/> instances in this <see cref="AbilityManager"/>.
     /// </summary>
     public IEnumerable<Ability> UnlockedAbilities => this.Where(ability => ability.Unlocked);
-
-    /// <summary>
-    /// Deactivates all abilities.
-    /// </summary>
-    public void DisableAllAbilities() {
-      foreach (Ability ability in this) ability.SetState(AbilityState.Inactive);
-    }
+    
     #endregion
 
     #region Properties - Mod-defined
@@ -106,15 +93,19 @@ namespace AnimLib.Abilities {
 
     #region Properties - Runtime
     // Properties that are expected to change throughout the ability manager's lifespan are kept in this region.
-    internal bool netUpdate {
+    /// <summary>
+    /// Whether or not this ability needs to be synced.
+    /// </summary>
+    public bool netUpdate {
       get => _netUpdate;
       set {
         _netUpdate = value;
         if (value) // Propagate true netUpdate upstream
           animPlayer.abilityNetUpdate = true;
         else // Propagate false netUpdate downstream
-          foreach (Ability ability in this)
+          foreach (Ability ability in this) {
             ability.netUpdate = false;
+          }
       }
     }
 
@@ -136,6 +127,84 @@ namespace AnimLib.Abilities {
     /// </summary>
     /// <returns><see langword="true"/> if any ability can be used; otherwise, <see langword="false"/>.</returns>
     public virtual bool CanUseAnyAbilities() => !player.dead;
+    
+    #endregion
+
+    #region Update logic
+    /// <summary>
+    /// Update loop for abilities.
+    /// <para>If unable to use abilities: disables all abilities.</para>
+    /// <para>
+    /// Calls <see cref="Ability.PreUpdate"/>, <see cref="Ability.Update"/>, and
+    /// <see cref="Ability.PostUpdateAbilities"/> on all unlocked abilities.
+    /// Responsible for <see cref="Ability.stateTime"/> and <see cref="Ability.cooldownLeft"/> ticking.
+    /// </para>
+    /// </summary>
+    internal void Update() {
+      if (!CanUseAnyAbilities()) {
+        DisableAllAbilities();
+        return;
+      }
+
+      // PreUpdate
+      foreach (Ability ability in UnlockedAbilities) {
+        ability.stateTime++;
+        if (ability.Inactive)
+          ability.UpdateCooldown();
+        ability.PreUpdate();
+      }
+
+      // Update
+      foreach (Ability ability in UnlockedAbilities) {
+        ability.Update();
+      }
+
+      // Post-update after all abilities update
+      foreach (Ability ability in UnlockedAbilities) {
+        ability.PostUpdateAbilities();
+      }
+    }
+
+    internal void PostUpdate() {
+      if (!CanUseAnyAbilities()) return;
+
+      foreach (Ability ability in UnlockedAbilities) {
+        ability.PostUpdate();
+      }
+    }
+
+    /// <summary>
+    /// Deactivates all abilities.
+    /// </summary>
+    public void DisableAllAbilities() {
+      foreach (Ability ability in this) {
+        ability.SetState(AbilityState.Inactive);
+      }
+    }
+    
+    /// <summary>
+    /// Sets the level of all Levelable Abilities to their max level.
+    /// </summary>
+    public void UnlockAllAbilities() {
+      foreach (Ability ability in this) {
+        // ReSharper disable once SuspiciousTypeConversion.Global
+        if (ability is ILevelable levelable) {
+          levelable.Level = levelable.MaxLevel;
+        }
+      }
+    }
+
+    /// <summary>
+    /// Sets the level of all Levelable Abilities to 0.
+    /// </summary>
+    public void ResetAllAbilities() {
+      foreach (Ability ability in this) {
+        // ReSharper disable once SuspiciousTypeConversion.Global
+        if (ability is ILevelable levelable) {
+          levelable.Level = 0;
+        }
+      }
+    }
     #endregion
 
     #region Serializing

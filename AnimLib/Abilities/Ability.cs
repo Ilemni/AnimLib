@@ -1,7 +1,6 @@
 using System.IO;
 using AnimLib.Projectiles;
 using JetBrains.Annotations;
-using log4net.Core;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ModLoader;
@@ -24,7 +23,7 @@ namespace AnimLib.Abilities {
     /// <param name="knockBack">Knockback strength of the projectile.</param>
     /// <typeparam name="T">Type of ability projectile.</typeparam>
     /// <returns>A new <see cref="AbilityProjectile"/> of type <typeparamref name="T"/>.</returns>
-    protected T NewAbilityProjectile<T>(Vector2 offset = default, Vector2 velocity = default, int damage = 0, float knockBack = 0)
+    public T NewAbilityProjectile<T>(Vector2 offset = default, Vector2 velocity = default, int damage = 0, float knockBack = 0)
       where T : AbilityProjectile {
       int type = ModContent.ProjectileType<T>();
       Projectile projectile = Projectile.NewProjectileDirect(player.Center + offset, velocity, type, damage, knockBack, player.whoAmI);
@@ -94,9 +93,26 @@ namespace AnimLib.Abilities {
     /// </code>
     /// </example>
     public abstract int Id { get; }
+
+    /// <summary>
+    /// Current level of the ability. If this is 0, the ability is not unlocked and cannot be used.
+    /// </summary>
+    public virtual int Level => 1;
+
+    /// <summary>
+    /// The ability whose level is responsible for this abilities' level. By default, this ability.
+    /// <para>Override this if this ability's <see cref="Level"/> is dependent on a different <see cref="Ability"/>'s <see cref="Level"/>.</para>
+    /// </summary>
+    // ReSharper disable once SuspiciousTypeConversion.Global
+    public virtual ILevelable levelableDependency => this as ILevelable;
     #endregion
 
     #region Properties - Runtime
+    /// <summary>
+    /// Condition required for the player to activate this ability.
+    /// </summary>
+    public virtual bool CanUse => Unlocked && !IsOnCooldown;
+    
     // Properties that are expected to change throughout the ability's lifespan are kept in this region.
 
     /// <summary>
@@ -176,7 +192,52 @@ namespace AnimLib.Abilities {
     public bool InUse => Starting || Active || Ending;
     #endregion
 
-    #region Methods - Update
+    #region Cooldown Management
+    /// <summary>
+    /// Cooldown of the ability.
+    /// </summary>
+    public virtual int Cooldown => 0;
+
+    /// <summary>
+    /// Time left until the ability is no longer on cooldown.
+    /// </summary>
+    public int cooldownLeft;
+
+    /// <summary>
+    /// Whether or not the ability is currently on cooldown.
+    /// </summary>
+    public bool IsOnCooldown => cooldownLeft > 0;
+
+    /// <summary>
+    /// Set this ability on cooldown.
+    /// </summary>
+    public virtual void StartCooldown() => cooldownLeft = Cooldown;
+
+    /// <summary>
+    /// End the cooldown for this ability, making it ready to use.
+    /// </summary>
+    public void EndCooldown() {
+      cooldownLeft = 0;
+      OnRefreshed();
+    }
+
+    /// <summary>
+    /// Simple cooldown ticking. Can be overridden.
+    /// </summary>
+    public virtual void UpdateCooldown() {
+      if (cooldownLeft <= 0) return;
+      if (--cooldownLeft == 0) {
+        OnRefreshed();
+      }
+    }
+
+    /// <summary>
+    /// Logic that executes when <see cref="cooldownLeft"/> reaches <see langword="0"/>.
+    /// </summary>
+    public void OnRefreshed() { }
+    #endregion
+
+    #region Update
     /// <summary>
     /// Calls all UpdateX methods in this class.
     /// <para>Called in <see cref="ModPlayer.PostUpdateRunSpeeds"/>, directly after <see cref="PreUpdate"/>.</para>
@@ -220,29 +281,29 @@ namespace AnimLib.Abilities {
     /// <summary>
     /// Called before <see cref="Update"/> when this <see cref="AbilityState"/> is <see cref="AbilityState.Starting"/>.
     /// </summary>
-    protected virtual void UpdateStarting() { }
+    public virtual void UpdateStarting() { }
 
     /// <summary>
     /// Called before <see cref="Update"/> when this <see cref="AbilityState"/> is <see cref="AbilityState.Active"/>.
     /// <para>It is recommended to make any changes to <c> player.control* </c> in <see cref="UpdateUsing"/>, if it is overridden.</para>
     /// </summary>
-    protected virtual void UpdateActive() { }
+    public virtual void UpdateActive() { }
 
     /// <summary>
     /// Called before <see cref="Update"/> when this <see cref="AbilityState"/> is <see cref="AbilityState.Ending"/>.
     /// </summary>
-    protected virtual void UpdateEnding() { }
+    public virtual void UpdateEnding() { }
 
     /// <summary>
     /// Called directly after <see cref="UpdateStarting"/>, <see cref="UpdateActive"/>, and <see cref="UpdateEnding"/>.
     /// <para>Any modifications to <c> player.control* </c> should be at the end of this method.</para>
     /// </summary>
-    protected virtual void UpdateUsing() { }
+    public virtual void UpdateUsing() { }
 
     /// <summary>
     /// Called after all other Abilities are updated. This is called regardless of current <see cref="AbilityState"/>.
     /// </summary>
-    protected internal virtual void PostUpdateAbilities() { }
+    public virtual void PostUpdateAbilities() { }
 
     /// <summary>
     /// Called in <see cref="ModPlayer.PostUpdate"/>. This is called regardless of current <see cref="AbilityState"/>.
@@ -272,12 +333,12 @@ namespace AnimLib.Abilities {
     /// <summary>
     /// Ability-specific data to read from packet. Use in conjunction with <see cref="WritePacket(ModPacket)"/>.
     /// </summary>
-    protected virtual void ReadPacket([NotNull] BinaryReader r) { }
+    public virtual void ReadPacket([NotNull] BinaryReader r) { }
 
     /// <summary>
     /// Ability-specific data to write to packet. Use in conjunction with <see cref="ReadPacket(BinaryReader)"/>.
     /// </summary>
-    protected virtual void WritePacket([NotNull] ModPacket packet) { }
+    public virtual void WritePacket([NotNull] ModPacket packet) { }
     #endregion
 
     #region Serializing
@@ -308,5 +369,23 @@ namespace AnimLib.Abilities {
     }
     // ReSharper restore SuspiciousTypeConversion.Global
     #endregion
+
+    /// <summary>
+    /// String representation of the ability. ID, name, level/max level, current time, and cooldown if applicable.
+    /// </summary>
+    /// <returns>String with ID, name, level and max level, current time, and cooldown if applicable.</returns>
+    public override string ToString() =>
+      $"Ability ID:{Id} Name:{GetType().Name} " +
+      // ReSharper disable once SuspiciousTypeConversion.Global
+      $"(Level {Level}{(this is ILevelable levelable ? $"/{levelable.MaxLevel}" : string.Empty)}) " +
+      $"Player:{player.whoAmI} State:{state} " +
+      $"Time:{stateTime} " +
+      (Cooldown != 0 ? $" Cooldown:{cooldownLeft}/{Cooldown}" : string.Empty);
+
+    /// <summary>
+    /// Whether or not the <see cref="Ability"/> is in use.
+    /// </summary>
+    /// <seealso cref="InUse"/>
+    public static implicit operator bool(Ability ability) => !(ability is null) && ability.InUse;
   }
 }
