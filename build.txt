@@ -7,5 +7,5 @@ hideCode = false
 hideResources = false
 includeSource = true
 includePDB = true
-side = NoSync
+side = Both
 buildIgnore = build.txt, .gitattributes, .gitignore, .git/, .vs/, .vscode/, .idea/, bin/, obj/, Properties/, Thumbs.db, *.csproj, *.sln, *.xcf

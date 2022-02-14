@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using AnimLib.Abilities;
 using AnimLib.Animations;
 using AnimLib.Internal;
 using JetBrains.Annotations;
@@ -86,6 +87,35 @@ namespace AnimLib {
       return sources.FirstOrDefault(s => s is T) as T
              ?? throw new ArgumentException($"{typeof(T)} does not belong to {mod.Name}");
     }
+
+
+    /// <summary>
+    /// Gets the <see cref="AbilityManager"/> of the given type from the given <see cref="ModPlayer"/>.
+    /// Use this if you want your code to access ability information.
+    /// <para>This <strong>cannot</strong> be used during the <see cref="ModPlayer.Initialize"/> method.</para>
+    /// </summary>
+    /// <typeparam name="T">Type of <see cref="AbilityManager"/> to get.</typeparam>
+    /// <param name="modPlayer">The <see cref="ModPlayer"/>.</param>
+    /// <returns>An <see cref="AbilityManager"/> of type <typeparamref name="T"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="modPlayer"/> cannot be null.</exception>
+    [NotNull]
+    public static T GetAbilityManager<T>([NotNull] ModPlayer modPlayer) where T : AbilityManager {
+      if (modPlayer is null) throw new ArgumentNullException(nameof(modPlayer));
+      return modPlayer.player.GetModPlayer<AnimPlayer>().GetAbilityManager<T>();
+    }
+
+    /// <summary>
+    /// Gets the <see cref="AbilityManager"/> of the given type from the given <see cref="Player"/>.
+    /// Use this if you want your code to access ability information.
+    /// <para>This <strong>cannot</strong> be used during the <see cref="ModPlayer.Initialize"/> method.</para>
+    /// </summary>
+    /// <typeparam name="T">Type of <see cref="AbilityManager"/> to get.</typeparam>
+    /// <param name="player">The <see cref="Player"/>.</param>
+    /// <returns>An <see cref="AbilityManager"/> of type <typeparamref name="T"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="player"/> cannot be null.</exception>
+    public static T GetAbilityManager<T>(Player player) where T : AbilityManager =>
+      player?.GetModPlayer<AnimPlayer>().GetAbilityManager<T>()
+      ?? throw new ArgumentNullException(nameof(player));
 
 
     /// <summary>
