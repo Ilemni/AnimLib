@@ -76,10 +76,11 @@ namespace AnimLib.Internal {
       }
 
       types = (from t in mod.Code.GetTypes()
-        where t.IsSubclassOf(typeof(AnimationSource)) ||
-              t.IsSubclassOf(typeof(AnimationController)) ||
-              t.IsSubclassOf(typeof(AbilityManager)) ||
-              t.IsSubclassOf(typeof(Ability))
+        where !t.IsAbstract &&
+              (t.IsSubclassOf(typeof(AnimationSource)) ||
+               t.IsSubclassOf(typeof(AnimationController)) ||
+               t.IsSubclassOf(typeof(AbilityManager)) ||
+               t.IsSubclassOf(typeof(Ability)))
         select t).ToArray();
       return types.Any();
     }
