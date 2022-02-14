@@ -266,6 +266,7 @@ namespace AnimLib.Internal {
     private static bool AutoloadAbility(Type abilityType, AbilityManager manager, out Ability ability) {
       ability = (Ability)Activator.CreateInstance(abilityType);
       ability.abilities = manager;
+      ability.player = manager.player;
       return ability.Autoload;
     }
 

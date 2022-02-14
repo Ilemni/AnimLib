@@ -111,11 +111,20 @@ namespace AnimLib {
       ModNetHandler.Instance.abilityPacketHandler.SendPacket(255, player.whoAmI);
     }
 
+    public override void PostUpdateRunSpeeds() {
+      foreach (AbilityManager manager in abilityManagers.Values) {
+        manager.Update();
+      }
+    }
+
     /// <summary>
     /// Updates all <see cref="AnimationController"/>s on this <see cref="Player"/>.
     /// </summary>
     public override void PostUpdate() {
       if (AnimLoader.UseAnimations) UpdateAnimations();
+      foreach (AbilityManager manager in abilityManagers.Values) {
+        manager.PostUpdate();
+      }
     }
 
     // AnimLibMod Save/Load TagCompound structure:
