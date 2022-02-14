@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using AnimLib.Internal;
+﻿using System.Collections.Generic;
+using JetBrains.Annotations;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria.ModLoader;
 
 namespace AnimLib.Animations {
   /// <summary>
-  /// Contains all animation data for a single animation set. This animation data is used for all players. 
+  /// Contains all animation data for a single animation set. This animation data is used for all players.
   /// <see cref="AnimationSource"/>s from all mods are collected and created during <see cref="AnimLibMod.PostSetupContent"/>.
   /// After initialization, values should not be modified.
   /// <para>To get your <see cref="AnimationSource"/> instance, use <see cref="AnimLibMod.GetAnimationSource{T}(Mod)"/>.</para>
@@ -15,16 +14,9 @@ namespace AnimLib.Animations {
   /// Alongside your <see cref="AnimationController"/>, which determines <i>how</i> track are played,
   /// your <see cref="AnimationSource"/>s stores what the animations are, including their positions on spritesheets, duration, and other spritesheets.
   /// </remarks>
+  [PublicAPI]
+  [UsedImplicitly(ImplicitUseTargetFlags.WithInheritors)]
   public abstract class AnimationSource {
-    /// <summary>
-    /// Base constructor. Ensures that this is not constructed on a server.
-    /// </summary>
-    /// <exception cref="InvalidOperationException">Animation classes are not allowed to be constructed on servers.</exception>
-    protected AnimationSource() {
-      if (!AnimLoader.UseAnimations) {
-        throw new InvalidOperationException($"{GetType().Name} is not allowed to be constructed on servers.");
-      }
-    }
 
     /// <summary>
     /// Size of all sprites in the spritesheet.
@@ -41,17 +33,19 @@ namespace AnimLib.Animations {
     /// Default spritesheet used for animations.
     /// <para>This may be overwritten if you have any of your <see cref="Track"/>s use their own textures.</para>
     /// </summary>
-    public Texture2D texture { get; internal set; }
+    // ReSharper disable once NotNullMemberIsNotInitialized
+    [NotNull] public Texture2D texture { get; internal set; }
 
     /// <summary>
     /// The mod that this <see cref="AnimationSource"/> belongs to.
     /// </summary>
-    public Mod mod { get; internal set; }
+    // ReSharper disable once NotNullMemberIsNotInitialized
+    [NotNull] public Mod mod { get; internal set; }
 
     /// <summary>
     /// Shorthand for accessing <see cref="tracks"/>.
     /// </summary>
-    public Track this[string name] => tracks[name];
+    public Track this[[NotNull] string name] => tracks[name];
 
 
     /// <summary>

@@ -1,6 +1,7 @@
 ﻿namespace AnimLib.Animations {
   /// <summary>
-  /// Single frame of animation. Stores sprite position on the sprite sheet, and duration of the frame. This may be either a <see cref="Frame"/> or <see cref="SwitchTextureFrame"/>.
+  /// Single frame of animation. Stores sprite position on the sprite sheet, and duration of the frame.
+  /// This may be either a <see cref="Frame"/> or <see cref="SwitchTextureFrame"/>.
   /// </summary>
   public interface IFrame {
     /// <summary>

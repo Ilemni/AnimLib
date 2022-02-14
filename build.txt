@@ -1,10 +1,11 @@
+displayName = AnimLib
 author = TwiliChaos
 version = 0.1.0.4
-displayName = AnimLib
+dllReferences = JetBrains.Annotations
 homepage = 
-includePDB = true
-includeSource = true
 hideCode = false
 hideResources = false
+includeSource = true
+includePDB = true
 side = NoSync
 buildIgnore = build.txt, .gitattributes, .gitignore, .git/, .vs/, .vscode/, .idea/, bin/, obj/, Properties/, Thumbs.db, *.csproj, *.sln, *.xcf

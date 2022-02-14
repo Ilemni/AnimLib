@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using AnimLib.Animations;
+using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
+using Terraria.ModLoader.Exceptions;
 
 namespace AnimLib.Internal {
   /// <summary>
@@ -16,182 +19,167 @@ namespace AnimLib.Internal {
   /// <para>On <see cref="ModPlayer.Initialize"/>, all <see cref="AnimationController"/>s are constructed and added to the <see cref="AnimPlayer"/>.</para>
   /// </summary>
   internal static class AnimLoader {
+    /// <summary>
+    /// Collection of all <see cref="Type"/>s of <see cref="AnimationController"/>, collected during <see cref="Mod.Load"/> and constructed during
+    /// <see cref="ModPlayer.Initialize"/>.
+    /// </summary>
+    internal static Dictionary<Mod, Type> modAnimationControllerTypeDictionary;
+
+    /// <summary>
+    /// Whether or not to use animations during this session. Returns <see langword="true"/> if this is not run on a server; otherwise,
+    /// <see langword="false"/>.
+    /// </summary>
+    public static bool UseAnimations => Main.netMode != NetmodeID.Server;
+
+    /// <summary>
+    /// Collection of all <see cref="AnimationSources"/>, constructed during <see cref="Mod.Load"/>.
+    /// </summary>
+    internal static Dictionary<Mod, AnimationSource[]> AnimationSources { get; private set; }
+
     private static void Unload() {
-      AnimLibMod.Instance.Logger.Debug($"{nameof(AnimLoader)}.{nameof(Unload)} called.");
-      animationSources = null;
-      animationControllerTypes = null;
+      Log.LogDebug($"{nameof(AnimLoader)}.{nameof(Unload)} called.");
+      AnimationSources = null;
+      modAnimationControllerTypeDictionary = null;
     }
 
     /// <summary>
-    /// Whether or not to use animations during this session. Returns <see langword="true"/> if this is not run on a server; otherwise, <see langword="false"/>.
-    /// </summary>
-    public static bool UseAnimations => Terraria.Main.netMode != Terraria.ID.NetmodeID.Server;
-
-    /// <summary>
-    /// Collection of all <see cref="animationSources"/>, constructed during <see cref="Mod.Load"/>.
-    /// </summary>
-    internal static Dictionary<Mod, AnimationSource[]> animationSources { get; private set; }
-
-    /// <summary>
-    /// Collection of all <see cref="Type"/>s of <see cref="AnimationController"/>, collected during <see cref="Mod.Load"/> and constructed during <see cref="ModPlayer.Initialize"/>.
-    /// </summary>
-    internal static Dictionary<Mod, Type> animationControllerTypes { get; private set; }
-
-    /// <summary>
     /// Searches all mods for any and all classes extending <see cref="AnimationSource"/> and <see cref="AnimationController"/>.
-    /// <para>For <see cref="AnimationSource"/>s, they will be constructed, check for loading, log errors and skip if applicible, and added to the dict.</para>
+    /// <para>For <see cref="AnimationSource"/>s, they will be constructed, check for loading, log errors and skip if applicable, and added to the dict.</para>
     /// </summary>
     internal static void Load() {
       AnimLibMod.OnUnload += Unload;
 
-      animationSources = new Dictionary<Mod, AnimationSource[]>();
-      animationControllerTypes = new Dictionary<Mod, Type>();
+      AnimationSources = new Dictionary<Mod, AnimationSource[]>();
+      modAnimationControllerTypeDictionary = new Dictionary<Mod, Type>();
 
-      foreach (var mod in ModLoader.Mods) {
-        if (mod is AnimLibMod || mod.Code is null) {
-          continue;
-        }
-        var types = from type in mod.Code.GetTypes()
-                    where type.IsSubclassOf(typeof(AnimationSource)) || type.IsSubclassOf(typeof(AnimationController))
-                    select type;
-
-        if (!types.Any()) continue;
-
-        var list = GetAnimationSourcesFromTypes(types, mod);
-        if (list.Count > 0) {
-          var type = GetAnimationControllerTypeFromTypes(types, mod);
-          if (type != null) {
-            animationSources[mod] = list.ToArray();
-            animationControllerTypes[mod] = type;
-          }
-          else {
-            AnimLibMod.Instance.Logger.Error($"{mod.Name} error: {mod.Name} contains {(list.Count > 1 ? "classes" : "a class")} extending {nameof(AnimationSource)}, but does not contain any classes extending {nameof(AnimationController)}s");
-          }
-        }
+      foreach (Mod mod in ModLoader.Mods) {
+        if (CanLoadMod(mod, out var types))
+          LoadMod(mod, types);
       }
 
-      if (!animationSources.Any() && !animationControllerTypes.Any()) {
-        AnimLibMod.Instance.Logger.Info($"AnimLibMod loaded; no mods contained any {nameof(AnimationSource)}s or {nameof(AnimationController)}s. Currently there is no reason for this mod to be enabled.");
+      if (!AnimationSources.Any() && !modAnimationControllerTypeDictionary.Any())
+        Log.LogInfo("AnimLibMod loaded; no mods contained Animations or Abilities. Currently there is no reason for this mod to be enabled.");
+    }
+
+    private static bool CanLoadMod(Mod mod, out Type[] types) {
+      if (mod is AnimLibMod || mod.Code is null) {
+        types = null;
+        return false;
+      }
+
+      types = (from t in mod.Code.GetTypes()
+        where t.IsSubclassOf(typeof(AnimationSource)) ||
+              t.IsSubclassOf(typeof(AnimationController))
+        select t).ToArray();
+      return types.Any();
+    }
+
+    private static void LoadMod(Mod mod, Type[] types) {
+      if (UseAnimations) AnimationLoader.Load(mod, types);
+    }
+  }
+
+  internal static class AnimationLoader {
+    public static void Load(Mod mod, Type[] types) {
+      if (GetSourcesFromTypes(types, mod, out var sources)) {
+        if (GetControllerTypeFromTypes(types, mod, out Type controllerType)) {
+          AnimLoader.AnimationSources[mod] = sources.ToArray();
+          AnimLoader.modAnimationControllerTypeDictionary[mod] = controllerType;
+        }
+        else {
+          Log.LogWarning(
+            $"{mod.Name} error: {mod.Name} contains {(sources.Count > 1 ? "classes" : "a class")} extending {nameof(AnimationSource)}, but does not contain any classes extending {nameof(AnimationController)}s");
+        }
       }
     }
 
     /// <summary>
     /// Searches all types from the given <see cref="Mod"/> for <see cref="AnimationSource"/>, and checks if they should be included.
     /// </summary>
-    private static List<AnimationSource> GetAnimationSourcesFromTypes(IEnumerable<Type> types, Mod mod) {
-      List<AnimationSource> sources = new List<AnimationSource>();
+    private static bool GetSourcesFromTypes(IEnumerable<Type> types, Mod mod, out List<AnimationSource> sources) {
+      sources = new List<AnimationSource>();
+      foreach (Type type in types) {
+        if (!type.IsSubclassOf(typeof(AnimationSource))) continue;
 
-      foreach (var type in types) {
-        if (!type.IsSubclassOf(typeof(AnimationSource))) {
-          continue;
-        }
-        try {
-          if (TryConstructAnimationSource(type, mod, out var source)) {
-            sources.Add(source);
-            AnimLibMod.Instance.Logger.Info($"From mod {mod.Name} collected {nameof(AnimationSource)} \"{type.SafeTypeName(nameof(AnimationSource))}\"");
-          }
-        }
-        catch (Exception ex) {
-          AnimLibMod.Instance.Logger.Error($"Exception thrown when constructing {nameof(AnimationSource)} from [{mod.Name}:{type.FullName}]", ex);
-        }
+        if (!TryConstructSource(type, mod, out AnimationSource source)) continue;
+        sources.Add(source);
+        Log.LogInfo($"[{mod.Name}]: Collected {nameof(AnimationSource)} \"{type.UniqueTypeName()}\"");
       }
 
-      return sources;
-    }
-
-    /// <summary>
-    /// Attempts to construct the animation source, and rejects any that have bad inputs.
-    /// </summary>
-    private static bool TryConstructAnimationSource(Type type, Mod mod, out AnimationSource source) {
-      source = Activator.CreateInstance(type, true) as AnimationSource;
-
-      string texturePath = source.GetType().FullName.Replace('.', '/');
-      if (!source.Load(ref texturePath)) {
-        source = null;
-        return false;
-      }
-
-      bool doAdd = true;
-      if (source.tracks is null) {
-        AnimLibMod.Instance.Logger.Error($"Error constructing {nameof(AnimationSource)} from [{mod.Name}:{type.FullName}]: Tracks is null.");
-        doAdd = false;
-      }
-      if (source.spriteSize.X == 0 || source.spriteSize.Y == 0) {
-        AnimLibMod.Instance.Logger.Error($"Error constructing {nameof(AnimationSource)} from [{mod.Name}:{type.FullName}]: Sprite Size cannot contain a value of 0.");
-        doAdd = false;
-      }
-      if (!ModContent.TextureExists(texturePath)) {
-        AnimLibMod.Instance.Logger.Error($"Error constructing {nameof(AnimationSource)} from [{mod.Name}:{type.FullName}]: Texture path \"{texturePath}\" is not a valid texture path.");
-        doAdd = false;
-      }
-
-      if (doAdd) {
-        source.mod = mod;
-        source.texture = ModContent.GetTexture(texturePath);
-        return true;
-      }
-      source = null;
-      return false;
+      return sources.Any();
     }
 
     /// <summary>
     /// Searches for a single type of <see cref="AnimationController"/> from the given <see cref="Mod"/>, and rejects others if more than one if found.
     /// </summary>
-    private static Type GetAnimationControllerTypeFromTypes(IEnumerable<Type> types, Mod mod) {
-      Type result = null;
-      foreach (var type in types) {
-        if (type.IsSubclassOf(typeof(AnimationController))) {
-          if (result is null) {
-            AnimLibMod.Instance.Logger.Info($"From mod {mod.Name} collected {nameof(AnimationController)} \"{type.SafeTypeName(nameof(AnimationController))}\"");
-            result = type;
-          }
-          else {
-            AnimLibMod.Instance.Logger.Error($"Error collecting {nameof(AnimationController)} from [{mod.Name}]: More than one {nameof(AnimationController)} found. Keeping {result.GetType().Name}, skipping {type.FullName}");
-          }
-        }
+    private static bool GetControllerTypeFromTypes(IEnumerable<Type> types, Mod mod, out Type result) {
+      result = null;
+      foreach (Type type in types) {
+        if (!type.IsSubclassOf(typeof(AnimationController))) continue;
+        if (!(result is null))
+          throw new CustomModDataException(mod, $"Cannot have more than one {nameof(AnimationController)} per mod.",
+            null);
+
+        Log.LogInfo($"[{mod.Name}]: Collected {nameof(AnimationController)} \"{type.UniqueTypeName()}\"");
+        result = type;
       }
-      return result;
+
+      return result != null;
     }
 
-    internal static void CreateAnimationControllersForPlayer(AnimPlayer animPlayer) {
-      if (animationControllerTypes is null) {
-        return;
+
+    /// <summary>
+    /// Attempts to construct the animation source, and rejects any that have bad inputs.
+    /// </summary>
+    private static bool TryConstructSource(Type type, Mod mod, out AnimationSource source) {
+      source = (AnimationSource)Activator.CreateInstance(type, true);
+
+      string fullName = source.GetType().FullName;
+      if (fullName is null) throw new ArgumentException($"Invalid full type name from type {source.GetType()}", nameof(type));
+
+      string texturePath = fullName.Replace('.', '/');
+      if (!source.Load(ref texturePath)) {
+        source = null;
+        return false;
       }
 
-      foreach (var pair in animationControllerTypes) {
-        var mod = pair.Key;
-        var type = pair.Value;
+      if (source.tracks is null)
+        throw new Exception($"[{mod.Name}:{type.FullName}]: Error constructing {type.Name}: Tracks cannot be null.");
+
+      if (source.spriteSize.x == 0 || source.spriteSize.y == 0)
+        throw new Exception($"[{mod.Name}:{type.FullName}]: Error constructing {type.Name}: Sprite Size cannot contain a value of 0.");
+
+      if (!ModContent.TextureExists(texturePath))
+        throw new MissingResourceException($"[{mod.Name}:{type.FullName}]: Error constructing {type.Name}: Invalid texture path \"{texturePath}\".");
+
+      source.mod = mod;
+      source.texture = ModContent.GetTexture(texturePath);
+      return true;
+    }
+
+    internal static void CreateControllersForPlayer(AnimPlayer animPlayer) {
+      foreach ((Mod mod, Type type) in AnimLoader.modAnimationControllerTypeDictionary) {
         try {
-          var controller = CreateAnimationControllerForPlayer(animPlayer, mod, type);
-          controller.Initialize();
-          animPlayer.animationControllers[mod] = controller;
+          animPlayer.animationControllers[mod] = CreateControllerForPlayer(animPlayer, mod, type);
         }
         catch (Exception ex) {
-          AnimLibMod.Instance.Logger.Error($"Exception thrown when constructing {nameof(AnimationController)} from [{mod.Name}:{type.FullName}]", ex);
+          Log.LogError($"Exception thrown when constructing {nameof(AnimationController)} from [{mod.Name}:{type.FullName}]", ex);
+          throw;
         }
       }
     }
 
-    private static AnimationController CreateAnimationControllerForPlayer(AnimPlayer animPlayer, Mod mod, Type type) {
-      var controller = Activator.CreateInstance(type, true) as AnimationController;
+    private static AnimationController CreateControllerForPlayer(AnimPlayer animPlayer, Mod mod, Type type) {
+      AnimationController controller = (AnimationController)Activator.CreateInstance(type, true);
       controller.player = animPlayer.player;
       controller.mod = mod;
+      controller.SetupAnimations();
+      controller.Initialize();
 
-      var modSources = animationSources[mod];
-      var animations = new Animation[modSources.Length];
-      controller.animations = animations;
+      Log.LogDebug(
+        $"{nameof(AnimationController)} for mod {mod.Name} created with {controller.animations.Length} animations. " +
+        $"{(controller.animations[0] != null ? $"Its MainAnimation is {controller.MainAnimation.source.GetType().Name}" : "It has no MainAnimation.")}");
 
-      for (int i = 0; i < modSources.Length; i++) {
-        animations[i] = new Animation(controller, modSources[i]);
-      }
-
-      if (animations.Length > 0) {
-        controller.SetMainAnimation(animations[0]);
-      }
-
-      if (AnimDebugCommand.DebugEnabled) {
-        AnimLibMod.Instance.Logger.Debug($"{nameof(AnimationController)} for mod {mod.Name} created with {animations.Length} animations. Its MainAnimation is {controller.MainAnimation?.source.GetType().Name ?? "null"}");
-      }
       return controller;
     }
   }

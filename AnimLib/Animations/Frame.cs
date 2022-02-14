@@ -1,9 +1,11 @@
-﻿using Microsoft.Xna.Framework;
+﻿using JetBrains.Annotations;
+using Microsoft.Xna.Framework;
 
 namespace AnimLib.Animations {
   /// <summary>
   /// Single frame of animation. Stores sprite position on the sprite sheet, and duration of the frame.
   /// </summary>
+  [PublicAPI]
   public readonly struct Frame : IFrame {
     /// <summary>
     /// Creates a <see cref="Frame"/> with the given X and Y position, and frame duration to play. These values will be cast to smaller data types.
@@ -24,7 +26,9 @@ namespace AnimLib.Animations {
       this.duration = duration;
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// The X and Y position of the tile.
+    /// </summary>
     public PointByte tile { get; }
 
     /// <inheritdoc/>
@@ -36,17 +40,17 @@ namespace AnimLib.Animations {
     /// <param name="source">The <see cref="AnimationSource"/>.</param>
     /// <returns></returns>
     public Rectangle ToRectangle(AnimationSource source) {
-      var size = source.spriteSize;
-      return new Rectangle(tile.X * size.X, tile.Y * size.Y, size.X, size.Y);
+      PointByte size = source.spriteSize;
+      return new Rectangle(tile.x * size.x, tile.y * size.y, size.x, size.y);
     }
 
     /// <summary>
     /// Returns a <see cref="string"/> containing the X and Y value of the <see cref="tile"/>, and the <see cref="duration"/> of this instance.
     /// </summary>
     /// <returns>A <see cref="string"/> containing the X and Y value of the <see cref="tile"/>, and the <see cref="duration"/>.</returns>
-    public override string ToString() => $"x:{tile.X}, y:{tile.Y}, duration:{duration}";
+    public override string ToString() => $"x:{tile.x}, y:{tile.y}, duration:{duration}";
 
     /// <inheritdoc cref="Frame(byte, byte, ushort)"/>
-    public static explicit operator Frame(SwitchTextureFrame stf) => new Frame(stf.tile.X, stf.tile.Y, stf.duration);
+    public static explicit operator Frame(SwitchTextureFrame stf) => new Frame(stf.tile.x, stf.tile.y, stf.duration);
   }
 }

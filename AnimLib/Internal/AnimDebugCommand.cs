@@ -1,6 +1,8 @@
-﻿using Terraria.ModLoader;
+﻿using JetBrains.Annotations;
+using Terraria.ModLoader;
 
 namespace AnimLib.Internal {
+  [UsedImplicitly]
   internal class AnimDebugCommand : ModCommand {
     public override string Command => "animdebug";
 

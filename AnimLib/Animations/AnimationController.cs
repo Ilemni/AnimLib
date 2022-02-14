@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using AnimLib.Internal;
+using JetBrains.Annotations;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
@@ -17,7 +19,10 @@ namespace AnimLib.Animations {
   /// Alongside your <see cref="AnimationSource"/>s, that stores what animations are, such as their positions on spritesheets and duration,
   /// your <see cref="AnimationController"/> determines which track plays depending on whatever conditions you have, and how they are played.
   /// </remarks>
+  [PublicAPI]
+  [UsedImplicitly(ImplicitUseTargetFlags.WithInheritors)]
   public abstract class AnimationController {
+    private string _trackName = "Default";
     // TODO: maybe automate playerlayers
     // There's a PR in tML to overhaul them to be more OoP, and that can go a long ways to automating them here.
     // Currently, PlayerLayers require IndexOf() for inserting in the list in ModifyDrawLayers to get desirable results.
@@ -25,34 +30,10 @@ namespace AnimLib.Animations {
     // Or making the assumption that all playerlayers should be inserted in the same point OriMod's do.
     // Let's not make that assumption.
 
-    /// <summary>
-    /// Base constructor. Ensures that this is not constructed on a server.
-    /// </summary>
-    /// <exception cref="InvalidOperationException">Animation classes are not allowed to be constructed on servers.</exception>
-    protected AnimationController() {
-      if (!AnimLoader.UseAnimations) {
-        throw new InvalidOperationException($"{GetType().Name} is not allowed to be constructed on servers.");
-      }
-    }
-
 
     /// <summary>
-    /// All <see cref="Animation"/>s that belong to this mod.
-    /// </summary>
-    public Animation[] animations { get; internal set; }
-
-    /// <summary>
-    /// The <see cref="Player"/> that is being animated.
-    /// </summary>
-    public Player player { get; internal set; }
-
-    /// <summary>
-    /// The <see cref="Mod"/> that owns this <see cref="AnimationController"/>.
-    /// </summary>
-    public Mod mod { get; internal set; }
-
-    /// <summary>
-    /// The <see cref="Animation"/> to retrieve track data from, such as frame duration. This <see cref="Animation"/>'s <see cref="AnimationSource"/> must contain all tracks that can be used.
+    /// The <see cref="Animation"/> to retrieve track data from, such as frame duration. This <see cref="Animation"/>'s <see cref="AnimationSource"/>
+    /// must contain all tracks that can be used.
     /// <para>By default this is the first <see cref="Animation"/> in <see cref="animations"/>.</para>
     /// </summary>
     public Animation MainAnimation { get; private set; }
@@ -62,14 +43,13 @@ namespace AnimLib.Animations {
     /// The name of the animation track currently playing. This value cannot be set to a null or whitespace value.
     /// </summary>
     /// <exception cref="ArgumentException">A set operation cannot be performed with a null or whitespace value.</exception>
-    public string TrackName {
+    [NotNull] public string TrackName {
       get => _trackName;
       set {
         if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException($"{nameof(value)} cannot be empty.");
-        if (value != _trackName) {
-          _trackName = value;
-          Validate(value, true);
-        }
+        if (value == _trackName) return;
+        _trackName = value;
+        Validate(value, true);
       }
     }
 
@@ -98,6 +78,15 @@ namespace AnimLib.Animations {
     /// </summary>
     public SpriteEffects Effects { get; private set; }
 
+    internal void SetupAnimations() {
+      var modSources = AnimLoader.AnimationSources[mod];
+      animations = new Animation[modSources.Length];
+      if (modSources.Length == 0) return;
+
+      for (int i = 0; i < modSources.Length; i++) animations[i] = new Animation(this, modSources[i]);
+      SetMainAnimation(animations[0]);
+    }
+
     /// <summary>
     /// Allows you to do things after this <see cref="AnimationController"/> is constructed.
     /// Useful for getting references to <see cref="Animation"/>s via <see cref="GetAnimation{T}"/>.
@@ -105,15 +94,18 @@ namespace AnimLib.Animations {
     public virtual void Initialize() { }
 
     /// <summary>
-    /// Determines whether or not the animation should update. Return <see langword="false"/> to stop the animation from updating. Returns <see langword="true"/> by default.
+    /// Determines whether or not the animation should update. Return <see langword="false"/> to stop the animation from updating.
+    /// Returns <see langword="true"/> by default.
     /// </summary>
     /// <returns><see langword="true"/> to update the animation, or <see langword="false"/> to stop it.</returns>
     public virtual bool PreUpdate() => true;
 
     /// <summary>
     /// Updates the player animation by one frame. This is where you choose what tracks are played, and how they are played.
-    /// <para>You must make calls to <see cref="PlayTrack(string, int?, float?, int?, float, LoopMode?, Direction?, SpriteEffects?)"/>
-    /// to continue or change the animation.</para>
+    /// <para>
+    /// You must make calls to <see cref="PlayTrack(string, int?, float?, int?, float, LoopMode?, Direction?, SpriteEffects?)"/>
+    /// to continue or change the animation.
+    /// </para>
     /// </summary>
     /// <example>
     /// Here is an example of updating the animation based on player movement.
@@ -121,14 +113,14 @@ namespace AnimLib.Animations {
     /// <code>
     /// public override void Update() {
     ///   if (Math.Abs(player.velocity.X) &gt; 0.1f) {
-    ///     IncrementFrame("Running");
+    ///     PlayTrack("Running");
     ///     return;
     ///   }
     ///   if (player.velocity.Y != 0) {
-    ///     IncrementFrame(player.velocity.Y * player.gravDir &lt; 0 ? "Jumping" : "Falling");
+    ///     PlayTrack(player.velocity.Y * player.gravDir &lt; 0 ? "Jumping" : "Falling");
     ///     return;
     ///   }
-    ///   IncrementFrame("Idle");
+    ///   PlayTrack("Idle");
     /// }
     /// </code>
     /// </example>
@@ -140,15 +132,11 @@ namespace AnimLib.Animations {
     /// </summary>
     /// <typeparam name="T">Type of <see cref="AnimationSource"/></typeparam>
     /// <returns>The <see cref="Animation"/> with the matching <see cref="AnimationSource"/>.</returns>
+    /// <exception cref="ArgumentException"><typeparamref name="T"/> does not belong to this <see cref="mod"/>.</exception>
+    [NotNull]
     public Animation GetAnimation<T>() where T : AnimationSource {
-      foreach (var anim in animations) {
-        if (anim.source is T) {
-          return anim;
-        }
-      }
-
-      AnimLibMod.Instance.Logger.Warn($"{GetType().Name}.GetAnimation<{typeof(T).Name}>() failed.");
-      return null;
+      return animations.FirstOrDefault(anim => anim.source is T)
+             ?? throw new ArgumentException($"{typeof(T).Name} must be from the same mod as {mod.Name}");
     }
 
     /// <summary>
@@ -157,7 +145,7 @@ namespace AnimLib.Animations {
     /// </summary>
     /// <param name="animation">Animation to set this player's <see cref="MainAnimation"/> to.</param>
     /// <exception cref="ArgumentNullException"><paramref name="animation"/> is null.</exception>
-    public void SetMainAnimation(Animation animation) {
+    public void SetMainAnimation([NotNull] Animation animation) {
       MainAnimation = animation ?? throw new ArgumentNullException(nameof(animation));
     }
 
@@ -165,13 +153,9 @@ namespace AnimLib.Animations {
     /// Sets the main <see cref="Animation"/> of this player to the animation whose source is <typeparamref name="T"/>.
     /// This can be useful for things like player transformations that use multiple <see cref="AnimationSource"/>s.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">Animation type to set.</typeparam>
     public void SetMainAnimation<T>() where T : AnimationSource {
-      var result = GetAnimation<T>();
-      // This shouldn't ever be null
-      if (result != null) {
-        MainAnimation = result;
-      }
+      MainAnimation = GetAnimation<T>();
     }
 
 
@@ -184,8 +168,9 @@ namespace AnimLib.Animations {
     /// </param>
     /// <exception cref="ArgumentException"><paramref name="trackName"/> was null or whitespace.</exception>
     /// <exception cref="KeyNotFoundException">The value of <paramref name="trackName"/> was not a key in the main <see cref="AnimationSource.tracks"/>.</exception>
-    protected void PlayTrack(string trackName)
-      => PlayTrack(trackName, null, null, null, 0, null, null, null);
+    protected void PlayTrack([NotNull] string trackName) {
+      PlayTrack(trackName, null);
+    }
 
     /// <summary>
     /// Plays the <see cref="Track"/> with the given name. How the animation advances is based on the given input parameters.
@@ -220,58 +205,51 @@ namespace AnimLib.Animations {
     /// <see cref="SpriteEffects"/> that will determine the flip direction of the sprite, -or- <see langword="null"/>, to use the player directions.
     /// </param>
     /// <exception cref="ArgumentException"><paramref name="trackName"/> was <see langword="null"/> or whitespace.</exception>
-    /// <exception cref="ArgumentOutOfRangeException"><paramref name="frameIndex"/> is less than 0, or greater than the count of <paramref name="trackName"/>'s frames, -or- <paramref name="speed"/> was negative, -or- <paramref name="duration"/> was negative or 0.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// <paramref name="frameIndex"/> is less than 0, or greater than the count of
+    /// <paramref name="trackName"/>'s frames, -or- <paramref name="speed"/> was negative, -or- <paramref name="duration"/> was negative or 0.
+    /// </exception>
     /// <exception cref="KeyNotFoundException">The value of <paramref name="trackName"/> was not a key in the main <see cref="AnimationSource.tracks"/>.</exception>
-    protected void PlayTrack(string trackName, int? frameIndex = null, float? speed = null, int? duration = null, float rotation = 0, LoopMode? loop = null, Direction? direction = null, SpriteEffects? effects = null) {
-      if (string.IsNullOrWhiteSpace(trackName)) {
-        throw new ArgumentException($"{nameof(trackName)} cannot be null or whitespace.", nameof(trackName));
-      }
-      if (!Validate(trackName, false)) {
+    // ReSharper disable once MethodOverloadWithOptionalParameter
+    protected void PlayTrack([NotNull] string trackName, int? frameIndex = null, float? speed = null, int? duration = null,
+      float rotation = 0, LoopMode? loop = null, Direction? direction = null, SpriteEffects? effects = null) {
+      if (string.IsNullOrWhiteSpace(trackName)) throw new ArgumentException($"{nameof(trackName)} cannot be null or whitespace.", nameof(trackName));
+
+      if (!Validate(trackName, false))
         throw new KeyNotFoundException($"\"{trackName}\" is not a valid key for the main Animation track {MainAnimation.source.GetType().Name}.");
-      }
+
       // If any arguments are true, they throw. They can only throw if specified by the user to an invalid value.
-      if (frameIndex < 0 || frameIndex > MainAnimation.source[trackName].Length) {
+      if (frameIndex < 0 || frameIndex > MainAnimation.source[trackName].length)
         throw new ArgumentOutOfRangeException(nameof(frameIndex), $"{nameof(frameIndex)} must be between 0 and the length of {trackName}'s frame count.");
-      }
-      if (speed < 0) {
-        throw new ArgumentOutOfRangeException(nameof(speed), $"{nameof(speed)} must be a positive value.");
-      }
-      if (duration <= 0) {
-        throw new ArgumentOutOfRangeException(nameof(duration), $"{nameof(duration)} must be a positive, non-zero value.");
-      }
+
+      if (speed < 0) throw new ArgumentOutOfRangeException(nameof(speed), $"{nameof(speed)} must be a positive value.");
+      if (duration <= 0) throw new ArgumentOutOfRangeException(nameof(duration), $"{nameof(duration)} must be a positive, non-zero value.");
 
       FrameTime += speed ?? 1;
       SpriteRotation = rotation;
       if (effects is null) {
         Effects = SpriteEffects.None;
-        if (player.direction < 0) {
-          Effects |= SpriteEffects.FlipHorizontally;
-        }
-        if (player.gravDir < 0) {
-          Effects |= SpriteEffects.FlipVertically;
-        }
+        if (player.direction < 0) Effects |= SpriteEffects.FlipHorizontally;
+        if (player.gravDir < 0) Effects |= SpriteEffects.FlipVertically;
       }
 
-      if (trackName != TrackName) {
-        SwitchTrack(trackName, direction);
-      }
+      if (trackName != TrackName) SwitchTrack(trackName, direction);
 
       Track track = MainAnimation.source[trackName];
-      Frame[] frames = track.frames;
+      var frames = track.frames;
       int lastFrame = frames.Length - 1;
 
-      if (frameIndex != null && frameIndex >= 0 && frameIndex <= lastFrame) {
+      if (frameIndex >= 0 && frameIndex <= lastFrame) {
         FrameIndex = frameIndex.Value;
         FrameTime = 0;
       }
 
-      if (AnimDebugCommand.DebugEnabled) {
+      if (AnimDebugCommand.DebugEnabled)
         Main.NewText($"Frame called: Tile [{MainAnimation.CurrentFrame.tile}], " +
-          $"{(MainAnimation.CurrentTrack.hasTextures ? $" {MainAnimation.CurrentTexture.Name}" : string.Empty)} " + 
-          $"{TrackName}{(Reversed ? " (Reversed)" : "")} " +
-          $"Time: {FrameTime}, " +
-          $"AnimIndex: {FrameIndex}/{MainAnimation.CurrentTrack.Length}");
-      }
+                     $"{(MainAnimation.CurrentTrack.HasTextures ? $" {MainAnimation.CurrentTexture.Name}" : string.Empty)} " +
+                     $"{TrackName}{(Reversed ? " (Reversed)" : "")} " +
+                     $"Time: {FrameTime}, " +
+                     $"AnimIndex: {FrameIndex}/{MainAnimation.CurrentTrack.length}");
 
       // Loop logic
       PostPlay(duration, loop, direction);
@@ -279,84 +257,81 @@ namespace AnimLib.Animations {
 
 
     private void PostPlay(int? overrideDuration, LoopMode? overrideLoopMode, Direction? overrideDirection) {
-      var track = MainAnimation.CurrentTrack;
-      var loop = overrideLoopMode ?? track.loopMode;
-      var duration = overrideDuration ?? MainAnimation.CurrentFrame.duration;
-      var direction = overrideDirection ?? track.direction;
+      Track track = MainAnimation.CurrentTrack;
+      LoopMode loop = overrideLoopMode ?? track.loopMode;
+      int duration = overrideDuration ?? MainAnimation.CurrentFrame.duration;
+      Direction direction = overrideDirection ?? track.direction;
 
-      if (FrameTime < duration || duration <= 0) {
-        return;
-      }
-      int lastFrame = track.Length - 1;
+      if (FrameTime < duration || duration <= 0) return;
+
+      int lastFrame = track.length - 1;
 
       int framesToAdvance = 0;
       while (FrameTime >= duration) {
         FrameTime -= duration;
         framesToAdvance++;
-        if (framesToAdvance + FrameIndex > lastFrame) {
-          FrameTime %= duration;
-        }
+        if (framesToAdvance + FrameIndex > lastFrame) FrameTime %= duration;
       }
+
       switch (direction) {
         case Direction.Forward: {
-            Reversed = false;
-            if (FrameIndex == lastFrame) {
-              if (loop == LoopMode.Always) {
-                FrameIndex = 0;
-              }
-            }
-            // Forward, middle of track: continue playing track forward
-            else {
-              FrameIndex += framesToAdvance;
-            }
-            break;
+          Reversed = false;
+          if (FrameIndex == lastFrame) {
+            if (loop == LoopMode.Always) FrameIndex = 0;
           }
+          // Forward, middle of track: continue playing track forward
+          else {
+            FrameIndex += framesToAdvance;
+          }
+
+          break;
+        }
         case Direction.PingPong: {
-            // Ping-pong, always loop, reached start of track: play track forward
-            if (FrameIndex == 0 && loop == LoopMode.Always) {
-              Reversed = false;
-              FrameIndex += framesToAdvance;
-            }
-            // Ping-pong, always loop, reached end of track: play track backwards
-            else if (FrameIndex == lastFrame && loop == LoopMode.Always) {
-              Reversed = true;
-              FrameIndex -= framesToAdvance;
-            }
-            // Ping-pong, in middle of track: continue playing track either forward or backwards
-            else {
-              FrameIndex += Reversed ? -framesToAdvance : framesToAdvance;
-            }
-            break;
+          // Ping-pong, always loop, reached start of track: play track forward
+          if (FrameIndex == 0 && loop == LoopMode.Always) {
+            Reversed = false;
+            FrameIndex += framesToAdvance;
           }
-        case Direction.Reverse: {
+          // Ping-pong, always loop, reached end of track: play track backwards
+          else if (FrameIndex == lastFrame && loop == LoopMode.Always) {
             Reversed = true;
-            // Reverse, if loop: replay track backwards
-            if (FrameIndex == 0) {
-              if (loop == LoopMode.Always) {
-                FrameIndex = lastFrame;
-              }
-            }
-            // Reverse, middle of track: continue track backwards
-            else {
-              FrameIndex -= framesToAdvance;
-            }
-            break;
+            FrameIndex -= framesToAdvance;
           }
+          // Ping-pong, in middle of track: continue playing track either forward or backwards
+          else {
+            FrameIndex += Reversed ? -framesToAdvance : framesToAdvance;
+          }
+
+          break;
+        }
+        case Direction.Reverse: {
+          Reversed = true;
+          // Reverse, if loop: replay track backwards
+          if (FrameIndex == 0) {
+            if (loop == LoopMode.Always) FrameIndex = lastFrame;
+          }
+          // Reverse, middle of track: continue track backwards
+          else {
+            FrameIndex -= framesToAdvance;
+          }
+
+          break;
+        }
       }
+
       FrameIndex = (int)MathHelper.Clamp(FrameIndex, 0, lastFrame);
     }
 
     private void SwitchTrack(string newTrack, Direction? direction = null) {
-      if (newTrack != TrackName) {
-        if (!Validate(newTrack, false)) {
-          throw new KeyNotFoundException($"\"{newTrack}\" is not a valid key for the main Animation track.");
-        }
-        TrackName = newTrack;
-        var track = MainAnimation.source[newTrack];
-        FrameTime = 0;
-        Reversed = (direction ?? track.direction) == Direction.Reverse;
-        FrameIndex = Reversed ? (track.Length - 1) : 0;
-      }
+      if (newTrack == TrackName) return;
+      if (!Validate(newTrack, false))
+        throw new KeyNotFoundException($"\"{newTrack}\" is not a valid key for the main Animation track.");
+
+      TrackName = newTrack;
+      Track track = MainAnimation.source[newTrack];
+      FrameTime = 0;
+      Reversed = (direction ?? track.direction) == Direction.Reverse;
+      FrameIndex = Reversed ? track.length - 1 : 0;
     }
 
     /// <summary>
@@ -368,17 +343,26 @@ namespace AnimLib.Animations {
     /// <param name="updateValue">Whether or not to update <see cref="Animation.Valid"/>.</param>
     /// <returns><see langword="true"/> if the main <see cref="Animation"/> is valid; otherwise, <see langword="false"/>.</returns>
     private bool Validate(string newTrackName, bool updateValue) {
-      if (!updateValue) {
-        return MainAnimation.CheckIfValid(newTrackName);
-      }
+      if (!updateValue) return MainAnimation.CheckIfValid(newTrackName);
 
-      foreach (var anim in animations) {
-        anim.CheckIfValid(newTrackName, updateValue);
-      }
+      foreach (Animation anim in animations) anim.CheckIfValid(newTrackName);
+
       return MainAnimation.Valid;
     }
 
+    /// <summary>
+    /// All <see cref="Animation"/>s that belong to this mod.
+    /// </summary>
+    public Animation[] animations { get; internal set; }
 
-    private string _trackName = "Default";
+    /// <summary>
+    /// The <see cref="Player"/> that is being animated.
+    /// </summary>
+    public Player player { get; internal set; }
+
+    /// <summary>
+    /// The <see cref="Mod"/> that owns this <see cref="AnimationController"/>.
+    /// </summary>
+    public Mod mod { get; internal set; }
   }
 }

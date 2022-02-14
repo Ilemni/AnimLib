@@ -1,6 +1,8 @@
 using System;
+using System.Linq;
 using AnimLib.Animations;
 using AnimLib.Internal;
+using JetBrains.Annotations;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.ModLoader;
@@ -10,7 +12,21 @@ namespace AnimLib {
   /// <summary>
   /// Interface for any mods using this mod to interact with.
   /// </summary>
+  [PublicAPI]
   public sealed class AnimLibMod : Mod {
+    /// <summary>
+    /// Creates a new instance of <see cref="AnimLibMod"/>.
+    /// </summary>
+    public AnimLibMod() {
+      if (Instance is null) Instance = this;
+    }
+
+    /// <summary>
+    /// The active instance of <see cref="AnimLibMod"/>.
+    /// </summary>
+    public static AnimLibMod Instance { get; private set; }
+
+
     /// <summary>
     /// GitHub profile that the mod's repository is stored on.
     /// </summary>
@@ -30,11 +46,9 @@ namespace AnimLib {
     /// <param name="modPlayer">The <see cref="ModPlayer"/>.</param>
     /// <returns>An <see cref="AnimationController"/> of type <typeparamref name="T"/>.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="modPlayer"/> cannot be null.</exception>
-    public static T GetAnimationController<T>(ModPlayer modPlayer) where T : AnimationController {
-      if (modPlayer is null) {
-        throw new ArgumentNullException(nameof(modPlayer));
-      }
-
+    [NotNull]
+    public static T GetAnimationController<T>([NotNull] ModPlayer modPlayer) where T : AnimationController {
+      if (modPlayer is null) throw new ArgumentNullException(nameof(modPlayer));
       return modPlayer.player.GetModPlayer<AnimPlayer>().GetAnimationController<T>();
     }
 
@@ -47,13 +61,10 @@ namespace AnimLib {
     /// <param name="player">The <see cref="Player"/>.</param>
     /// <returns>An <see cref="AnimationController"/> of type <typeparamref name="T"/>.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="player"/> cannot be null.</exception>
-    public static T GetAnimationController<T>(Player player) where T : AnimationController {
-      if (player is null) {
-        throw new ArgumentNullException(nameof(player));
-      }
-
-      var animPlayer = player.GetModPlayer<AnimPlayer>();
-      return animPlayer.GetAnimationController<T>();
+    [NotNull]
+    public static T GetAnimationController<T>([NotNull] Player player) where T : AnimationController {
+      if (player is null) throw new ArgumentNullException(nameof(player));
+      return player.GetModPlayer<AnimPlayer>().GetAnimationController<T>();
     }
 
     /// <summary>
@@ -65,59 +76,38 @@ namespace AnimLib {
     /// <typeparam name="T">Type of <see cref="AnimationSource"/> to get.</typeparam>
     /// <returns>An <see cref="AnimationSource"/> of type <typeparamref name="T"/>.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="mod"/> cannot be <see langword="null"/>.</exception>
-    /// <exception cref="ArgumentException"><paramref name="mod"/> has no <see cref="AnimationSource"/>.</exception>
-    public static T GetAnimationSource<T>(Mod mod) where T : AnimationSource {
-      if (mod is null) {
-        throw new ArgumentNullException(nameof(mod));
-      }
-
-      var sources = AnimLoader.animationSources;
-      if (!sources.ContainsKey(mod)) {
+    /// <exception cref="ArgumentException"><paramref name="mod"/> has no <see cref="AnimationSource"/>, or source from the wrong mod was used.</exception>
+    [NotNull]
+    public static T GetAnimationSource<T>([NotNull] Mod mod) where T : AnimationSource {
+      if (mod is null) throw new ArgumentNullException(nameof(mod));
+      if (!AnimLoader.AnimationSources.TryGetValue(mod, out var sources))
         throw new ArgumentException($"The mod {mod.Name} does not have any {nameof(AnimationSource)}s loaded.");
-      }
-      foreach (var source in sources[mod]) {
-        if (source is T t) {
-          return t;
-        }
-      }
-      return null;
+
+      return sources.FirstOrDefault(s => s is T) as T
+             ?? throw new ArgumentException($"{typeof(T)} does not belong to {mod.Name}");
     }
 
+
     /// <summary>
-    /// Gets a <see cref="DrawData"/> from the given <see cref="PlayerDrawInfo"/>, based on your <see cref="AnimationController"/> and <see cref="AnimationSource"/>.
+    /// Gets a <see cref="DrawData"/> from the given <see cref="PlayerDrawInfo"/>, based on your <see cref="AnimationController"/> and
+    /// <see cref="AnimationSource"/>.
     /// <para>
     /// This can be a quick way to get a <see cref="DrawData"/> that's ready to use for your <see cref="PlayerLayer"/>s.
-    /// For a more perfomant way of getting a <see cref="DrawData"/>, cache your <see cref="AnimationController"/> in your <see cref="ModPlayer"/>
-    /// and <see cref="Animation"/> in you <see cref="AnimationController"/>, and use <see cref="Animation.GetDrawData(PlayerDrawInfo)"/>.
+    /// For a more performant way of getting a <see cref="DrawData"/>, cache your <see cref="AnimationController"/> in your <see cref="ModPlayer"/>
+    /// and <see cref="Animations.Animation"/> in your <see cref="AnimationController"/>, and use
+    /// <see cref="Animations.Animation.GetDrawData(PlayerDrawInfo)"/>.
     /// </para>
     /// </summary>
-    /// <typeparam name="TController">Your type of <see cref="AnimationController"/>.</typeparam>
-    /// <typeparam name="TSource">Your type of <see cref="AnimationSource"/>.</typeparam>
+    /// <typeparam name="TController"> Your type of <see cref="AnimationController"/>.</typeparam>
+    /// <typeparam name="TSource"> Your type of <see cref="AnimationSource"/>.</typeparam>
     /// <param name="drawInfo">The <see cref="PlayerDrawInfo"/> to get the <see cref="DrawData"/> from.</param>
     /// <returns>A <see cref="DrawData"/> that is ready to be drawn. Feel free to modify it.</returns>
-    public static DrawData GetDrawData<TController, TSource>(PlayerDrawInfo drawInfo) where TController : AnimationController where TSource : AnimationSource {
+    public static DrawData GetDrawData<TController, TSource>(PlayerDrawInfo drawInfo)
+      where TController : AnimationController where TSource : AnimationSource {
       AnimationController controller = GetAnimationController<TController>(drawInfo.drawPlayer);
       Animation anim = controller.GetAnimation<TSource>();
       return anim.GetDrawData(drawInfo);
     }
-
-    /// <summary>
-    /// Creates a new instance of <see cref="AnimLibMod"/>.
-    /// </summary>
-    public AnimLibMod() {
-      if (Instance is null) {
-        Instance = this;
-      }
-      Properties = new ModProperties() {
-        // We don't want anything loaded on servers
-        Autoload = AnimLoader.UseAnimations,
-      };
-    }
-
-    /// <summary>
-    /// The active instance of <see cref="AnimLibMod"/>.
-    /// </summary>
-    public static AnimLibMod Instance { get; private set; }
 
     /// <summary>
     /// Use this to null static reference types on unload.
@@ -128,9 +118,7 @@ namespace AnimLib {
     /// Collects and constructs all <see cref="AnimationSource"/>s across all other <see cref="Mod"/>s.
     /// </summary>
     public override void PostSetupContent() {
-      if (AnimLoader.UseAnimations) {
-        AnimLoader.Load();
-      }
+      AnimLoader.Load();
     }
 
     /// <inheritdoc/>
