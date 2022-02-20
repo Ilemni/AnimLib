@@ -57,6 +57,18 @@ namespace AnimLib.Abilities {
       ?? throw new ArgumentOutOfRangeException($"No ability matches {id}");
 
     /// <summary>
+    /// Gets the <see cref="Ability"/> whose <see cref="Ability.Id"/> is associated with the given <paramref name="key"/>.
+    /// </summary>
+    /// <param name="key">The <see cref="Ability.Id"/> to locate.</param>
+    /// <param name="ability">
+    /// The <see cref="Ability"/> associated with the specified <see cref="Ability.Id"/>,
+    /// if any <see cref="Ability"/> has an <see cref="Ability.Id"/> matching <paramref name="key"/>;
+    /// otherwise, <see langword="null"/>.
+    /// </param>
+    /// <returns><see langword="true"/> if an <see cref="Ability"/> has an <see cref="Ability.Id"/> matching <paramref name="key"/>; otherwise, <see langword="false"/>.</returns>
+    public bool TryGet(int key, out Ability ability) => (ability = abilityArray.FirstOrDefault(a => a.Id == key)) != null;
+
+    /// <summary>
     /// Returns an enumerator that iterates through all <see cref="Ability"/> instances in this <see cref="AbilityManager"/>.
     /// </summary>
     /// <returns></returns>
@@ -68,7 +80,6 @@ namespace AnimLib.Abilities {
     /// Provides an enumerator that supports iterating through all unlocked <see cref="Ability"/> instances in this <see cref="AbilityManager"/>.
     /// </summary>
     public IEnumerable<Ability> UnlockedAbilities => this.Where(ability => ability.Unlocked);
-    
     #endregion
 
     #region Properties - Mod-defined
@@ -102,10 +113,10 @@ namespace AnimLib.Abilities {
         _netUpdate = value;
         if (value) // Propagate true netUpdate upstream
           animPlayer.abilityNetUpdate = true;
-        else // Propagate false netUpdate downstream
-          foreach (Ability ability in this) {
-            ability.netUpdate = false;
-          }
+        else {
+          // Propagate false netUpdate downstream
+          foreach (Ability ability in this) ability.netUpdate = false;
+        }
       }
     }
 
@@ -127,7 +138,6 @@ namespace AnimLib.Abilities {
     /// </summary>
     /// <returns><see langword="true"/> if any ability can be used; otherwise, <see langword="false"/>.</returns>
     public virtual bool CanUseAnyAbilities() => !player.dead;
-    
     #endregion
 
     #region Update logic
@@ -155,42 +165,31 @@ namespace AnimLib.Abilities {
       }
 
       // Update
-      foreach (Ability ability in UnlockedAbilities) {
-        ability.Update();
-      }
+      foreach (Ability ability in UnlockedAbilities) ability.Update();
 
       // Post-update after all abilities update
-      foreach (Ability ability in UnlockedAbilities) {
-        ability.PostUpdateAbilities();
-      }
+      foreach (Ability ability in UnlockedAbilities) ability.PostUpdateAbilities();
     }
 
     internal void PostUpdate() {
       if (!CanUseAnyAbilities()) return;
 
-      foreach (Ability ability in UnlockedAbilities) {
-        ability.PostUpdate();
-      }
+      foreach (Ability ability in UnlockedAbilities) ability.PostUpdate();
     }
 
     /// <summary>
     /// Deactivates all abilities.
     /// </summary>
     public void DisableAllAbilities() {
-      foreach (Ability ability in this) {
-        ability.SetState(AbilityState.Inactive);
-      }
+      foreach (Ability ability in this) ability.SetState(AbilityState.Inactive);
     }
-    
+
     /// <summary>
     /// Sets the level of all Levelable Abilities to their max level.
     /// </summary>
     public void UnlockAllAbilities() {
       foreach (Ability ability in this) {
-        // ReSharper disable once SuspiciousTypeConversion.Global
-        if (ability is ILevelable levelable) {
-          levelable.Level = levelable.MaxLevel;
-        }
+        if (ability is ILevelable levelable) levelable.Level = levelable.MaxLevel;
       }
     }
 
@@ -199,10 +198,7 @@ namespace AnimLib.Abilities {
     /// </summary>
     public void ResetAllAbilities() {
       foreach (Ability ability in this) {
-        // ReSharper disable once SuspiciousTypeConversion.Global
-        if (ability is ILevelable levelable) {
-          levelable.Level = 0;
-        }
+        if (ability is ILevelable levelable) levelable.Level = 0;
       }
     }
     #endregion

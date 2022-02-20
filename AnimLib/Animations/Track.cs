@@ -176,9 +176,11 @@ namespace AnimLib.Animations {
       // I.e. if given [(0,1), (0,4)], we make [(0,1), (0,2), (0,3), (0,4)]
       if (start.tile.x != end.tile.x)
         throw new ArgumentException($"The X values of {nameof(start)} and {nameof(end)} must be equal, instead got {start.tile.x}, {end.tile.x}.");
-      if (start.tile.y >= end.tile.y)
+      if (start.tile.y >= end.tile.y) {
         throw new ArgumentOutOfRangeException(
           $"The Y value of {nameof(start)} must be less than the Y value of {nameof(end)}, instead got {start.tile.y}, {end.tile.y}.");
+      }
+
       var frames = new List<IFrame>();
       for (int y = start.tile.y; y < end.tile.y; y++) {
         frames.Add(new Frame(start.tile.x, y, start.duration));
@@ -195,7 +197,7 @@ namespace AnimLib.Animations {
     /// <param name="frame">Assigns to <see cref="frames"/> as a single <see cref="Frame"/>.</param>
     /// <returns>A new <see cref="Track"/> with a single <see cref="Frame"/>.</returns>
     [NotNull]
-    public static Track Single(Frame frame) => new Track(new[] {frame});
+    public static Track Single(Frame frame) => new Track(new[] { frame });
 
 
     /// <summary>
@@ -207,9 +209,9 @@ namespace AnimLib.Animations {
     /// </summary>
     /// <param name="index">Index of the frame to get.</param>
     /// <returns></returns>
-    public Frame GetClampedFrame(int index) {
+    public ref Frame GetClampedFrame(int index) {
       index = (int)MathHelper.Clamp(index, 0, length - 1);
-      return frames[index];
+      return ref frames[index];
     }
 
 
@@ -236,9 +238,7 @@ namespace AnimLib.Animations {
 
       // Get the highest key before frameIdx
       int idx = -1;
-      foreach (int key in textures.Keys.Where(key => key > idx && key < frameIdx)) {
-        idx = key;
-      }
+      foreach (int key in textures.Keys.Where(key => key > idx && key < frameIdx)) idx = key;
 
       return textures.ContainsKey(idx) ? textures[idx] : null;
     }

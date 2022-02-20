@@ -13,29 +13,6 @@ namespace AnimLib.Abilities {
   [PublicAPI]
   [UsedImplicitly(ImplicitUseTargetFlags.WithInheritors)]
   public abstract class Ability {
-    /// <summary>
-    /// Creates a new <see cref="AbilityProjectile"/> of type <typeparamref name="T"/>.
-    /// Assigns <see cref="AbilityProjectile.ability"/> to this ability, and <see cref="AbilityProjectile.level"/> if this ability is <see cref="ILevelable"/>.
-    /// </summary>
-    /// <param name="offset">Positional offset from the player's center.</param>
-    /// <param name="velocity">Starting speed of the projectile.</param>
-    /// <param name="damage">Damage value of the projectile.</param>
-    /// <param name="knockBack">Knockback strength of the projectile.</param>
-    /// <typeparam name="T">Type of ability projectile.</typeparam>
-    /// <returns>A new <see cref="AbilityProjectile"/> of type <typeparamref name="T"/>.</returns>
-    public T NewAbilityProjectile<T>(Vector2 offset = default, Vector2 velocity = default, int damage = 0, float knockBack = 0)
-      where T : AbilityProjectile {
-      int type = ModContent.ProjectileType<T>();
-      Projectile projectile = Projectile.NewProjectileDirect(player.Center + offset, velocity, type, damage, knockBack, player.whoAmI);
-
-      T modProjectile = (T)projectile.modProjectile;
-      modProjectile.ability = this;
-      // ReSharper disable once SuspiciousTypeConversion.Global
-      if (this is ILevelable levelable)
-        modProjectile.level = levelable.Level;
-      return modProjectile;
-    }
-
     #region Properties - Common
     // Initialized properties that are set by AnimLib are kept in this region.
 
@@ -108,12 +85,11 @@ namespace AnimLib.Abilities {
     #endregion
 
     #region Properties - Runtime
+    // Properties that are expected to change throughout the ability's lifespan are kept in this region.
     /// <summary>
     /// Condition required for the player to activate this ability.
     /// </summary>
     public virtual bool CanUse => Unlocked && !IsOnCooldown;
-    
-    // Properties that are expected to change throughout the ability's lifespan are kept in this region.
 
     /// <summary>
     /// If true, the ability will be put into the next ability packet.
@@ -226,9 +202,7 @@ namespace AnimLib.Abilities {
     /// </summary>
     public virtual void UpdateCooldown() {
       if (cooldownLeft <= 0) return;
-      if (--cooldownLeft == 0) {
-        OnRefreshed();
-      }
+      if (--cooldownLeft == 0) OnRefreshed();
     }
 
     /// <summary>
@@ -350,10 +324,11 @@ namespace AnimLib.Abilities {
     /// <returns></returns>
     /// <seealso cref="Load"/>
     public virtual TagCompound Save() {
-      if (this is ILevelable levelable)
+      if (this is ILevelable levelable) {
         return new TagCompound {
           [nameof(Level)] = levelable.Level
         };
+      }
 
       return null;
     }
@@ -369,6 +344,30 @@ namespace AnimLib.Abilities {
     }
     // ReSharper restore SuspiciousTypeConversion.Global
     #endregion
+
+    #region Misc
+    /// <summary>
+    /// Creates a new <see cref="AbilityProjectile"/> of type <typeparamref name="T"/>.
+    /// Assigns <see cref="AbilityProjectile.ability"/> to this ability, and <see cref="AbilityProjectile.level"/> if this ability is <see cref="ILevelable"/>.
+    /// </summary>
+    /// <param name="offset">Positional offset from the player's center.</param>
+    /// <param name="velocity">Starting speed of the projectile.</param>
+    /// <param name="damage">Damage value of the projectile.</param>
+    /// <param name="knockBack">Knockback strength of the projectile.</param>
+    /// <typeparam name="T">Type of ability projectile.</typeparam>
+    /// <returns>A new <see cref="AbilityProjectile"/> of type <typeparamref name="T"/>.</returns>
+    public T NewAbilityProjectile<T>(Vector2 offset = default, Vector2 velocity = default, int damage = 0, float knockBack = 0)
+      where T : AbilityProjectile {
+      int type = ModContent.ProjectileType<T>();
+      Projectile projectile = Projectile.NewProjectileDirect(player.Center + offset, velocity, type, damage, knockBack, player.whoAmI);
+
+      T modProjectile = (T)projectile.modProjectile;
+      modProjectile.ability = this;
+      // ReSharper disable once SuspiciousTypeConversion.Global
+      if (this is ILevelable levelable)
+        modProjectile.level = levelable.Level;
+      return modProjectile;
+    }
 
     /// <summary>
     /// String representation of the ability. ID, name, level/max level, current time, and cooldown if applicable.
@@ -387,5 +386,6 @@ namespace AnimLib.Abilities {
     /// </summary>
     /// <seealso cref="InUse"/>
     public static implicit operator bool(Ability ability) => !(ability is null) && ability.InUse;
+    #endregion
   }
 }

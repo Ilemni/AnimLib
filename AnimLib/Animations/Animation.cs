@@ -64,7 +64,7 @@ namespace AnimLib.Animations {
     /// in the <see cref="Track"/>.
     /// </para>
     /// </summary>
-    public Frame CurrentFrame => CurrentTrack.GetClampedFrame(controller.FrameIndex);
+    public ref readonly Frame CurrentFrame => ref CurrentTrack.GetClampedFrame(controller.FrameIndex);
 
     /// <summary>
     /// Current <see cref="Frame"/>'s sprite position and size on the <see cref="CurrentTexture"/>.

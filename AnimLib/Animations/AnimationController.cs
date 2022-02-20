@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AnimLib.Extensions;
 using AnimLib.Internal;
 using JetBrains.Annotations;
 using Microsoft.Xna.Framework;
@@ -78,12 +79,28 @@ namespace AnimLib.Animations {
     /// </summary>
     public SpriteEffects Effects { get; private set; }
 
+    /// <summary>
+    /// All <see cref="Animation"/>s that belong to this mod.
+    /// </summary>
+    public Animation[] animations { get; internal set; }
+
+    /// <summary>
+    /// The <see cref="Player"/> that is being animated.
+    /// </summary>
+    public Player player { get; internal set; }
+
+    /// <summary>
+    /// The <see cref="Mod"/> that owns this <see cref="AnimationController"/>.
+    /// </summary>
+    public Mod mod { get; internal set; }
+
     internal void SetupAnimations() {
       var modSources = AnimLoader.AnimationSources[mod];
       animations = new Animation[modSources.Length];
       if (modSources.Length == 0) return;
 
       for (int i = 0; i < modSources.Length; i++) animations[i] = new Animation(this, modSources[i]);
+
       SetMainAnimation(animations[0]);
     }
 
@@ -134,10 +151,9 @@ namespace AnimLib.Animations {
     /// <returns>The <see cref="Animation"/> with the matching <see cref="AnimationSource"/>.</returns>
     /// <exception cref="ArgumentException"><typeparamref name="T"/> does not belong to this <see cref="mod"/>.</exception>
     [NotNull]
-    public Animation GetAnimation<T>() where T : AnimationSource {
-      return animations.FirstOrDefault(anim => anim.source is T)
-             ?? throw new ArgumentException($"{typeof(T).Name} must be from the same mod as {mod.Name}");
-    }
+    public Animation GetAnimation<T>() where T : AnimationSource =>
+      animations.FirstOrDefault(anim => anim.source is T)
+      ?? throw new ArgumentException($"{typeof(T).Name} must be from the same mod as {mod.Name}");
 
     /// <summary>
     /// Sets the main <see cref="Animation"/> of this player to the given <see cref="Animation"/>.
@@ -145,18 +161,14 @@ namespace AnimLib.Animations {
     /// </summary>
     /// <param name="animation">Animation to set this player's <see cref="MainAnimation"/> to.</param>
     /// <exception cref="ArgumentNullException"><paramref name="animation"/> is null.</exception>
-    public void SetMainAnimation([NotNull] Animation animation) {
-      MainAnimation = animation ?? throw new ArgumentNullException(nameof(animation));
-    }
+    public void SetMainAnimation([NotNull] Animation animation) => MainAnimation = animation ?? throw new ArgumentNullException(nameof(animation));
 
     /// <summary>
     /// Sets the main <see cref="Animation"/> of this player to the animation whose source is <typeparamref name="T"/>.
     /// This can be useful for things like player transformations that use multiple <see cref="AnimationSource"/>s.
     /// </summary>
     /// <typeparam name="T">Animation type to set.</typeparam>
-    public void SetMainAnimation<T>() where T : AnimationSource {
-      MainAnimation = GetAnimation<T>();
-    }
+    public void SetMainAnimation<T>() where T : AnimationSource => MainAnimation = GetAnimation<T>();
 
 
     /// <summary>
@@ -168,9 +180,7 @@ namespace AnimLib.Animations {
     /// </param>
     /// <exception cref="ArgumentException"><paramref name="trackName"/> was null or whitespace.</exception>
     /// <exception cref="KeyNotFoundException">The value of <paramref name="trackName"/> was not a key in the main <see cref="AnimationSource.tracks"/>.</exception>
-    protected void PlayTrack([NotNull] string trackName) {
-      PlayTrack(trackName, null);
-    }
+    protected void PlayTrack([NotNull] string trackName) => PlayTrack(trackName, null);
 
     /// <summary>
     /// Plays the <see cref="Track"/> with the given name. How the animation advances is based on the given input parameters.
@@ -245,6 +255,7 @@ namespace AnimLib.Animations {
       }
 
       if (AnimPlayer.Local.DebugEnabled) {
+        // TODO: replace Main.NewText spam with something better?
         Main.NewText($"Frame called: Tile [{MainAnimation.CurrentFrame.tile}], " +
                      $"{(MainAnimation.CurrentTrack.HasTextures ? $" {MainAnimation.CurrentTexture.Name}" : string.Empty)} " +
                      $"{TrackName}{(Reversed ? " (Reversed)" : "")} " +
@@ -281,9 +292,8 @@ namespace AnimLib.Animations {
             if (loop == LoopMode.Always) FrameIndex = 0;
           }
           // Forward, middle of track: continue playing track forward
-          else {
+          else
             FrameIndex += framesToAdvance;
-          }
 
           break;
         }
@@ -299,9 +309,8 @@ namespace AnimLib.Animations {
             FrameIndex -= framesToAdvance;
           }
           // Ping-pong, in middle of track: continue playing track either forward or backwards
-          else {
+          else
             FrameIndex += Reversed ? -framesToAdvance : framesToAdvance;
-          }
 
           break;
         }
@@ -312,9 +321,8 @@ namespace AnimLib.Animations {
             if (loop == LoopMode.Always) FrameIndex = lastFrame;
           }
           // Reverse, middle of track: continue track backwards
-          else {
+          else
             FrameIndex -= framesToAdvance;
-          }
 
           break;
         }
@@ -350,20 +358,5 @@ namespace AnimLib.Animations {
 
       return MainAnimation.Valid;
     }
-
-    /// <summary>
-    /// All <see cref="Animation"/>s that belong to this mod.
-    /// </summary>
-    public Animation[] animations { get; internal set; }
-
-    /// <summary>
-    /// The <see cref="Player"/> that is being animated.
-    /// </summary>
-    public Player player { get; internal set; }
-
-    /// <summary>
-    /// The <see cref="Mod"/> that owns this <see cref="AnimationController"/>.
-    /// </summary>
-    public Mod mod { get; internal set; }
   }
 }

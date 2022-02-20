@@ -10,6 +10,7 @@ namespace AnimLib.Abilities {
     /// The level of the ability.
     /// </summary>
     int Level { get; set; }
+
     /// <summary>
     /// The intended max level of the ability.
     /// </summary>

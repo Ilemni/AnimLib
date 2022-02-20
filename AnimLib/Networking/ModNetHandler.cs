@@ -28,7 +28,7 @@ namespace AnimLib.Networking {
           abilityPacketHandler.HandlePacket(reader, fromWho);
           break;
         default:
-          Log.LogWarning($"UnknownPacket {packetClass}");
+          Log.LogWarning($"Unknown Packet {packetClass}");
           break;
       }
     }

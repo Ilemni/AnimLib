@@ -17,7 +17,6 @@ namespace AnimLib.Animations {
   [PublicAPI]
   [UsedImplicitly(ImplicitUseTargetFlags.WithInheritors)]
   public abstract class AnimationSource {
-
     /// <summary>
     /// Size of all sprites in the spritesheet.
     /// </summary>

@@ -42,10 +42,12 @@ namespace AnimLib {
 
     internal static AnimPlayer Local {
       get {
-        if (!(_local is null)) return _local;
-        
-        _local = Main.LocalPlayer.GetModPlayer<AnimPlayer>();
-        AnimLibMod.OnUnload += () => _local = null;
+        if (_local is null) {
+          _local = Main.LocalPlayer?.GetModPlayer<AnimPlayer>();
+          if (!(_local is null)) {
+            AnimLibMod.OnUnload += () => _local = null;
+          }
+        }
         return _local;
       }
     }
@@ -119,9 +121,7 @@ namespace AnimLib {
       }
     }
 
-    private void SendAbilityChanges() {
-      ModNetHandler.Instance.abilityPacketHandler.SendPacket(255, player.whoAmI);
-    }
+    private void SendAbilityChanges() => ModNetHandler.Instance.abilityPacketHandler.SendPacket(255, player.whoAmI);
 
     public override void PostUpdateRunSpeeds() {
       foreach (AbilityManager manager in abilityManagers.Values) {
@@ -150,7 +150,6 @@ namespace AnimLib {
     /// <summary>
     /// Saves all <see cref="Ability"/> data across all mods.
     /// </summary>
-    /// <returns></returns>
     /// <remarks>
     /// This will save all ability data to this mod regardless of <see cref="AbilityManager.AutoSave"/> condition.
     /// <see cref="AbilityManager.AutoSave"/> will only prevent automatic loading of ability data.
@@ -164,9 +163,7 @@ namespace AnimLib {
       }
 
       if (_unloadedModTags != null) {
-        foreach ((string modName, TagCompound tag) in _unloadedModTags) {
-          allAbilitiesTag[modName] = tag;
-        }
+        foreach ((string modName, TagCompound tag) in _unloadedModTags) allAbilitiesTag[modName] = tag;
       }
 
       if (allAbilitiesTag.Count > 0) {
@@ -187,7 +184,6 @@ namespace AnimLib {
     /// This is set up so that player ability data is not lost if the mod author changes AutoSave from false to true.
     /// </remarks>
     public override void Load(TagCompound tag) {
-      base.Load(tag);
       TagCompound allAbilitiesTag = tag.GetCompound(AllAbilityTagKey);
       if (allAbilitiesTag is null) return;
 

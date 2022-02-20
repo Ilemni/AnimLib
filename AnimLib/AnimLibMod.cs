@@ -147,9 +147,7 @@ namespace AnimLib {
     /// <summary>
     /// Collects and constructs all <see cref="AnimationSource"/>s across all other <see cref="Mod"/>s.
     /// </summary>
-    public override void PostSetupContent() {
-      AnimLoader.Load();
-    }
+    public override void PostSetupContent() => AnimLoader.Load();
 
     /// <inheritdoc/>
     public override void Unload() {
