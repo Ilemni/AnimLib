@@ -1,7 +1,7 @@
 using System;
 
-namespace AnimLib {
-  internal static class Utils {
+namespace AnimLib.Extensions {
+  internal static class TypeExtensions {
     /// <summary>
     /// Returns the name of the <see cref="Type"/> if it is not the same name as any of its base types; otherwise, return the full name of the
     /// <see cref="Type"/>.
@@ -12,9 +12,10 @@ namespace AnimLib {
       if (type is null) throw new ArgumentNullException(nameof(type));
       string name = type.Name;
       Type baseType = type;
-      while ((baseType = baseType.BaseType) != null)
+      while ((baseType = baseType.BaseType) != null) {
         if (baseType.Name == name)
           return type.FullName;
+      }
 
       return name;
     }

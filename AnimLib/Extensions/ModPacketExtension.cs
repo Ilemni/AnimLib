@@ -1,7 +1,7 @@
 using System.IO;
 using Terraria.ModLoader;
 
-namespace AnimLib {
+namespace AnimLib.Extensions {
   internal static class ModPacketExtension {
     /// <summary>
     /// Writes <paramref name="value"/> to this <paramref name="packet"/> with the smallest cast possible,
