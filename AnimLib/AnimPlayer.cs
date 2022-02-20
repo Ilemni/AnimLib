@@ -40,6 +40,18 @@ namespace AnimLib {
 
     private bool hasInitialized { get; set; }
 
+    internal static AnimPlayer Local {
+      get {
+        if (!(_local is null)) return _local;
+        
+        _local = Main.LocalPlayer.GetModPlayer<AnimPlayer>();
+        AnimLibMod.OnUnload += () => _local = null;
+        return _local;
+      }
+    }
+
+    private static AnimPlayer _local;
+
     internal bool abilityNetUpdate {
       get => _abilityNetUpdate;
       set {

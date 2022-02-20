@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AnimLib.Internal;
@@ -244,12 +244,13 @@ namespace AnimLib.Animations {
         FrameTime = 0;
       }
 
-      if (AnimDebugCommand.DebugEnabled)
+      if (AnimPlayer.Local.DebugEnabled) {
         Main.NewText($"Frame called: Tile [{MainAnimation.CurrentFrame.tile}], " +
                      $"{(MainAnimation.CurrentTrack.HasTextures ? $" {MainAnimation.CurrentTexture.Name}" : string.Empty)} " +
                      $"{TrackName}{(Reversed ? " (Reversed)" : "")} " +
                      $"Time: {FrameTime}, " +
                      $"AnimIndex: {FrameIndex}/{MainAnimation.CurrentTrack.length}");
+      }
 
       // Loop logic
       PostPlay(duration, loop, direction);
