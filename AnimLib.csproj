@@ -6,6 +6,9 @@
     <TargetFramework>net45</TargetFramework>
     <PlatformTarget>x86</PlatformTarget>
     <LangVersion>7.3</LangVersion>
+    <Description>Terraria library mod for enhanced animations and ability management.</Description>
+    <RepositoryUrl>https://github.com/TwiliChaos/AnimLib/</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>AnimLib.xml</DocumentationFile>
