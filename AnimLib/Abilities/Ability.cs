@@ -401,4 +401,18 @@ namespace AnimLib.Abilities {
     public static implicit operator bool(Ability ability) => !(ability is null) && ability.InUse;
     #endregion
   }
+
+  // ReSharper disable once InconsistentNaming
+  internal class __LevelableAbility : Ability, ILevelable {
+    private int _level;
+    public override int Id => -1;
+    public override int Level => _level;
+
+    int ILevelable.Level {
+      get => _level;
+      set => _level = value;
+    }
+
+    public int MaxLevel => 0;
+  }
 }
