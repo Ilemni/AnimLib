@@ -8,6 +8,19 @@ using Terraria.ModLoader.IO;
 
 namespace AnimLib.Abilities {
   /// <summary>
+  /// Base class for all player abilities. Generic type allows you to specify your own type of <see cref="AbilityManager"/>.
+  /// </summary>
+  /// <typeparam name="TManager">Type of manager you wish to use.</typeparam>
+  [PublicAPI]
+  public abstract class Ability<TManager> : Ability where TManager : AbilityManager {
+    /// <inheritdoc cref="Ability.abilities"/>
+    public new TManager abilities {
+      get => (TManager)base.abilities;
+      internal set => base.abilities = value;
+    }
+  }
+
+  /// <summary>
   /// Base class for all player abilities.
   /// </summary>
   [PublicAPI]
