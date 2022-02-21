@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AnimLib.Abilities;
 using AnimLib.Animations;
+using AnimLib.Extensions;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -11,11 +12,18 @@ using Terraria.ModLoader.Exceptions;
 namespace AnimLib.Internal {
   /// <summary>
   /// Manages the construction and distribution of all <see cref="AnimationSource"/>s and <see cref="AnimationController"/>s.
-  /// <para><strong><see cref="AnimationSource"/></strong></para>
+  /// <para>
+  /// <strong>
+  /// <see cref="AnimationSource"/>
+  /// </strong>
+  /// </para>
   /// <para>On <see cref="Mod.Load"/>, all <see cref="AnimationSource"/>s are constructed.</para>
   /// <para>On <see cref="Mod.PostSetupContent"/>, all <see cref="AnimationSource"/>s have their Textures assigned.</para>
-  /// 
-  /// <para><strong><see cref="AnimationController"/></strong></para>
+  /// <para>
+  /// <strong>
+  /// <see cref="AnimationController"/>
+  /// </strong>
+  /// </para>
   /// <para>On <see cref="Mod.Load"/>, all <see cref="Type"/>s of <see cref="AnimationController"/> are collected.</para>
   /// <para>On <see cref="ModPlayer.Initialize"/>, all <see cref="AnimationController"/>s are constructed and added to the <see cref="AnimPlayer"/>.</para>
   /// </summary>
@@ -28,6 +36,12 @@ namespace AnimLib.Internal {
 
     internal static Dictionary<Mod, Type> modAbilityManagerTypeDictionary;
     internal static Dictionary<Mod, IEnumerable<Type>> modAbilityTypeDictionary;
+    private static List<Mod> _loadedMods;
+
+    /// <summary>
+    /// Collection of all <see cref="AnimationSources"/>, constructed during <see cref="Mod.Load"/>.
+    /// </summary>
+    internal static Dictionary<Mod, AnimationSource[]> AnimationSources { get; private set; }
 
     /// <summary>
     /// Whether or not to use animations during this session. Returns <see langword="true"/> if this is not run on a server; otherwise,
@@ -35,10 +49,13 @@ namespace AnimLib.Internal {
     /// </summary>
     public static bool UseAnimations => Main.netMode != NetmodeID.Server;
 
-    /// <summary>
-    /// Collection of all <see cref="AnimationSources"/>, constructed during <see cref="Mod.Load"/>.
-    /// </summary>
-    internal static Dictionary<Mod, AnimationSource[]> AnimationSources { get; private set; }
+    public static bool HasMods => modAnimationControllerTypeDictionary.Count + modAbilityTypeDictionary.Count == 0;
+
+    public static List<Mod> LoadedMods =>
+      _loadedMods ?? (_loadedMods = modAnimationControllerTypeDictionary.Keys.Union(modAbilityManagerTypeDictionary.Keys).ToList());
+
+    public static bool GetLoadedMods(out List<Mod> loadedMods) => (loadedMods = HasMods ? LoadedMods : null) != null;
+
 
     private static void Unload() {
       Log.LogDebug($"{nameof(AnimLoader)}.{nameof(Unload)} called.");
@@ -69,23 +86,25 @@ namespace AnimLib.Internal {
         Log.LogInfo("AnimLibMod loaded; no mods contained Animations or Abilities. Currently there is no reason for this mod to be enabled.");
     }
 
-    private static bool CanLoadMod(Mod mod, out Type[] types) {
+    private static bool CanLoadMod(Mod mod, out List<Type> types) {
       if (mod is AnimLibMod || mod.Code is null) {
         types = null;
         return false;
       }
 
+      // Collect all instantiatable types.
+      // Collect only animation types if the mod is not being run on a server
       types = (from t in mod.Code.GetTypes()
-        where !t.IsAbstract &&
-              (t.IsSubclassOf(typeof(AnimationSource)) ||
-               t.IsSubclassOf(typeof(AnimationController)) ||
+        where !t.IsAbstract && !t.IsGenericType &&
+              (UseAnimations && t.IsSubclassOf(typeof(AnimationSource)) ||
+               UseAnimations && t.IsSubclassOf(typeof(AnimationController)) ||
                t.IsSubclassOf(typeof(AbilityManager)) ||
                t.IsSubclassOf(typeof(Ability)))
-        select t).ToArray();
+        select t).ToList();
       return types.Any();
     }
 
-    private static void LoadMod(Mod mod, Type[] types) {
+    private static void LoadMod(Mod mod, List<Type> types) {
       if (UseAnimations) AnimationLoader.Load(mod, types);
 
       AbilityLoader.Load(mod, types);
@@ -93,7 +112,7 @@ namespace AnimLib.Internal {
   }
 
   internal static class AnimationLoader {
-    public static void Load(Mod mod, Type[] types) {
+    public static void Load(Mod mod, List<Type> types) {
       if (GetSourcesFromTypes(types, mod, out var sources)) {
         if (GetControllerTypeFromTypes(types, mod, out Type controllerType)) {
           AnimLoader.AnimationSources[mod] = sources.ToArray();
@@ -129,9 +148,10 @@ namespace AnimLib.Internal {
       result = null;
       foreach (Type type in types) {
         if (!type.IsSubclassOf(typeof(AnimationController))) continue;
-        if (!(result is null))
+        if (!(result is null)) {
           throw new CustomModDataException(mod, $"Cannot have more than one {nameof(AnimationController)} per mod.",
             null);
+        }
 
         Log.LogInfo($"[{mod.Name}]: Collected {nameof(AnimationController)} \"{type.UniqueTypeName()}\"");
         result = type;
@@ -139,7 +159,6 @@ namespace AnimLib.Internal {
 
       return result != null;
     }
-
 
     /// <summary>
     /// Attempts to construct the animation source, and rejects any that have bad inputs.
@@ -169,36 +188,10 @@ namespace AnimLib.Internal {
       source.texture = ModContent.GetTexture(texturePath);
       return true;
     }
-
-    internal static void CreateControllersForPlayer(AnimPlayer animPlayer) {
-      foreach ((Mod mod, Type type) in AnimLoader.modAnimationControllerTypeDictionary) {
-        try {
-          animPlayer.animationControllers[mod] = CreateControllerForPlayer(animPlayer, mod, type);
-        }
-        catch (Exception ex) {
-          Log.LogError($"Exception thrown when constructing {nameof(AnimationController)} from [{mod.Name}:{type.FullName}]", ex);
-          throw;
-        }
-      }
-    }
-
-    private static AnimationController CreateControllerForPlayer(AnimPlayer animPlayer, Mod mod, Type type) {
-      AnimationController controller = (AnimationController)Activator.CreateInstance(type, true);
-      controller.player = animPlayer.player;
-      controller.mod = mod;
-      controller.SetupAnimations();
-      controller.Initialize();
-
-      Log.LogDebug(
-        $"{nameof(AnimationController)} for mod {mod.Name} created with {controller.animations.Length} animations. " +
-        $"{(controller.animations[0] != null ? $"Its MainAnimation is {controller.MainAnimation.source.GetType().Name}" : "It has no MainAnimation.")}");
-
-      return controller;
-    }
   }
 
   internal static class AbilityLoader {
-    public static void Load(Mod mod, Type[] types) {
+    public static void Load(Mod mod, List<Type> types) {
       if (GetAbilityTypesFromTypes(types, mod, out var abilityTypes)) {
         AnimLoader.modAbilityTypeDictionary[mod] = abilityTypes;
         if (GetAbilityManagerTypeFromTypes(types, mod, out Type managerType)) AnimLoader.modAbilityManagerTypeDictionary[mod] = managerType;
@@ -227,56 +220,6 @@ namespace AnimLib.Internal {
       }
 
       return abilityTypes.Any();
-    }
-
-    public static void CreateAbilityManagersForPlayer(AnimPlayer animPlayer) {
-      foreach ((Mod mod, var abilityTypes) in AnimLoader.modAbilityTypeDictionary) {
-        Type managerType = AnimLoader.modAbilityManagerTypeDictionary.TryGetValue(mod, out Type t) ? t : typeof(AbilityManager);
-        try {
-          animPlayer.abilityManagers[mod] = CreateAbilityManagerForPlayer(animPlayer, mod, managerType, abilityTypes);
-        }
-        catch (Exception ex) {
-          Log.LogError($"Exception thrown when constructing {nameof(AbilityManager)} from [{mod.Name}:{managerType.FullName}]", ex);
-          throw;
-        }
-      }
-    }
-
-    private static AbilityManager CreateAbilityManagerForPlayer(AnimPlayer animPlayer, Mod mod, Type managerType, IEnumerable<Type> abilityTypes) {
-      AbilityManager manager = (AbilityManager)Activator.CreateInstance(managerType);
-      manager.mod = mod;
-      manager.animPlayer = animPlayer;
-      manager.player = animPlayer.player;
-
-      if (manager.Autoload) {
-        var list = new List<Ability>();
-        foreach (Type abilityType in abilityTypes) {
-          if (AutoloadAbility(abilityType, manager, out Ability ability))
-            list.Add(ability);
-        }
-
-        list.Sort((a1, a2) => a1.Id.CompareTo(a2.Id));
-        manager.abilityArray = list.ToArray();
-      }
-
-      InitializeAbilityManager(manager);
-      return manager;
-    }
-
-    private static bool AutoloadAbility(Type abilityType, AbilityManager manager, out Ability ability) {
-      ability = (Ability)Activator.CreateInstance(abilityType);
-      ability.abilities = manager;
-      ability.player = manager.player;
-      return ability.Autoload;
-    }
-
-    private static void InitializeAbilityManager(AbilityManager manager) {
-      manager.Initialize();
-      // ReSharper disable once ConditionIsAlwaysTrueOrFalse, HeuristicUnreachableCode
-      if (manager.abilityArray is null) return;
-      foreach (Ability ability in manager.abilityArray) {
-        ability.Initialize();
-      }
     }
   }
 }

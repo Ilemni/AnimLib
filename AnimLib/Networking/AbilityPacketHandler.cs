@@ -1,6 +1,7 @@
 using System.IO;
 using System.Linq;
 using AnimLib.Abilities;
+using AnimLib.Extensions;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -26,7 +27,8 @@ namespace AnimLib.Networking {
       int modCount = reader.ReadLowestCast(ModNet.NetModCount);
       for (int i = 0; i < modCount; i++) {
         Mod mod = ModLoader.GetMod(reader.ReadString());
-        AbilityManager manager = fromPlayer.abilityManagers[mod];
+        AbilityManager manager = fromPlayer.characters[mod].abilityManager;
+        if (manager is null) continue;
         int abilityCount = reader.ReadLowestCast(manager.abilityArray.Length);
         for (int j = 0; j < abilityCount; j++) {
           int abilityId = reader.ReadLowestCast(manager.abilityArray.Length);
@@ -42,22 +44,27 @@ namespace AnimLib.Networking {
       ModPacket packet = GetPacket(fromWho);
       AnimPlayer fromPlayer = Main.player[fromWho].GetModPlayer<AnimPlayer>();
 
-      var modsToUpdate = (from pair in fromPlayer.abilityManagers
-        where pair.Value.netUpdate
+      var modsToUpdate = (from pair in fromPlayer.characters.dict
+        where pair.Value.abilityManager?.netUpdate ?? false
         select pair).ToList();
 
       packet.WriteLowestCast(modsToUpdate.Count, ModNet.NetModCount);
 
-      foreach (var pair in modsToUpdate) {
-        packet.Write(pair.Key.Name);
-        var abilitiesToUpdate = (from a in pair.Value
+      foreach ((Mod mod, AnimCharacter character) in modsToUpdate) {
+        packet.Write(mod.Name);
+        var abilities = character.abilityManager?.abilityArray;
+        var abilitiesToUpdate = (from a in abilities
           where a.netUpdate
           select a).ToList();
 
-        packet.WriteLowestCast(abilitiesToUpdate.Count, pair.Value.abilityArray.Length);
+        if (abilities is null) {
+          packet.Write((byte)0);
+          continue;
+        }
 
+        packet.WriteLowestCast(abilitiesToUpdate.Count, abilities.Length);
         foreach (Ability ability in abilitiesToUpdate) {
-          packet.WriteLowestCast(ability.Id, pair.Value.abilityArray.Length);
+          packet.WriteLowestCast(ability.Id, abilities.Length);
           ability.PreWritePacket(packet);
         }
       }

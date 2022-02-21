@@ -1,10 +1,11 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 using AnimLib.Abilities;
 using AnimLib.Animations;
+using AnimLib.Extensions;
 using AnimLib.Internal;
 using JetBrains.Annotations;
-using Terraria;
 using Terraria.DataStructures;
 using Terraria.ModLoader;
 using Animation = AnimLib.Animations.Animation;
@@ -47,25 +48,14 @@ namespace AnimLib {
     /// <param name="modPlayer">The <see cref="ModPlayer"/>.</param>
     /// <returns>An <see cref="AnimationController"/> of type <typeparamref name="T"/>.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="modPlayer"/> cannot be null.</exception>
+    /// <exception cref="ArgumentException">
+    /// The <see cref="Mod"/> in <paramref name="modPlayer"/> does not have an <see cref="AnimationController"/> of type <typeparamref name="T"/>.
+    /// </exception>
     [NotNull]
     public static T GetAnimationController<T>([NotNull] ModPlayer modPlayer) where T : AnimationController {
       if (modPlayer is null) throw new ArgumentNullException(nameof(modPlayer));
-      return modPlayer.player.GetModPlayer<AnimPlayer>().GetAnimationController<T>();
-    }
-
-    /// <summary>
-    /// Gets the <see cref="AnimationController"/> of the given type from the given <see cref="Player"/>.
-    /// Use this if you want your code to use values such as the current track and frame.
-    /// <para>This <strong>cannot</strong> be used during the <see cref="ModPlayer.Initialize"/> method.</para>
-    /// </summary>
-    /// <typeparam name="T">Type of <see cref="AnimationController"/> to get.</typeparam>
-    /// <param name="player">The <see cref="Player"/>.</param>
-    /// <returns>An <see cref="AnimationController"/> of type <typeparamref name="T"/>.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="player"/> cannot be null.</exception>
-    [NotNull]
-    public static T GetAnimationController<T>([NotNull] Player player) where T : AnimationController {
-      if (player is null) throw new ArgumentNullException(nameof(player));
-      return player.GetModPlayer<AnimPlayer>().GetAnimationController<T>();
+      AnimationController controller = modPlayer.GetAnimCharacter().animationController;
+      return controller is T t ? t : throw ThrowHelper.BadType<T>(controller, modPlayer.mod, nameof(T));
     }
 
     /// <summary>
@@ -98,24 +88,15 @@ namespace AnimLib {
     /// <param name="modPlayer">The <see cref="ModPlayer"/>.</param>
     /// <returns>An <see cref="AbilityManager"/> of type <typeparamref name="T"/>.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="modPlayer"/> cannot be null.</exception>
+    /// <exception cref="ArgumentException">
+    /// The <see cref="Mod"/> in <paramref name="modPlayer"/> does not have an <see cref="AbilityManager"/> of type <typeparamref name="T"/>.
+    /// </exception>
     [NotNull]
     public static T GetAbilityManager<T>([NotNull] ModPlayer modPlayer) where T : AbilityManager {
       if (modPlayer is null) throw new ArgumentNullException(nameof(modPlayer));
-      return modPlayer.player.GetModPlayer<AnimPlayer>().GetAbilityManager<T>();
+      AbilityManager manager = modPlayer.GetAnimCharacter().abilityManager;
+      return manager is T t ? t : throw ThrowHelper.BadType<T>(manager, modPlayer.mod, nameof(T));
     }
-
-    /// <summary>
-    /// Gets the <see cref="AbilityManager"/> of the given type from the given <see cref="Player"/>.
-    /// Use this if you want your code to access ability information.
-    /// <para>This <strong>cannot</strong> be used during the <see cref="ModPlayer.Initialize"/> method.</para>
-    /// </summary>
-    /// <typeparam name="T">Type of <see cref="AbilityManager"/> to get.</typeparam>
-    /// <param name="player">The <see cref="Player"/>.</param>
-    /// <returns>An <see cref="AbilityManager"/> of type <typeparamref name="T"/>.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="player"/> cannot be null.</exception>
-    public static T GetAbilityManager<T>(Player player) where T : AbilityManager =>
-      player?.GetModPlayer<AnimPlayer>().GetAbilityManager<T>()
-      ?? throw new ArgumentNullException(nameof(player));
 
 
     /// <summary>
@@ -134,7 +115,10 @@ namespace AnimLib {
     /// <returns>A <see cref="DrawData"/> that is ready to be drawn. Feel free to modify it.</returns>
     public static DrawData GetDrawData<TController, TSource>(PlayerDrawInfo drawInfo)
       where TController : AnimationController where TSource : AnimationSource {
-      AnimationController controller = GetAnimationController<TController>(drawInfo.drawPlayer);
+      AnimPlayer animPlayer = drawInfo.drawPlayer.GetModPlayer<AnimPlayer>();
+      Mod mod = AnimHelper.GetModFromController<TController>();
+      AnimationController controller = animPlayer.characters[mod].animationController;
+      Debug.Assert(controller != null);
       Animation anim = controller.GetAnimation<TSource>();
       return anim.GetDrawData(drawInfo);
     }

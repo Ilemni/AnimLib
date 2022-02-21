@@ -189,7 +189,8 @@ namespace AnimLib.Abilities {
     /// </summary>
     public void UnlockAllAbilities() {
       foreach (Ability ability in this) {
-        if (ability is ILevelable levelable) levelable.Level = levelable.MaxLevel;
+        if (ability is ILevelable levelable)
+          levelable.Level = levelable.MaxLevel;
       }
     }
 
@@ -198,7 +199,8 @@ namespace AnimLib.Abilities {
     /// </summary>
     public void ResetAllAbilities() {
       foreach (Ability ability in this) {
-        if (ability is ILevelable levelable) levelable.Level = 0;
+        if (ability is ILevelable levelable)
+          levelable.Level = 0;
       }
     }
     #endregion

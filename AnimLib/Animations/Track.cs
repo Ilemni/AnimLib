@@ -182,9 +182,7 @@ namespace AnimLib.Animations {
       }
 
       var frames = new List<IFrame>();
-      for (int y = start.tile.y; y < end.tile.y; y++) {
-        frames.Add(new Frame(start.tile.x, y, start.duration));
-      }
+      for (int y = start.tile.y; y < end.tile.y; y++) frames.Add(new Frame(start.tile.x, y, start.duration));
 
       frames.Add(end);
       Track track = new Track(loopMode, direction, frames.ToArray());

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using AnimLib.Extensions;
@@ -14,7 +14,7 @@ namespace AnimLib.Animations {
   /// This class plays various <see cref="Animation"/>s and manages advancement of frames.
   /// Your <see cref="AnimationController"/> is automatically created by <see cref="AnimLibMod"/> when a player is initialized.
   /// <para>For your mod, you must have exactly one class derived from <see cref="AnimationController"/>, else your player cannot be animated.</para>
-  /// <para>To get your <see cref="AnimationController"/> instance on the player, use <see cref="AnimLibMod.GetAnimationController{T}(Player)"/>.</para>
+  /// <para>To get your <see cref="AnimationController"/> instance on the player, use extension method <see cref="ModPlayerExtensions.GetAnimCharacter"/>.</para>
   /// </summary>
   /// <remarks>
   /// Alongside your <see cref="AnimationSource"/>s, that stores what animations are, such as their positions on spritesheets and duration,

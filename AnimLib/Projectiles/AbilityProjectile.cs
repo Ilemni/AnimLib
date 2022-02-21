@@ -35,7 +35,7 @@ namespace AnimLib.Projectiles {
     /// The <see cref="Ability"/> that this <see cref="AbilityProjectile"/> belongs to.
     /// </summary>
     public Ability ability {
-      get => _ability ?? (_ability = aPlayer.abilityManagers[mod][Id]);
+      get => _ability ?? (_ability = aPlayer.characters[mod].abilityManager?[Id]);
       internal set => _ability = value;
     }
   }
