@@ -35,7 +35,7 @@ namespace AnimLib {
         AnimLibMod.OnUnload += Unload;
       }
 
-      return Instance;
+      return _instance;
     }
 
     /// <summary>

@@ -93,7 +93,6 @@ namespace AnimLib.Abilities {
     /// The ability whose level is responsible for this abilities' level. By default, this ability.
     /// <para>Override this if this ability's <see cref="Level"/> is dependent on a different <see cref="Ability"/>'s <see cref="Level"/>.</para>
     /// </summary>
-    // ReSharper disable once SuspiciousTypeConversion.Global
     public virtual ILevelable levelableDependency => this as ILevelable;
     #endregion
 
@@ -183,8 +182,10 @@ namespace AnimLib.Abilities {
 
     #region Cooldown Management
     /// <summary>
-    /// Cooldown of the ability.
+    /// Cooldown of the ability. Indicates the amount of time, in frames, that must pass after ability activation before the ability can be used again.
+    /// This is <see langword="0"/> by default.
     /// </summary>
+    /// <seealso cref="RefreshCondition"/>
     public virtual int Cooldown => 0;
 
     /// <summary>
@@ -195,31 +196,44 @@ namespace AnimLib.Abilities {
     /// <summary>
     /// Whether or not the ability is currently on cooldown.
     /// </summary>
-    public bool IsOnCooldown => cooldownLeft > 0;
+    public bool IsOnCooldown { get; private set; }
 
     /// <summary>
     /// Set this ability on cooldown.
     /// </summary>
-    public virtual void StartCooldown() => cooldownLeft = Cooldown;
+    public virtual void StartCooldown() {
+      cooldownLeft = Cooldown;
+      IsOnCooldown = true;
+    }
 
     /// <summary>
     /// End the cooldown for this ability, making it ready to use.
     /// </summary>
     public void EndCooldown() {
       cooldownLeft = 0;
+      IsOnCooldown = false;
       OnRefreshed();
     }
 
     /// <summary>
-    /// Simple cooldown ticking. Can be overridden.
+    /// Simple cooldown updating. Can be overridden.
     /// </summary>
     public virtual void UpdateCooldown() {
-      if (cooldownLeft <= 0) return;
-      if (--cooldownLeft == 0) OnRefreshed();
+      if (!IsOnCooldown) return;
+      cooldownLeft--;
+      if (cooldownLeft <= 0 && RefreshCondition()) EndCooldown();
     }
 
     /// <summary>
-    /// Logic that executes when <see cref="cooldownLeft"/> reaches <see langword="0"/>.
+    /// Additional condition required for the ability to go off cooldown.
+    /// Return <see langword="false"/> during conditions where the ability should not go off cooldown.
+    /// Returns <see langword="true"/> by default.
+    /// </summary>
+    /// <returns></returns>
+    public virtual bool RefreshCondition() => true;
+
+    /// <summary>
+    /// Logic that executes immediately after <see cref="EndCooldown"/> is called.
     /// </summary>
     public void OnRefreshed() { }
     #endregion
@@ -329,13 +343,13 @@ namespace AnimLib.Abilities {
     #endregion
 
     #region Serializing
-    // ReSharper disable SuspiciousTypeConversion.Global
     /// <summary>
     /// Save data that is specific to this <see cref="Ability"/>.
     /// By default saves the ability's level, if it implements <see cref="ILevelable"/>.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>A <see cref="TagCompound"/> with data specific to this <see cref="Ability"/>.</returns>
     /// <seealso cref="Load"/>
+    [CanBeNull]
     public virtual TagCompound Save() {
       if (this is ILevelable levelable) {
         return new TagCompound {
@@ -352,10 +366,9 @@ namespace AnimLib.Abilities {
     /// </summary>
     /// <param name="tag">The tag to load ability data from.</param>
     /// <seealso cref="Save"/>
-    public virtual void Load(TagCompound tag) {
+    public virtual void Load([NotNull] TagCompound tag) {
       if (this is ILevelable levelable) levelable.Level = tag.GetInt(nameof(Level));
     }
-    // ReSharper restore SuspiciousTypeConversion.Global
     #endregion
 
     #region Misc
@@ -376,7 +389,6 @@ namespace AnimLib.Abilities {
 
       T modProjectile = (T)projectile.modProjectile;
       modProjectile.ability = this;
-      // ReSharper disable once SuspiciousTypeConversion.Global
       if (this is ILevelable levelable)
         modProjectile.level = levelable.Level;
       return modProjectile;
@@ -388,7 +400,6 @@ namespace AnimLib.Abilities {
     /// <returns>String with ID, name, level and max level, current time, and cooldown if applicable.</returns>
     public override string ToString() =>
       $"Ability ID:{Id} Name:{GetType().Name} " +
-      // ReSharper disable once SuspiciousTypeConversion.Global
       $"(Level {Level}{(this is ILevelable levelable ? $"/{levelable.MaxLevel}" : string.Empty)}) " +
       $"Player:{player.whoAmI} State:{state} " +
       $"Time:{stateTime} " +
