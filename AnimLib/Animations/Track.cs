@@ -259,7 +259,7 @@ namespace AnimLib.Animations {
       if (frameIndex < 0 || frameIndex >= length)
         throw new ArgumentOutOfRangeException(nameof(frameIndex), $"{nameof(frameIndex)} must be non-negative and less than the length of frames.");
       if (textures is null) textures = new SortedDictionary<int, Texture2D>();
-      textures[frameIndex] = ModContent.GetTexture(texturePath);
+      textures[frameIndex] = ModContent.Request<Texture2D>(texturePath).Value;
     }
   }
 }

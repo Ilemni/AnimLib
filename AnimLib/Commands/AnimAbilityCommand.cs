@@ -52,7 +52,7 @@ namespace AnimLib.Commands {
       if (!NextArg()) return Error("This command requires at least 2 arguments.");
       if (!AnimLoader.LoadedMods.Contains(targetMod)) return Error($"Mod {targetMod} does not use AnimLib.");
 
-      AbilityManager manager = player.characters[mod].abilityManager;
+      AbilityManager manager = player.characters[Mod].abilityManager;
       if (manager is null) return Error($"Mod {targetMod} does not have abilities.");
 
       Ability ability = null;

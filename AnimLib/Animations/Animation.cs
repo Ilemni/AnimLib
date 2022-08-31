@@ -121,10 +121,10 @@ namespace AnimLib.Animations {
     /// </remarks>
     /// <param name="drawInfo">Parameter of <see cref="PlayerLayer(string, string, System.Action{PlayerDrawInfo})"/>.</param>
     /// <returns>A <see cref="DrawData"/> based on this <see cref="Animation"/>.</returns>
-    public DrawData GetDrawData(PlayerDrawInfo drawInfo) {
+    public DrawData GetDrawData(PlayerDrawSet drawInfo) {
       Player player = drawInfo.drawPlayer;
       Texture2D texture = CurrentTexture;
-      Vector2 pos = drawInfo.position - Main.screenPosition + player.Size / 2;
+      Vector2 pos = drawInfo.Position - Main.screenPosition + player.Size / 2;
       Rectangle rect = CurrentTile;
       SpriteEffects effect = controller.Effects;
       Vector2 orig = new Vector2(rect.Width / 2f, rect.Height / 2f);
@@ -139,7 +139,7 @@ namespace AnimLib.Animations {
     /// <param name="layers">The <see cref="List{T}"/> of <see cref="PlayerLayer"/> to insert in.</param>
     /// <param name="playerLayer"><see cref="PlayerLayer"/> to use for this <see cref="Animation"/>.</param>
     /// <returns><see langword="true"/> if <paramref name="playerLayer"/> was inserted; otherwise, <see langword="false"/>.</returns>
-    public bool TryAddToLayers(List<PlayerLayer> layers, PlayerLayer playerLayer) {
+    public bool TryAddToLayers(List<PlayerDrawLayer> layers, PlayerDrawLayer playerLayer) {
       if (Valid) layers.Add(playerLayer);
       return Valid;
     }
@@ -152,7 +152,7 @@ namespace AnimLib.Animations {
     /// <param name="playerLayer"><see cref="PlayerLayer"/> to use for this <see cref="Animation"/>.</param>
     /// <param name="idx">Position to insert the <paramref name="playerLayer"/> into.</param>
     /// <returns><see langword="true"/> if <paramref name="playerLayer"/> was inserted; otherwise, <see langword="false"/>.</returns>
-    public bool TryAddToLayers(List<PlayerLayer> layers, PlayerLayer playerLayer, int idx) {
+    public bool TryAddToLayers(List<PlayerDrawLayer> layers, PlayerDrawLayer playerLayer, int idx) {
       if (Valid) layers.Insert(idx, playerLayer);
       return Valid;
     }

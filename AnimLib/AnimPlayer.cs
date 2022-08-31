@@ -70,8 +70,10 @@ namespace AnimLib {
         abilityNetUpdate = false;
       }
     }
+    //???
+    public override void clientClone(ModPlayer clientClone) => base.clientClone(clientClone);
 
-    private void SendAbilityChanges() => ModNetHandler.Instance.abilityPacketHandler.SendPacket(255, player.whoAmI);
+    private void SendAbilityChanges() => ModNetHandler.Instance.abilityPacketHandler.SendPacket(255, Player.whoAmI);
 
     /// <summary>
     /// Updates the <see cref="AnimCharacterCollection.ActiveCharacter"/>.
@@ -100,21 +102,19 @@ namespace AnimLib {
     /// This is set up so that player ability data is not lost if the mod author changes AutoSave from false to true.
     /// </remarks>
     /// <seealso cref="AbilityManager.AutoSave">AbilityManager.AutoSave</seealso>
-    public override TagCompound Save() {
-      TagCompound allAbilitiesTag = new TagCompound();
-      foreach ((Mod aMod, AnimCharacter character) in characters) allAbilitiesTag[aMod.Name] = character.abilityManager?.Save();
+    public override void SaveData(TagCompound tag)/* tModPorter Suggestion: Edit tag parameter instead of returning new TagCompound */
+        {
+            TagCompound allAbilitiesTag = new TagCompound();
+            foreach ((Mod aMod, AnimCharacter character) in characters) allAbilitiesTag[aMod.Name] = character.abilityManager?.Save();
 
-      if (_unloadedModTags != null)
-        foreach ((string modName, TagCompound tag) in _unloadedModTags)
-          allAbilitiesTag[modName] = tag;
+        if (_unloadedModTags != null)
+            foreach ((string modName, TagCompound _utag) in _unloadedModTags)
+                allAbilitiesTag[modName] = _utag;
 
-      if (allAbilitiesTag.Count > 0) {
-        return new TagCompound {
-          [AllAbilityTagKey] = allAbilitiesTag
-        };
-      }
-
-      return null;
+        if (allAbilitiesTag.Count > 0)
+        {
+            tag[AllAbilityTagKey] = allAbilitiesTag;
+        }
     }
 
     /// <summary>
@@ -125,7 +125,7 @@ namespace AnimLib {
     /// <see cref="AbilityManager.AutoSave"/> will only prevent automatic loading of ability data.
     /// This is set up so that player ability data is not lost if the mod author changes AutoSave from false to true.
     /// </remarks>
-    public override void Load(TagCompound tag) {
+    public override void LoadData(TagCompound tag) {
       TagCompound allAbilitiesTag = tag.GetCompound(AllAbilityTagKey);
       if (allAbilitiesTag is null) return;
 
@@ -134,7 +134,7 @@ namespace AnimLib {
         if (!(value is TagCompound abilityTag)) continue;
         Mod aMod = ModLoader.GetMod(key);
         // Store unloaded data if mod not loaded, character collection missing mod, or character missing ability manager (mod removed implementation?) 
-        if (aMod is null || !characters.TryGetValue(mod, out AnimCharacter character) || character?.abilityManager == null) {
+        if (aMod is null || !characters.TryGetValue(Mod, out AnimCharacter character) || character?.abilityManager == null) {
           if (_unloadedModTags is null) _unloadedModTags = new Dictionary<string, TagCompound>();
           _unloadedModTags[key] = abilityTag;
         }

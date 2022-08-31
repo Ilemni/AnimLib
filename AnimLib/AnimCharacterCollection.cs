@@ -39,14 +39,12 @@ namespace AnimLib {
     public int Count => dict.Count;
 
     public bool CanEnable(AnimCharacter.Priority priority = AnimCharacter.Priority.Default) {
-      if (ActiveCharacter is null) return true;
-      switch (activePriority) {
-        case AnimCharacter.Priority.Lowest: return true;
-        case AnimCharacter.Priority.Default:
-        case AnimCharacter.Priority.High:
-        case AnimCharacter.Priority.Highest:
-        default: return priority > activePriority;
-      }
+      if (ActiveCharacter == null) return true;
+      return activePriority switch
+      {
+         AnimCharacter.Priority.Lowest => true,
+         _ => priority > activePriority,
+      };
     }
 
     /// <summary>
@@ -57,7 +55,7 @@ namespace AnimLib {
     /// <param name="priority"></param>
     internal void Enable([NotNull] AnimCharacter character, AnimCharacter.Priority priority) {
       AnimCharacter previous = ActiveCharacter;
-      if (!(previous is null)) {
+      if (previous is not null) {
         previous.Disable();
         // Set stack position of previous active char to most recent.
         characterStack.TryRemove(previous);

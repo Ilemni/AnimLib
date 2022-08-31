@@ -33,7 +33,7 @@ namespace AnimLib {
     private AnimCharacter wrapped;
 
     /// <inheritdoc/>
-    internal AnimCharacter(ModPlayer modPlayer) : this(modPlayer.player.GetModPlayer<AnimPlayer>(), modPlayer.mod) { }
+    internal AnimCharacter(ModPlayer modPlayer) : this(modPlayer.Player.GetModPlayer<AnimPlayer>(), modPlayer.Mod) { }
 
     internal AnimCharacter(AnimPlayer animPlayer, Mod mod) : this(
       animPlayer.characters.TryGetValue(mod, out AnimCharacter character)
@@ -268,31 +268,38 @@ namespace AnimLib {
     internal void Update() => abilityManager?.Update();
 
     internal void PostUpdate() {
-      if (abilityManager != null) {
-        try {
-          abilityManager.PostUpdate();
+        if (abilityManager is not null)
+        {
+            try 
+            {
+                abilityManager.PostUpdate();
+            }
+            catch (Exception ex)
+            {
+                Log.LogError($"[{abilityManager.mod.Name}:{abilityManager.GetType().UniqueTypeName()}]: Caught exception.", ex);
+                Main.NewText($"AnimLib -> {abilityManager.mod.Name}: Caught exception while updating abilities. See client.log for more information.", Color.Red);
+            }
         }
-        catch (Exception ex) {
-          Log.LogError($"[{abilityManager.mod.Name}:{abilityManager.GetType().UniqueTypeName()}]: Caught exception.", ex);
-          Main.NewText($"AnimLib -> {abilityManager.mod.Name}: Caught exception while updating abilities. See client.log for more information.", Color.Red);
-        }
-      }
 
-      if (animationController is null) return;
-      try {
-        if (animationController.PreUpdate()) animationController.Update();
-      }
-      catch (Exception ex) {
-        Log.LogError($"[{animationController.mod.Name}:{animationController.GetType().UniqueTypeName()}]: Caught exception.", ex);
-        Main.NewText($"AnimLib -> {animationController.mod.Name}: Caught exception while updating animations. See client.log for more information.", Color.Red);
-      }
+        if (animationController is not null)
+        {
+            try
+            {
+                if (animationController.PreUpdate()) animationController.Update();
+            }
+            catch (Exception ex)
+            {
+                Log.LogError($"[{animationController.mod.Name}:{animationController.GetType().UniqueTypeName()}]: Caught exception.", ex);
+                Main.NewText($"AnimLib -> {animationController.mod.Name}: Caught exception while updating animations. See client.log for more information.", Color.Red);
+            }
+        }
     }
 
     #region Constructor Methods
     internal static AnimationController TryCreateControllerForPlayer(AnimPlayer animPlayer, Mod mod, Type type) {
       try {
         AnimationController controller = (AnimationController)Activator.CreateInstance(type, true);
-        controller.player = animPlayer.player;
+        controller.player = animPlayer.Player;
         controller.mod = mod;
         controller.SetupAnimations();
         controller.Initialize();
@@ -308,10 +315,10 @@ namespace AnimLib {
       try {
         AbilityManager manager = (AbilityManager)Activator.CreateInstance(managerType);
         manager.animPlayer = animPlayer;
-        manager.player = animPlayer.player;
+        manager.player = animPlayer.Player;
         manager.mod = mod;
 
-        if (manager.Autoload && abilityTypes != null) AutoloadAbilities(manager, abilityTypes);
+        if (manager.Autoload && (abilityTypes is not null)) AutoloadAbilities(manager, abilityTypes);
 
         InitializeAbilityManager(manager);
         return manager;
@@ -341,11 +348,10 @@ namespace AnimLib {
       return ability.Autoload;
     }
 
-    private static void InitializeAbilityManager(AbilityManager manager) {
+    private static void InitializeAbilityManager(AbilityManager manager)
+    {
       manager.Initialize();
-      // ReSharper disable once ConditionIsAlwaysTrueOrFalse, HeuristicUnreachableCode
-      if (manager.abilityArray is null) return;
-      foreach (Ability ability in manager.abilityArray) ability.Initialize();
+      if (manager.abilityArray is not null) foreach (Ability ability in manager.abilityArray) ability.Initialize();
     }
     #endregion
   }

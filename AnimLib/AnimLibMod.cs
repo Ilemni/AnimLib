@@ -55,7 +55,7 @@ namespace AnimLib {
     public static T GetAnimationController<T>([NotNull] ModPlayer modPlayer) where T : AnimationController {
       if (modPlayer is null) throw new ArgumentNullException(nameof(modPlayer));
       AnimationController controller = modPlayer.GetAnimCharacter().animationController;
-      return controller is T t ? t : throw ThrowHelper.BadType<T>(controller, modPlayer.mod, nameof(T));
+      return controller is T t ? t : throw ThrowHelper.BadType<T>(controller, modPlayer.Mod, nameof(T));
     }
 
     /// <summary>
@@ -95,7 +95,7 @@ namespace AnimLib {
     public static T GetAbilityManager<T>([NotNull] ModPlayer modPlayer) where T : AbilityManager {
       if (modPlayer is null) throw new ArgumentNullException(nameof(modPlayer));
       AbilityManager manager = modPlayer.GetAnimCharacter().abilityManager;
-      return manager is T t ? t : throw ThrowHelper.BadType<T>(manager, modPlayer.mod, nameof(T));
+      return manager is T t ? t : throw ThrowHelper.BadType<T>(manager, modPlayer.Mod, nameof(T));
     }
 
 
@@ -113,7 +113,7 @@ namespace AnimLib {
     /// <typeparam name="TSource"> Your type of <see cref="AnimationSource"/>.</typeparam>
     /// <param name="drawInfo">The <see cref="PlayerDrawInfo"/> to get the <see cref="DrawData"/> from.</param>
     /// <returns>A <see cref="DrawData"/> that is ready to be drawn. Feel free to modify it.</returns>
-    public static DrawData GetDrawData<TController, TSource>(PlayerDrawInfo drawInfo)
+    public static DrawData GetDrawData<TController, TSource>(PlayerDrawSet drawInfo)
       where TController : AnimationController where TSource : AnimationSource {
       AnimPlayer animPlayer = drawInfo.drawPlayer.GetModPlayer<AnimPlayer>();
       Mod mod = AnimHelper.GetModFromController<TController>();
