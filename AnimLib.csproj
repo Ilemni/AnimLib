@@ -6,6 +6,9 @@
     <TargetFramework>net6.0</TargetFramework>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <LangVersion>latest</LangVersion>
+	<Description>Terraria library mod for enhanced animations and ability management. (1.4 port)</Description>
+	<RepositoryUrl>https://github.com/pl752/AnimLib</RepositoryUrl>
+	<RepositoryType>git</RepositoryType>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="2021.1.0" />
