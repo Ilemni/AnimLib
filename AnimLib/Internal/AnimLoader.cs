@@ -176,17 +176,20 @@ namespace AnimLib.Internal {
         return false;
       }
 
+      if (!ModContent.HasAsset(texturePath))
+        throw new MissingResourceException($"[{mod.Name}:{type.FullName}]: Error constructing {type.Name}: Invalid texture path \"{texturePath}\".");
+
+      var _t = ModContent.Request<Texture2D>(texturePath);
+
       if (source.tracks is null)
         throw new Exception($"[{mod.Name}:{type.FullName}]: Error constructing {type.Name}: Tracks cannot be null.");
 
       if (source.spriteSize.x == 0 || source.spriteSize.y == 0)
         throw new Exception($"[{mod.Name}:{type.FullName}]: Error constructing {type.Name}: Sprite Size cannot contain a value of 0.");
 
-      if (!ModContent.HasAsset(texturePath))
-        throw new MissingResourceException($"[{mod.Name}:{type.FullName}]: Error constructing {type.Name}: Invalid texture path \"{texturePath}\".");
-
       source.mod = mod;
-      source.texture = ModContent.Request<Texture2D>(texturePath).Value;
+      _t.Wait();
+      source.texture = _t.Value;
       return true;
     }
   }

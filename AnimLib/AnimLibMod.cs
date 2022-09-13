@@ -103,7 +103,7 @@ namespace AnimLib {
     /// Gets a <see cref="DrawData"/> from the given <see cref="PlayerDrawInfo"/>, based on your <see cref="AnimationController"/> and
     /// <see cref="AnimationSource"/>.
     /// <para>
-    /// This can be a quick way to get a <see cref="DrawData"/> that's ready to use for your <see cref="PlayerLayer"/>s.
+    /// This can be a quick way to get a <see cref="DrawData"/> that's ready to use for your <see cref="PlayerDrawLayer"/>s.
     /// For a more performant way of getting a <see cref="DrawData"/>, cache your <see cref="AnimationController"/> in your <see cref="ModPlayer"/>
     /// and <see cref="Animations.Animation"/> in your <see cref="AnimationController"/>, and use
     /// <see cref="Animations.Animation.GetDrawData(PlayerDrawInfo)"/>.
