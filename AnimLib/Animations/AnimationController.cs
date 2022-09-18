@@ -254,7 +254,7 @@ namespace AnimLib.Animations {
         FrameTime = 0;
       }
 
-      if (AnimPlayer.Local.DebugEnabled) {
+      if (AnimPlayer.Local?.DebugEnabled ?? false) {
         // TODO: replace Main.NewText spam with something better?
         Main.NewText($"Frame called: Tile [{MainAnimation.CurrentFrame.tile}], " +
                      $"{(MainAnimation.CurrentTrack.HasTextures ? $" {MainAnimation.CurrentTexture.Name}" : string.Empty)} " +

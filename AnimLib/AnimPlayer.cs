@@ -30,8 +30,9 @@ namespace AnimLib {
     internal static AnimPlayer Local {
       get {
         if (_local is null) {
+          if (Main.gameMenu) return null;
           _local = Main.LocalPlayer?.GetModPlayer<AnimPlayer>();
-          if (!(_local is null)) AnimLibMod.OnUnload += () => _local = null;
+          if (_local is not null) AnimLibMod.OnUnload += () => _local = null;
         }
 
         return _local;
