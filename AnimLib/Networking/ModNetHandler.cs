@@ -12,7 +12,7 @@ namespace AnimLib.Networking {
     private const byte AbilityState = 1;
 
     /// <inheritdoc cref="AbilityPacketHandler"/>
-    internal readonly AbilityPacketHandler abilityPacketHandler = new AbilityPacketHandler(AbilityState);
+    internal readonly AbilityPacketHandler abilityPacketHandler = new(AbilityState);
 
     private ModNetHandler() { }
 

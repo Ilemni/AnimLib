@@ -22,20 +22,20 @@ namespace AnimLib.Projectiles {
     /// The level of the <see cref="Ability"/> when this <see cref="AbilityProjectile"/> was created.
     /// </summary>
     public int level {
-      get => (int)projectile.ai[0];
-      set => projectile.ai[0] = value;
+      get => (int)Projectile.ai[0];
+      set => Projectile.ai[0] = value;
     }
 
     /// <summary>
     /// THe <see cref="AnimPlayer"/> that this <see cref="AbilityProjectile"/> belongs to.
     /// </summary>
-    internal AnimPlayer aPlayer => _aPlayer ?? (_aPlayer = Main.player[projectile.owner].GetModPlayer<AnimPlayer>());
+    internal AnimPlayer aPlayer => _aPlayer ?? (_aPlayer = Main.player[Projectile.owner].GetModPlayer<AnimPlayer>());
 
     /// <summary>
     /// The <see cref="Ability"/> that this <see cref="AbilityProjectile"/> belongs to.
     /// </summary>
     public Ability ability {
-      get => _ability ?? (_ability = aPlayer.characters[mod].abilityManager?[Id]);
+      get => _ability ?? (_ability = aPlayer.characters[Mod].abilityManager?[Id]);
       internal set => _ability = value;
     }
   }

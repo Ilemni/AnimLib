@@ -58,7 +58,7 @@ namespace AnimLib.Abilities {
     /// <summary>
     /// Whether or not you want this ability to be automatically loaded. This only matters if <see cref="AbilityManager.Autoload"/> is also true.
     /// </summary>
-    public virtual bool Autoload => mod.Properties.Autoload;
+    public virtual bool Autoload => mod.ContentAutoloadingEnabled;
 
     /// <summary>
     /// Id of the ability. This should be a unique number that is different from other ability types.
@@ -385,9 +385,9 @@ namespace AnimLib.Abilities {
     public T NewAbilityProjectile<T>(Vector2 offset = default, Vector2 velocity = default, int damage = 0, float knockBack = 0)
       where T : AbilityProjectile {
       int type = ModContent.ProjectileType<T>();
-      Projectile projectile = Projectile.NewProjectileDirect(player.Center + offset, velocity, type, damage, knockBack, player.whoAmI);
+      Projectile projectile = Projectile.NewProjectileDirect(player.GetSource_FromThis(), player.Center + offset, velocity, type, damage, knockBack, player.whoAmI);
 
-      T modProjectile = (T)projectile.modProjectile;
+      T modProjectile = (T)projectile.ModProjectile;
       modProjectile.ability = this;
       if (this is ILevelable levelable)
         modProjectile.level = levelable.Level;

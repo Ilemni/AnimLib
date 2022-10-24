@@ -92,7 +92,7 @@ namespace AnimLib.Abilities {
     /// <para>Set to false if you wish to construct all abilities yourself.</para>
     /// <para>By default this returns the mod's autoload property.</para>
     /// </summary>
-    public virtual bool Autoload => mod.Properties.Autoload;
+    public virtual bool Autoload => mod.ContentAutoloadingEnabled;
 
     /// <summary>
     /// Whether or not to automatically save ability data during <see cref="ModPlayer.Save"/>.

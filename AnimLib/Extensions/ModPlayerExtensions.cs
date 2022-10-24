@@ -16,8 +16,8 @@ namespace AnimLib.Extensions {
     /// <returns>The <see cref="AnimCharacter"/> instance of <paramref name="modPlayer"/> for your <see cref="Mod"/></returns>
     [NotNull]
     public static AnimCharacter GetAnimCharacter(this ModPlayer modPlayer) {
-      AnimPlayer animPlayer = modPlayer.player.GetModPlayer<AnimPlayer>();
-      return animPlayer.characters.TryGetValue(modPlayer.mod, out AnimCharacter c) ? c : throw ThrowHelper.NoType(modPlayer.mod);
+      AnimPlayer animPlayer = modPlayer.Player.GetModPlayer<AnimPlayer>();
+      return animPlayer.characters.TryGetValue(modPlayer.Mod, out AnimCharacter c) ? c : throw ThrowHelper.NoType(modPlayer.Mod);
     }
 
     /// <summary>

@@ -258,8 +258,10 @@ namespace AnimLib.Animations {
     public void SetTextureAtFrameIndex(string texturePath, int frameIndex) {
       if (frameIndex < 0 || frameIndex >= length)
         throw new ArgumentOutOfRangeException(nameof(frameIndex), $"{nameof(frameIndex)} must be non-negative and less than the length of frames.");
+      var texture = ModContent.Request<Texture2D>(texturePath);
       if (textures is null) textures = new SortedDictionary<int, Texture2D>();
-      textures[frameIndex] = ModContent.GetTexture(texturePath);
+      texture.Wait();
+      textures[frameIndex] = texture.Value;
     }
   }
 }
