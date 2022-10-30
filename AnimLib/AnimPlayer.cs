@@ -1,9 +1,8 @@
-using System.Collections.Generic;
 using AnimLib.Abilities;
 using AnimLib.Animations;
-using AnimLib.Extensions;
 using AnimLib.Networking;
 using JetBrains.Annotations;
+using System.Collections.Generic;
 using Terraria;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
@@ -25,7 +24,9 @@ namespace AnimLib {
     /// </summary>
     private Dictionary<string, TagCompound> _unloadedModTags;
 
-    internal AnimCharacterCollection characters;
+    internal AnimCharacterCollection characters =>
+      _characters ?? (_characters = new AnimCharacterCollection(this));
+    private AnimCharacterCollection _characters;
 
     internal static AnimPlayer Local {
       get {
@@ -62,7 +63,7 @@ namespace AnimLib {
     /// <summary>
     /// Constructs and collects all <see cref="AnimationController"/>s across all mods onto this <see cref="Player"/>.
     /// </summary>
-    public override void Initialize() => characters = new AnimCharacterCollection(this);
+    public override void Initialize() => _characters = new AnimCharacterCollection(this);
 
     /// <inheritdoc/>
     public override void SendClientChanges(ModPlayer clientPlayer) {
@@ -105,17 +106,16 @@ namespace AnimLib {
     /// <seealso cref="AbilityManager.AutoSave">AbilityManager.AutoSave</seealso>
     public override void SaveData(TagCompound tag)/* tModPorter Suggestion: Edit tag parameter instead of returning new TagCompound */
         {
-            TagCompound allAbilitiesTag = new TagCompound();
-            foreach ((Mod aMod, AnimCharacter character) in characters) allAbilitiesTag[aMod.Name] = character.abilityManager?.Save();
+      TagCompound allAbilitiesTag = new TagCompound();
+      foreach ((Mod aMod, AnimCharacter character) in characters) allAbilitiesTag[aMod.Name] = character.abilityManager?.Save();
 
-        if (_unloadedModTags != null)
-            foreach ((string modName, TagCompound _utag) in _unloadedModTags)
-                allAbilitiesTag[modName] = _utag;
+      if (_unloadedModTags != null)
+        foreach ((string modName, TagCompound _utag) in _unloadedModTags)
+          allAbilitiesTag[modName] = _utag;
 
-        if (allAbilitiesTag.Count > 0)
-        {
-            tag[AllAbilityTagKey] = allAbilitiesTag;
-        }
+      if (allAbilitiesTag.Count > 0) {
+        tag[AllAbilityTagKey] = allAbilitiesTag;
+      }
     }
 
     /// <summary>

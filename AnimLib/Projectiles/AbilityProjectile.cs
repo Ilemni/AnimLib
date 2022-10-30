@@ -29,7 +29,7 @@ namespace AnimLib.Projectiles {
     /// <summary>
     /// THe <see cref="AnimPlayer"/> that this <see cref="AbilityProjectile"/> belongs to.
     /// </summary>
-    internal AnimPlayer aPlayer => _aPlayer ?? (_aPlayer = Main.player[Projectile.owner].GetModPlayer<AnimPlayer>());
+    public AnimPlayer aPlayer => _aPlayer ?? (_aPlayer = Main.player[Projectile.owner].GetModPlayer<AnimPlayer>());
 
     /// <summary>
     /// The <see cref="Ability"/> that this <see cref="AbilityProjectile"/> belongs to.

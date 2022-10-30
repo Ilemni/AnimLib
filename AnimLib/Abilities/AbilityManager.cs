@@ -142,6 +142,16 @@ namespace AnimLib.Abilities {
 
     #region Update logic
     /// <summary>
+    /// Physics update method
+    /// <para>Can be used for synchronized player movement modifications</para>
+    /// <para>
+    /// Is called even when 
+    /// <see cref="Ability.CanUseAnyAbilities"/> is false
+    /// </para>
+    /// </summary>
+    public virtual void PhysicsPreUpdate() { }
+
+    /// <summary>
     /// Update loop for abilities.
     /// <para>If unable to use abilities: disables all abilities.</para>
     /// <para>
@@ -151,6 +161,8 @@ namespace AnimLib.Abilities {
     /// </para>
     /// </summary>
     internal void Update() {
+      PhysicsPreUpdate();
+
       if (!CanUseAnyAbilities()) {
         DisableAllAbilities();
         return;

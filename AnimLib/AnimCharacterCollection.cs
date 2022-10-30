@@ -15,6 +15,7 @@ namespace AnimLib {
 
         characterStack = new CharStack<AnimCharacter>(mods.Count);
       }
+      foreach (var ch in this) ch.Value.characters = this; 
     }
 
     internal Dictionary<Mod, AnimCharacter> dict { get; } = new Dictionary<Mod, AnimCharacter>();
@@ -53,7 +54,7 @@ namespace AnimLib {
     /// </summary>
     /// <param name="character"></param>
     /// <param name="priority"></param>
-    internal void Enable([NotNull] AnimCharacter character, AnimCharacter.Priority priority) {
+    internal void Enable([NotNull] AnimCharacter character, AnimCharacter.Priority priority = AnimCharacter.Priority.Default) {
       AnimCharacter previous = ActiveCharacter;
       if (previous is not null) {
         previous.Disable();

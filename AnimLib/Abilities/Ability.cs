@@ -209,7 +209,7 @@ namespace AnimLib.Abilities {
     /// <summary>
     /// End the cooldown for this ability, making it ready to use.
     /// </summary>
-    public void EndCooldown() {
+    public virtual void EndCooldown() {
       cooldownLeft = 0;
       IsOnCooldown = false;
       OnRefreshed();
@@ -235,7 +235,7 @@ namespace AnimLib.Abilities {
     /// <summary>
     /// Logic that executes immediately after <see cref="EndCooldown"/> is called.
     /// </summary>
-    public void OnRefreshed() { }
+    public virtual void OnRefreshed() { }
     #endregion
 
     #region Update

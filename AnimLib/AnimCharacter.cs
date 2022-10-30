@@ -63,11 +63,11 @@ namespace AnimLib {
     /// <inheritdoc cref="AnimCharacter.IsActive"/>
     public bool IsActive => wrapped.IsActive;
 
-    /// <inheritdoc cref="AnimCharacter.Enable(AnimCharacter.Priority)"/>
-    public void Enable(AnimCharacter.Priority priority = AnimCharacter.Priority.Default) => wrapped.Enable(priority);
+    /// <inheritdoc cref="AnimCharacter.TryEnable(AnimCharacter.Priority)"/>
+    public void TryEnable(AnimCharacter.Priority priority = AnimCharacter.Priority.Default) => wrapped.TryEnable(priority);
 
     /// <inheritdoc cref="AnimCharacter.Disable"/>
-    public void Disable() => wrapped.Disable();
+    public void TryDisable() => wrapped.TryDisable();
 
     /// <inheritdoc cref="AnimCharacter.OnEnable"/>
     public event Action OnEnable {
@@ -142,7 +142,6 @@ namespace AnimLib {
       if (hasManager || hasAbilities) abilityManager = CreateAbilityManagerForPlayer(animPlayer, mod, managerType ?? typeof(AbilityManager), abilityTypes);
 
       this.mod = mod;
-      characters = animPlayer.characters;
     }
 
     /// <summary>
@@ -166,7 +165,7 @@ namespace AnimLib {
     /// </summary>
     [CanBeNull] public AbilityManager abilityManager { get; internal set; }
 
-    [NotNull] internal AnimCharacterCollection characters { get; private set; }
+    [NotNull] internal AnimCharacterCollection characters { get; set; }
 
 
     /// <summary>
@@ -218,7 +217,7 @@ namespace AnimLib {
     /// </summary>
     /// <param name="priority">The priority you would be using.</param>
     /// <returns></returns>
-    public bool CanEnable(Priority priority) => characters.CanEnable(priority);
+    public bool CanEnable(Priority priority) => characters?.CanEnable(priority) ?? false;
 
     /// <summary>
     /// Attempt to enable your character. Note that you may not be able to enable your character
@@ -241,7 +240,13 @@ namespace AnimLib {
     /// <summary>
     /// Disable your character.
     /// </summary>
-    public void Disable() {
+    internal bool TryDisable() {
+      if(!IsEnabled) return false;
+      characters.Disable(this);
+      return true;
+    }
+
+    internal void Disable() {
       IsEnabled = false;
       _onDisable?.Invoke();
     }
