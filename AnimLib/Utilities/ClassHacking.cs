@@ -11,7 +11,7 @@ namespace AnimLib.Utilities {
     public static Func<Tclass, Tout> GenerateGetter<Tout, Tclass>(FieldInfo field) {
       Type tclass = typeof(Tclass);
       DynamicMethod dm = new(
-        $"_Get{tclass.FullName}.{field.Name}__$AnimLibEnforced__",
+        $"_Get{tclass.FullName}.{field.Name}__$AnimLibEnforced__".Replace('.', '_'),
         typeof(Tout), new Type[] { tclass }, field.DeclaringType, true);
       ILGenerator generator = dm.GetILGenerator();
 
@@ -28,7 +28,7 @@ namespace AnimLib.Utilities {
     public static Action<Tclass, Tin> GenerateSetter<Tin, Tclass>(FieldInfo field) {
       Type tclass = typeof(Tclass);
       DynamicMethod dm = new(
-        $"_Set{tclass.FullName}.{field.Name}__$AnimLibEnforced__",
+        $"_Set{tclass.FullName}.{field.Name}__$AnimLibEnforced__".Replace('.', '_'),
         typeof(void), new Type[] { tclass, typeof(Tin) }, field.DeclaringType, true);
       ILGenerator generator = dm.GetILGenerator();
 
