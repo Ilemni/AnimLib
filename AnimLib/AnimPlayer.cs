@@ -25,7 +25,7 @@ namespace AnimLib {
     private Dictionary<string, TagCompound> _unloadedModTags;
 
     internal AnimCharacterCollection characters =>
-      _characters ?? (_characters = new AnimCharacterCollection(this));
+      _characters ??= new AnimCharacterCollection(this);
     private AnimCharacterCollection _characters;
 
     internal static AnimPlayer Local {
@@ -132,11 +132,11 @@ namespace AnimLib {
 
       // TODO: Consider serializing AnimCharacterCollection character enabled state.
       foreach ((string key, object value) in allAbilitiesTag) {
-        if (!(value is TagCompound abilityTag)) continue;
+        if (value is not TagCompound abilityTag) continue;
         Mod aMod = ModLoader.GetMod(key);
         // Store unloaded data if mod not loaded, character collection missing mod, or character missing ability manager (mod removed implementation?) 
         if (aMod is null || !characters.TryGetValue(Mod, out AnimCharacter character) || character?.abilityManager == null) {
-          if (_unloadedModTags is null) _unloadedModTags = new Dictionary<string, TagCompound>();
+          _unloadedModTags ??= new Dictionary<string, TagCompound>();
           _unloadedModTags[key] = abilityTag;
         }
         else {

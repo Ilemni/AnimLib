@@ -92,7 +92,7 @@ namespace AnimLib {
 
     public T Pop() {
       if (items.Count <= 0) return default;
-      T temp = items[items.Count - 1];
+      T temp = items[^1];
       items.RemoveAt(items.Count - 1);
       return temp;
     }

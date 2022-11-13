@@ -30,7 +30,7 @@ namespace AnimLib {
   /// <typeparam name="TAbility">Your type of <see cref="AbilityManager"/></typeparam>
   [PublicAPI]
   public class AnimCharacter<TAnimation, TAbility> where TAnimation : AnimationController where TAbility : AbilityManager {
-    private AnimCharacter wrapped;
+    private readonly AnimCharacter wrapped;
 
     /// <inheritdoc/>
     internal AnimCharacter(ModPlayer modPlayer) : this(modPlayer.Player.GetModPlayer<AnimPlayer>(), modPlayer.Mod) { }
@@ -46,8 +46,8 @@ namespace AnimLib {
     /// <param name="wrapped"></param>
     /// <exception cref="ArgumentException">Either the wrapped <see cref="AnimationController"/> or <see cref="AbilityManager"/> are not of the specified types.</exception>
     public AnimCharacter(AnimCharacter wrapped) {
-      if (!(wrapped.animationController is TAnimation)) throw ThrowHelper.BadType<TAnimation>(wrapped.animationController, wrapped.mod);
-      if (!(wrapped.abilityManager is TAbility)) throw ThrowHelper.BadType<TAbility>(wrapped.abilityManager, wrapped.mod);
+      if (wrapped.animationController is not TAnimation) throw ThrowHelper.BadType<TAnimation>(wrapped.animationController, wrapped.mod);
+      if (wrapped.abilityManager is not TAbility) throw ThrowHelper.BadType<TAbility>(wrapped.abilityManager, wrapped.mod);
       this.wrapped = wrapped;
     }
 
@@ -86,7 +86,7 @@ namespace AnimLib {
     /// </summary>
     /// <param name="animCharacter"></param>
     /// <returns></returns>
-    public static explicit operator AnimCharacter<TAnimation, TAbility>(AnimCharacter animCharacter) => new AnimCharacter<TAnimation, TAbility>(animCharacter);
+    public static explicit operator AnimCharacter<TAnimation, TAbility>(AnimCharacter animCharacter) => new(animCharacter);
 
     /// <summary>
     /// Unwraps the generic <see cref="AnimCharacter{T, T}"/> to its non-generic <see cref="AnimCharacter"/> instance.
@@ -199,8 +199,7 @@ namespace AnimLib {
     /// <typeparam name="TAbility">Your type of <see cref="AbilityManager"/></typeparam>
     /// <returns></returns>
     [NotNull]
-    public AnimCharacter<TAnimation, TAbility> As<TAnimation, TAbility>() where TAnimation : AnimationController where TAbility : AbilityManager =>
-      new AnimCharacter<TAnimation, TAbility>(this);
+    public AnimCharacter<TAnimation, TAbility> As<TAnimation, TAbility>() where TAnimation : AnimationController where TAbility : AbilityManager => new(this);
 
     /// <summary>
     /// Cast this <see cref="AnimCharacter"/> to <see cref="AnimCharacter{T}"/>.
@@ -208,8 +207,7 @@ namespace AnimLib {
     /// <typeparam name="TAnimation">Your type of <see cref="AnimationController"/>.</typeparam>
     /// <returns></returns>
     [NotNull]
-    public AnimCharacter<TAnimation> As<TAnimation>() where TAnimation : AnimationController =>
-      new AnimCharacter<TAnimation>(this);
+    public AnimCharacter<TAnimation> As<TAnimation>() where TAnimation : AnimationController => new(this);
 
     /// <summary>
     /// Returns a value representing whether or not you are able to enable the character at this time.

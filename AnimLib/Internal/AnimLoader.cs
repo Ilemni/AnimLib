@@ -53,7 +53,7 @@ namespace AnimLib.Internal {
     public static bool HasMods => (modAnimationControllerTypeDictionary?.Count ?? 0) + (modAbilityTypeDictionary?.Count ?? 0) != 0;
 
     public static List<Mod> LoadedMods =>
-      _loadedMods ?? (_loadedMods = modAnimationControllerTypeDictionary.Keys.Union(modAbilityManagerTypeDictionary.Keys).ToList());
+      _loadedMods ??= modAnimationControllerTypeDictionary.Keys.Union(modAbilityManagerTypeDictionary.Keys).ToList();
 
     public static bool GetLoadedMods(out List<Mod> loadedMods) => (loadedMods = HasMods ? LoadedMods : null) != null;
 
@@ -149,7 +149,7 @@ namespace AnimLib.Internal {
       result = null;
       foreach (Type type in types) {
         if (!type.IsSubclassOf(typeof(AnimationController))) continue;
-        if (!(result is null)) {
+        if (result is not null) {
           throw new CustomModDataException(mod, $"Cannot have more than one {nameof(AnimationController)} per mod.",
             null);
         }
@@ -206,7 +206,7 @@ namespace AnimLib.Internal {
       type = null;
       foreach (Type t in types) {
         if (!t.IsSubclassOf(typeof(AbilityManager))) continue;
-        if (!(type is null)) throw new CustomModDataException(mod, $"Cannot have more than one {nameof(AbilityManager)} per mod.", null);
+        if (type is not null) throw new CustomModDataException(mod, $"Cannot have more than one {nameof(AbilityManager)} per mod.", null);
 
         Log.LogInfo($"[{mod.Name}]: Collected {nameof(AbilityManager)} \"{t.UniqueTypeName()}\"");
         type = t;

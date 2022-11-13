@@ -20,7 +20,7 @@ namespace AnimLib {
     /// Creates a new instance of <see cref="AnimLibMod"/>.
     /// </summary>
     public AnimLibMod() {
-      if (Instance is null) Instance = this;
+      Instance ??= this;
     }
 
     /// <summary>
