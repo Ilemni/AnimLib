@@ -8,7 +8,7 @@ namespace AnimLib.Utilities {
     /// <summary>
     /// Allows you to generate getter for any (including nonpublic) member of class
     /// </summary>
-    public static Func<Tclass, Tout> GenerateGetter<Tout, Tclass>(FieldInfo field) {
+    public static Func<Tclass, Tout> GenerateGetter<Tclass, Tout>(FieldInfo field) {
       Type tclass = typeof(Tclass);
       DynamicMethod dm = new(
         $"_Get{tclass.FullName}.{field.Name}__$AnimLibEnforced__".Replace('.', '_'),
@@ -25,7 +25,7 @@ namespace AnimLib.Utilities {
     /// <summary>
     /// Allows you to generate setter for any (including nonpublic) member of class
     /// </summary>
-    public static Action<Tclass, Tin> GenerateSetter<Tin, Tclass>(FieldInfo field) {
+    public static Action<Tclass, Tin> GenerateSetter<Tclass, Tin>(FieldInfo field) {
       Type tclass = typeof(Tclass);
       DynamicMethod dm = new(
         $"_Set{tclass.FullName}.{field.Name}__$AnimLibEnforced__".Replace('.', '_'),

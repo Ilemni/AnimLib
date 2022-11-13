@@ -14,15 +14,15 @@ namespace AnimLib.Extensions {
 
     static ArmorShaderDataGetSet() {
       Type _type = typeof(ArmorShaderData);
-      _uColor = ClassHacking.GenerateGetter<Vector3, ArmorShaderData>(
+      _uColor = ClassHacking.GenerateGetter<ArmorShaderData, Vector3>(
         _type.GetField("_uColor", BindingFlags.Instance | BindingFlags.NonPublic));
-      _uSecondaryColor = ClassHacking.GenerateGetter<Vector3, ArmorShaderData>(
+      _uSecondaryColor = ClassHacking.GenerateGetter<ArmorShaderData, Vector3>(
         _type.GetField("_uSecondaryColor", BindingFlags.Instance | BindingFlags.NonPublic));
-      _uSaturation = ClassHacking.GenerateGetter<float, ArmorShaderData>(
+      _uSaturation = ClassHacking.GenerateGetter<ArmorShaderData, float>(
         _type.GetField("_uSaturation", BindingFlags.Instance | BindingFlags.NonPublic));
-      _uOpacity = ClassHacking.GenerateGetter<float, ArmorShaderData>(
+      _uOpacity = ClassHacking.GenerateGetter<ArmorShaderData, float>(
         _type.GetField("_uOpacity", BindingFlags.Instance | BindingFlags.NonPublic));
-      _uTargetPosition = ClassHacking.GenerateGetter<Vector2, ArmorShaderData>(
+      _uTargetPosition = ClassHacking.GenerateGetter<ArmorShaderData, Vector2>(
         _type.GetField("_uTargetPosition", BindingFlags.Instance | BindingFlags.NonPublic));
     }
 
