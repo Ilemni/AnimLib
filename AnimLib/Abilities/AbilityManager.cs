@@ -21,7 +21,7 @@ namespace AnimLib.Abilities {
     /// <returns>The <see cref="Ability"/> of type <typeparamref name="T"/>.</returns>
     /// <exception cref="ArgumentException"><typeparamref name="T"/> does not belong to this <see cref="mod"/></exception>
     public T Get<T>() where T : Ability =>
-      abilityArray.FirstOrDefault(a => a is T) as T
+      (T)abilityArray.FirstOrDefault(a => a is T)
       ?? throw new ArgumentException($"{typeof(T).Name} does not belong to {mod}");
 
     #region Properties - Common

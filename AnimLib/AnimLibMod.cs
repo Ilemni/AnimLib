@@ -74,7 +74,7 @@ namespace AnimLib {
       if (!AnimLoader.AnimationSources.TryGetValue(mod, out var sources))
         throw new ArgumentException($"The mod {mod.Name} does not have any {nameof(AnimationSource)}s loaded.");
 
-      return sources.FirstOrDefault(s => s is T) as T
+      return (T)sources.FirstOrDefault(s => s is T)
              ?? throw new ArgumentException($"{typeof(T)} does not belong to {mod.Name}");
     }
 
