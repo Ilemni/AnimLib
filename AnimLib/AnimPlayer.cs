@@ -88,7 +88,7 @@ namespace AnimLib {
       }
     }
     //???
-    public override void clientClone(ModPlayer clientClone) => base.clientClone(clientClone);
+    public override void CopyClientState(ModPlayer targetCopy) => base.CopyClientState(targetCopy);
 
     private void SendAbilityChanges() => ModNetHandler.Instance.abilityPacketHandler.SendPacket(255, Player.whoAmI);
 
