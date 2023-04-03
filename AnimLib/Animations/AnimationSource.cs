@@ -61,13 +61,13 @@ namespace AnimLib.Animations {
     /// <inheritdoc cref="Frame(int, int, int)"/>
     /// </summary>
     /// <inheritdoc cref="Frame(int, int, int)"/>
-    protected static Frame F(int x, int y, int duration = 0) => new Frame((byte)x, (byte)y, (ushort)duration);
+    protected static Frame F(int x, int y, int duration = 0) => new((byte)x, (byte)y, (ushort)duration);
 
     /// <summary>
     /// <para>Shorthand for <see cref="SwitchTextureFrame(byte, byte, ushort, string)"/>. Use this to switch the texture at this frame.</para>
     /// <inheritdoc cref="SwitchTextureFrame(byte, byte, ushort, string)"/>
     /// </summary>
     /// <inheritdoc cref="SwitchTextureFrame(byte, byte, ushort, string)"/>
-    protected static SwitchTextureFrame F(string texturePath, int x, int y, int duration = 0) => new SwitchTextureFrame(x, y, duration, texturePath);
+    protected static SwitchTextureFrame F(string texturePath, int x, int y, int duration = 0) => new(x, y, duration, texturePath);
   }
 }

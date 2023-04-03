@@ -72,7 +72,8 @@ namespace AnimLib {
         abilityNetUpdate = false;
       }
     }
-    //???
+
+    // TODO: Consider thinking about standartizing network operations for abilities.
     public override void CopyClientState(ModPlayer targetCopy) => base.CopyClientState(targetCopy);
 
     private void SendAbilityChanges() => ModNetHandler.Instance.abilityPacketHandler.SendPacket(255, Player.whoAmI);
@@ -106,7 +107,7 @@ namespace AnimLib {
     /// <seealso cref="AbilityManager.AutoSave">AbilityManager.AutoSave</seealso>
     public override void SaveData(TagCompound tag)/* tModPorter Suggestion: Edit tag parameter instead of returning new TagCompound */
         {
-      TagCompound allAbilitiesTag = new TagCompound();
+      TagCompound allAbilitiesTag = new();
       foreach ((Mod aMod, AnimCharacter character) in characters) allAbilitiesTag[aMod.Name] = character.abilityManager?.Save();
 
       if (_unloadedModTags != null)

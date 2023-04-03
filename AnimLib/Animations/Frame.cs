@@ -51,6 +51,6 @@ namespace AnimLib.Animations {
     public override string ToString() => $"x:{tile.x}, y:{tile.y}, duration:{duration}";
 
     /// <inheritdoc cref="Frame(byte, byte, ushort)"/>
-    public static explicit operator Frame(SwitchTextureFrame stf) => new Frame(stf.tile.x, stf.tile.y, stf.duration);
+    public static explicit operator Frame(SwitchTextureFrame stf) => new(stf.tile.x, stf.tile.y, stf.duration);
   }
 }
