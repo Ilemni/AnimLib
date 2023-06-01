@@ -268,7 +268,10 @@ namespace AnimLib {
     private event Action _onEnable;
     private event Action _onDisable;
 
-    internal void Update() => abilityManager?.Update();
+    internal void Update() {
+      animationController?.UpdateConditions();
+      abilityManager?.Update();
+    }
 
     internal void PostUpdate() {
         if (abilityManager is not null)
@@ -295,6 +298,7 @@ namespace AnimLib {
                 Log.LogError($"[{animationController.mod.Name}:{animationController.GetType().UniqueTypeName()}]: Caught exception.", ex);
                 Main.NewText($"AnimLib -> {animationController.mod.Name}: Caught exception while updating animations. See client.log for more information.", Color.Red);
             }
+            animationController.UpdateConditionsPost();
         }
     }
 

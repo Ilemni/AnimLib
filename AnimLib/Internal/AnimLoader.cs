@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AnimLib.Abilities;
 using AnimLib.Animations;
+using AnimLib.Compat;
 using AnimLib.Extensions;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
@@ -72,6 +73,7 @@ namespace AnimLib.Internal {
     /// </summary>
     internal static void Load() {
       AnimLibMod.OnUnload += Unload;
+      AnimLibMod.OnUnload += GlobalCompatConditions.Unload;
 
       AnimationSources = new Dictionary<Mod, AnimationSource[]>();
       modAnimationControllerTypeDictionary = new Dictionary<Mod, Type>();

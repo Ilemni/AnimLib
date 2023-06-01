@@ -121,6 +121,13 @@ namespace AnimLib.Abilities {
     }
 
     private bool _netUpdate;
+
+    /// <summary>
+    /// List names of <see cref="AnimCompatSystem"/>s active by default
+    /// in order to block their work, when <see cref="AnimCharacter"/>
+    /// with this <see cref="AnimationController"/> is active.
+    /// </summary>
+    public readonly HashSet<string> AnimCompatSystemBlocklist = new();
     #endregion
 
     #region Methods - Mod-defined
