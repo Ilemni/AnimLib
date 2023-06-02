@@ -10,6 +10,9 @@ using Terraria.ModLoader.IO;
 namespace AnimLib.Abilities {
   /// <summary>
   /// Class for containing and updating all <see cref="Ability"> Abilities </see> in a <see cref="Player"/>.
+  /// Consider saving data using your mod's modplayer SaveData and obtain abilities TagCompound using Save
+  /// Load ability levels getting the same compound from Save method from LoadData and provide it to
+  /// load method to load ability levels and etc
   /// </summary>
   [PublicAPI]
   [UsedImplicitly(ImplicitUseTargetFlags.WithInheritors)]
@@ -99,6 +102,7 @@ namespace AnimLib.Abilities {
     /// If <see langword="true"/>, this will save ability data in <see cref="AnimLibMod"/>.
     /// Set to <see langword="false"/> if you wish to save ability data in your own mod.
     /// </summary>
+    [Obsolete]
     public virtual bool AutoSave => true;
     #endregion
 
@@ -239,8 +243,16 @@ namespace AnimLib.Abilities {
         tag.Add(ability.GetType().Name, abilityTag);
       }
 
+      SaveCustomAbilityData(tag);
+
       return tag;
     }
+
+    /// <summary>
+    /// Allows to add additional data to tag compound for that ability manager
+    /// </summary>
+    /// <param name="tag"> An instance of <see cref="TagCompound"/> containing <see cref="Ability"/> save data. </param>
+    public virtual void SaveCustomAbilityData(TagCompound tag) { }
 
     /// <summary>
     /// Deserializes all <see cref="Ability"/> data from the given <see cref="TagCompound"/>.
@@ -253,7 +265,14 @@ namespace AnimLib.Abilities {
         TagCompound aTag = tag.Get<TagCompound>(name);
         ability.Load(aTag);
       }
+      LoadCustomAbilityData(tag);
     }
+
+    /// <summary>
+    /// Allows to get additional data from tag compound for that ability manager
+    /// </summary>
+    /// <param name="tag"> An instance of <see cref="TagCompound"/> containing <see cref="Ability"/> save data. </param>
+    public virtual void LoadCustomAbilityData(TagCompound tag) { }
     #endregion
   }
 }
