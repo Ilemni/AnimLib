@@ -142,7 +142,8 @@ namespace AnimLib {
     /// </remarks>
     [Obsolete]
     public override void LoadData(TagCompound tag) {
-      OldAbilities = tag.GetCompound(AllAbilityTagKey);
+      if(tag.ContainsKey(AllAbilityTagKey))
+        OldAbilities = tag.GetCompound(AllAbilityTagKey);
       //TagCompound allAbilitiesTag = tag.GetCompound(AllAbilityTagKey);
       //if (allAbilitiesTag is null) return;
 
