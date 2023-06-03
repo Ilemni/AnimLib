@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using AnimLib.Abilities;
 using AnimLib.Internal;
 using JetBrains.Annotations;
 using Microsoft.Xna.Framework;
-using Terraria;
 using Terraria.ModLoader;
 
 namespace AnimLib.Commands {
@@ -12,18 +13,18 @@ namespace AnimLib.Commands {
   internal class AnimAbilityCommand : ModCommand {
     public override string Command => "animability";
 
-    public override string Usage => "/animability <mod> <ability> [level]";
-    public override string Description => "Get or set the ability level.";
+    public override string Usage => "/animability <mod> [ability] [level]";
+    public override string Description => "Get a list of abilities in a mod, or get or set an ability's level.";
 
     public override CommandType Type => CommandType.Chat;
 
     public override void Action(CommandCaller caller, string input, string[] args) {
-      Message message = Action(caller, args);
-      Main.NewText(message.message, message.color);
+      var (message, color) = Action(caller, args);
+      caller.Reply(message, color);
     }
 
     [NotNull]
-    private Message Action(CommandCaller caller, IReadOnlyList<string> args) {
+    private (string message, Color color) Action(CommandCaller caller, IReadOnlyList<string> args) {
       int idx = 0;
       string arg = string.Empty;
 
@@ -35,29 +36,50 @@ namespace AnimLib.Commands {
 
       AnimPlayer player = caller.Player.GetModPlayer<AnimPlayer>();
       if (!player.DebugEnabled) return Error("This command cannot be used outside of debug mode.");
-      if (!AnimLoader.HasMods) return Error($"This command cannot be used when no mods are using {nameof(AnimLib)}.");
-      if (!NextArg()) return Error($"This command requires arguments. Usage: {Usage}");
+      if (!AnimLoader.GetLoadedMods(out var loadedMods)) return Warn($"No mods are using {nameof(AnimLib)}.");
+      
+      // "/animability" - List all mods that have abilities
+      if (!NextArg()) {
+        StringBuilder sb = new();
+        sb.AppendLine("Available Mods with Abilities:");
+        foreach (Mod mod in loadedMods.Where(mod => player.characters[mod].abilityManager is not null)) {
+          sb.AppendLine($"  {mod.Name} ({mod.DisplayName})");
+        }
 
-      Mod targetMod = ModLoader.GetMod(arg);
-      if (targetMod is null) {
-        // We'll allow not specifying mod only if exactly one mod is using AnimLib
-        AnimLoader.GetLoadedMods(out var loadedMod);
-        if (loadedMod.Count > 1) return Error($"Must specify mod when more than one mod is using {nameof(AnimLib)}.");
-
-        // Only one mod is loaded, command implicitly refers to that mod
-        targetMod = loadedMod[0];
-        idx--;
+        return SuccessWarn(sb.ToString());
       }
 
-      if (!NextArg()) return Error("This command requires at least 2 arguments.");
+      // "/animability [<mod>] ..." - Validate <mod>
+      if (!ModLoader.TryGetMod(arg, out Mod targetMod)) {
+        if (loadedMods.Count > 1) return Error($"Must specify mod when more than one mod is using {nameof(AnimLib)}.");
+
+        // Since only one mod is loaded, command implicitly refers to that mod
+        targetMod = loadedMods[0];
+        idx--;
+      }
+      
       if (!AnimLoader.LoadedMods.Contains(targetMod)) return Error($"Mod {targetMod} does not use AnimLib.");
 
-      AbilityManager manager = player.characters[Mod].abilityManager;
-      if (manager is null) return Error($"Mod {targetMod} does not have abilities.");
+      AbilityManager manager = player.characters[targetMod].abilityManager;
+      if (manager is null) return Error($"Mod {targetMod} uses AnimLib but does not have abilities.");
+      
+      // "/animability <mod>" - List all abilities in mod
+      if (!NextArg()) {
+        StringBuilder sb = new();
+        sb.AppendLine($"Available Abilities for {targetMod.Name} ({targetMod.DisplayName}):");
+        foreach (Ability a in manager.abilityArray) {
+          sb.Append($"[{a.Id}] {a.GetType().Name}: {(a.Unlocked ? "Unlocked" : "Locked")}");
+          if (a is ILevelable l) sb.Append($" at level {l.Level}/{l.MaxLevel}");
+          sb.AppendLine();
+        }
 
+        return SuccessWarn(sb.ToString());
+      }
+
+      // "/animability <mod> [<ability>] ..." - Validate <ability>
       Ability ability = null;
       if (int.TryParse(arg, out int id)) {
-        if (!manager.TryGet(id, out ability)) return Error("Specified ability ID is out of range.");
+        if (!manager.TryGet(id, out ability)) return Error($"Specified ability ID \"{id}\" is out of range.");
         ability = manager[id];
       }
       else {
@@ -68,39 +90,33 @@ namespace AnimLib.Commands {
           }
         }
 
-        if (ability is null) return Error($"\"{arg}\" is not a valid ability name.");
+        if (ability is null) return Error($"Specified ability name \"{arg}\" is not valid.");
       }
 
       ILevelable levelable = ability as ILevelable;
-      if (NextArg()) {
-        if (!int.TryParse(arg, out int level)) return Error("Argument must be a number.");
-        if (level < 0) return Error("Argument must be a positive number.");
-        if (levelable is null) return new Message($"{ability} cannot be leveled.");
-        levelable.Level = level;
-        return level > levelable.MaxLevel
-          ? SuccessWarn($"{ability.GetType().Name} level set to {levelable.Level}/{levelable.MaxLevel}. This level is above max level, and is not supported.")
-          : Success($"{ability.GetType().Name} level set to {levelable.Level}/{levelable.MaxLevel}.");
+      // "/animability <mod> <ability>" - Get ability level
+      if (!NextArg()) {
+        return Success(levelable is null
+          ? $"{ability.GetType().Name} [{ability.Id}] is currently {(ability.Unlocked ? "Unlocked" : "Locked")} "
+          : $"{ability.GetType().Name} [{ability.Id}] is currently {(ability.Unlocked ? "Unlocked" : "Locked")} at level {levelable.Level}/{levelable.MaxLevel}");
       }
 
-      return Success(levelable is null
-        ? $"{ability.GetType().Name} is currently {(ability.Unlocked ? "Unlocked" : "Locked")} "
-        : $"{ability.GetType().Name} is currently {(ability.Unlocked ? "Unlocked" : "Locked")} at level {levelable.Level}/{levelable.MaxLevel}");
+      // "/animability <mod> <ability> [<level>]" - Validate <level>
+      if (levelable is null) return Error($"Ability {ability} cannot be leveled.");
+      if (!int.TryParse(arg, out int level)) return Error($"Specified level \"{arg}\" must be a number.");
+      if (level < 0) return Error($"Specified level \"{level}\" must be a positive number.");
+      
+      // "/animability <mod> <ability> <level>" - Set ability level
+      levelable.Level = level;
+      return level > levelable.MaxLevel
+        ? SuccessWarn($"{ability.GetType().Name} [{ability.Id}] level set to {levelable.Level}/{levelable.MaxLevel}. This level is above max level, and is not supported.")
+        : Success($"{ability.GetType().Name} [{ability.Id}] level set to {levelable.Level}/{levelable.MaxLevel}.");
+
     }
 
-    private static Message Error(string message) => new Message(message, Color.Red);
-    private static Message SuccessWarn(string message) => new Message(message, Color.GreenYellow);
-    private static Message Success(string message) => new Message(message, Color.LightGreen);
-
-    private class Message {
-      public readonly Color color;
-
-      public readonly string message;
-      public Message(string message) : this(message, Color.White) { }
-
-      public Message(string message, Color color) {
-        this.message = message;
-        this.color = color;
-      }
-    }
+    private static (string message, Color color) Error(string message) => new(message, Color.Red);
+    private static (string message, Color color) Warn(string message) => new(message, Color.Yellow);
+    private static (string message, Color color) SuccessWarn(string message) => new(message, Color.GreenYellow);
+    private static (string message, Color color) Success(string message) => new(message, Color.LightGreen);
   }
 }
