@@ -102,7 +102,7 @@ namespace AnimLib.Commands {
       }
 
       // "/animability <mod> <ability> [<level>]" - Validate <level>
-      if (levelable is null) return Error($"Ability {ability} cannot be leveled.");
+      if (levelable is null) return Error($"Ability {ability.GetType().Name} cannot be leveled.");
       if (!int.TryParse(arg, out int level)) return Error($"Specified level \"{arg}\" must be a number.");
       if (level < 0) return Error($"Specified level \"{level}\" must be a positive number.");
       
