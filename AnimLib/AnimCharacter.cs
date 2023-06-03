@@ -64,10 +64,10 @@ namespace AnimLib {
     public bool IsActive => wrapped.IsActive;
 
     /// <inheritdoc cref="AnimCharacter.TryEnable(AnimCharacter.Priority)"/>
-    public void TryEnable(AnimCharacter.Priority priority = AnimCharacter.Priority.Default) => wrapped.TryEnable(priority);
+    public bool TryEnable(AnimCharacter.Priority priority = AnimCharacter.Priority.Default) => wrapped.TryEnable(priority);
 
     /// <inheritdoc cref="AnimCharacter.Disable"/>
-    public void TryDisable() => wrapped.TryDisable();
+    public bool TryDisable() => wrapped.TryDisable();
 
     /// <inheritdoc cref="AnimCharacter.OnEnable"/>
     public event Action OnEnable {
@@ -238,7 +238,7 @@ namespace AnimLib {
     /// <summary>
     /// Disable your character.
     /// </summary>
-    internal bool TryDisable() {
+    public bool TryDisable() {
       if(!IsEnabled) return false;
       characters.Disable(this);
       return true;
