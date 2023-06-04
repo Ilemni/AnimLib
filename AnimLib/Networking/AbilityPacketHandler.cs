@@ -34,6 +34,7 @@ namespace AnimLib.Networking {
           int abilityId = reader.ReadLowestCast(manager.abilityArray.Length);
           Ability ability = manager[abilityId];
           ability.PreReadPacket(reader);
+          if(Main.netMode == NetmodeID.Server) ability.netUpdate = true;
         }
       }
 
