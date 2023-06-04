@@ -38,7 +38,11 @@ namespace AnimLib.Networking {
         }
       }
 
-      if (Main.netMode == NetmodeID.Server) SendPacket(-1, fromWho);
+      if (Main.netMode == NetmodeID.Server)
+      {
+        SendPacket(-1, fromWho);
+        fromPlayer.abilityNetUpdate = false;
+      }
     }
 
     internal void SendPacket(int toWho, int fromWho) {
