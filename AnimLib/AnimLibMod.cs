@@ -1,12 +1,16 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using AnimLib.Abilities;
 using AnimLib.Animations;
 using AnimLib.Extensions;
 using AnimLib.Internal;
+using AnimLib.Networking;
 using JetBrains.Annotations;
+using Terraria;
 using Terraria.DataStructures;
+using Terraria.ID;
 using Terraria.ModLoader;
 using Animation = AnimLib.Animations.Animation;
 
@@ -20,7 +24,7 @@ namespace AnimLib {
     /// Creates a new instance of <see cref="AnimLibMod"/>.
     /// </summary>
     public AnimLibMod() {
-      if (Instance is null) Instance = this;
+      Instance ??= this;
     }
 
     /// <summary>
@@ -74,7 +78,7 @@ namespace AnimLib {
       if (!AnimLoader.AnimationSources.TryGetValue(mod, out var sources))
         throw new ArgumentException($"The mod {mod.Name} does not have any {nameof(AnimationSource)}s loaded.");
 
-      return sources.FirstOrDefault(s => s is T) as T
+      return (T)sources.FirstOrDefault(s => s is T)
              ?? throw new ArgumentException($"{typeof(T)} does not belong to {mod.Name}");
     }
 
@@ -138,6 +142,19 @@ namespace AnimLib {
       OnUnload?.Invoke();
       OnUnload = null;
       Instance = null;
+    }
+
+    public override void HandlePacket(BinaryReader reader, int whoAmI)
+    {
+      if (Main.netMode == NetmodeID.MultiplayerClient)
+      {
+        // If packet is sent TO server, it is FROM player.
+        // If packet is sent TO player, it is FROM server (This block) and fromWho is 255.
+        // Server-written packet includes the fromWho, the player that created it.
+        // Now in either case of this being server or player, the fromWho is the player.
+        whoAmI = reader.ReadUInt16();
+      }
+      ModNetHandler.Instance.HandlePacket(reader, whoAmI);
     }
   }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AnimLib.Compat;
 using AnimLib.Extensions;
 using AnimLib.Internal;
 using JetBrains.Annotations;
@@ -112,10 +113,11 @@ namespace AnimLib.Animations {
 
     /// <summary>
     /// Determines whether or not the animation should update. Return <see langword="false"/> to stop the animation from updating.
+    /// Consider using "base.PreUpdate() and" when overriding to ensure compatibility modules proper operation.
     /// Returns <see langword="true"/> by default.
     /// </summary>
     /// <returns><see langword="true"/> to update the animation, or <see langword="false"/> to stop it.</returns>
-    public virtual bool PreUpdate() => true;
+    public virtual bool PreUpdate() => AnimationUpdEnabledCompat;
 
     /// <summary>
     /// Updates the player animation by one frame. This is where you choose what tracks are played, and how they are played.
@@ -357,6 +359,88 @@ namespace AnimLib.Animations {
       foreach (Animation anim in animations) anim.CheckIfValid(newTrackName);
 
       return MainAnimation.Valid;
+    }
+
+    /// <summary>
+    /// List names of <see cref="AnimCompatSystem"/>s active by default
+    /// in order to block their work, when <see cref="AnimCharacter"/>
+    /// with this <see cref="AnimationController"/> is active.
+    /// </summary>
+    public readonly HashSet<string> AnimCompatSystemBlocklist = new();
+
+    private bool _graphicsDisabledDirtectly = false;
+    private bool _animationUpdDisabledDirtectly = false;
+
+    /// <summary>
+    /// State of GraphicsDisable conditions since previous update's evaluation.
+    /// If false, layers should be hidden (add to default visibility hook for
+    /// your custom PlayerDrawLayer). if any of conditions return true,
+    /// associated flag is turned to false, if none - to true
+    /// </summary>
+    public bool GraphicsEnabledCompat { get; private set; } = true;
+
+    /// <summary>
+    /// State of AnimationsUpdateDisable conditions since previous update's evaluation.
+    /// If false, animations updates will be stopped if not overriden
+    /// </summary>
+    public bool AnimationUpdEnabledCompat { get; private set; } = true;
+
+    /// <summary>
+    /// Called at start phase of game state update
+    /// evaluates conditions and sets appropriate condition flags
+    /// </summary>
+    internal void UpdateConditions()
+    {
+      if (!_graphicsDisabledDirtectly) 
+      {
+        GraphicsEnabledCompat = 
+          !GlobalCompatConditions.EvaluateDisableGraphics(player);
+      }
+      if (!_animationUpdDisabledDirtectly)
+      {
+        AnimationUpdEnabledCompat =
+          !GlobalCompatConditions.EvaluateDisableAnimationUpd(player);
+      }
+      UpdateCustomConditions();
+    }
+
+    /// <summary>
+    /// Called at post phase of game state update
+    /// evaluates conditions and sets appropriate condition flags
+    /// </summary>
+    internal void UpdateConditionsPost()
+    {
+      _graphicsDisabledDirtectly = false;
+      _animationUpdDisabledDirtectly = false;
+    }
+
+    /// <summary>
+    /// Allows to perform conditon evaluation actions
+    /// for custom conditional actions
+    /// called right after <see cref="AnimCompatSystem"/>'s conditions evaluation
+    /// </summary>
+    public virtual void UpdateCustomConditions() { }
+
+    /// <summary>
+    /// Use this for compatibility, if you want to trigger directly
+    /// disabling of PlayerDrawLayers' changes
+    /// (hiding vanilla layers and displaying game character)
+    /// (as example, morph ball from NetroidMod should hide players' character)
+    /// </summary>
+    public void DisableGraphicsDirectly()
+    {
+      GraphicsEnabledCompat = false;
+      _graphicsDisabledDirtectly = true;
+    }
+
+    /// <summary>
+    /// Use this for compatibility, if you want to trigger directly
+    /// disabling of animations of this controller updating
+    /// </summary>
+    public void DisableAnimationsUpdDirectly()
+    {
+      AnimationUpdEnabledCompat = false;
+      _animationUpdDisabledDirtectly = true;
     }
   }
 }

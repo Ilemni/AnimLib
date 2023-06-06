@@ -34,10 +34,15 @@ namespace AnimLib.Networking {
           int abilityId = reader.ReadLowestCast(manager.abilityArray.Length);
           Ability ability = manager[abilityId];
           ability.PreReadPacket(reader);
+          if(Main.netMode == NetmodeID.Server) ability.netUpdate = true;
         }
       }
 
-      if (Main.netMode == NetmodeID.Server) SendPacket(-1, fromWho);
+      if (Main.netMode == NetmodeID.Server)
+      {
+        SendPacket(-1, fromWho);
+        fromPlayer.abilityNetUpdate = false;
+      }
     }
 
     internal void SendPacket(int toWho, int fromWho) {

@@ -9,6 +9,7 @@
 	<Description>Terraria library mod for enhanced animations and ability management.</Description>
 	<RepositoryUrl>https://github.com/TwiliChaos/AnimLib</RepositoryUrl>
 	<RepositoryType>git</RepositoryType>
+	<ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="2021.1.0" />
