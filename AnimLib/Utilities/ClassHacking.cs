@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Linq.Expressions;
 using System.Reflection;
-using System.Reflection.Emit;
 
 namespace AnimLib.Utilities {
   public static class ClassHacking {
@@ -9,35 +9,20 @@ namespace AnimLib.Utilities {
     /// Allows you to generate getter for any (including nonpublic) member of class
     /// </summary>
     public static Func<Tclass, Tout> GenerateGetter<Tclass, Tout>(FieldInfo field) {
-      Type tclass = typeof(Tclass);
-      DynamicMethod dm = new(
-        $"_Get{tclass.FullName}.{field.Name}__$AnimLibEnforced__".Replace('.', '_'),
-        typeof(Tout), new Type[] { tclass }, field.DeclaringType, true);
-      ILGenerator generator = dm.GetILGenerator();
-
-      generator.Emit(OpCodes.Ldarg_0);
-      generator.Emit(OpCodes.Ldfld, field);
-      generator.Emit(OpCodes.Ret);
-
-      return dm.CreateDelegate<Func<Tclass, Tout>>();
+      ParameterExpression instanceExp = Expression.Parameter(typeof(Tclass), "instance");
+      MemberExpression fieldExp = Expression.Field(instanceExp, field);
+      return Expression.Lambda<Func<Tclass, Tout>>(fieldExp, instanceExp).Compile();
     }
 
     /// <summary>
     /// Allows you to generate setter for any (including nonpublic) member of class
     /// </summary>
     public static Action<Tclass, Tin> GenerateSetter<Tclass, Tin>(FieldInfo field) {
-      Type tclass = typeof(Tclass);
-      DynamicMethod dm = new(
-        $"_Set{tclass.FullName}.{field.Name}__$AnimLibEnforced__".Replace('.', '_'),
-        typeof(void), new Type[] { tclass, typeof(Tin) }, field.DeclaringType, true);
-      ILGenerator generator = dm.GetILGenerator();
-
-      generator.Emit(OpCodes.Ldarg_0);
-      generator.Emit(OpCodes.Ldarg_1);
-      generator.Emit(OpCodes.Stfld, field);
-      generator.Emit(OpCodes.Ret);
-
-      return dm.CreateDelegate<Action<Tclass, Tin>>();
+      ParameterExpression instanceExp = Expression.Parameter(typeof(Tclass), "instance");
+      ParameterExpression valueExp = Expression.Parameter(typeof(Tin), "value");
+      MemberExpression fieldExp = Expression.Field(instanceExp, field);
+      BinaryExpression assignExp = Expression.Assign(fieldExp, valueExp);
+      return Expression.Lambda<Action<Tclass, Tin>>(assignExp, instanceExp, valueExp).Compile();
     }
   }
 }

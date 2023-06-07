@@ -1,12 +1,16 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using AnimLib.Abilities;
 using AnimLib.Animations;
 using AnimLib.Extensions;
 using AnimLib.Internal;
+using AnimLib.Networking;
 using JetBrains.Annotations;
+using Terraria;
 using Terraria.DataStructures;
+using Terraria.ID;
 using Terraria.ModLoader;
 using Animation = AnimLib.Animations.Animation;
 
@@ -138,6 +142,19 @@ namespace AnimLib {
       OnUnload?.Invoke();
       OnUnload = null;
       Instance = null;
+    }
+
+    public override void HandlePacket(BinaryReader reader, int whoAmI)
+    {
+      if (Main.netMode == NetmodeID.MultiplayerClient)
+      {
+        // If packet is sent TO server, it is FROM player.
+        // If packet is sent TO player, it is FROM server (This block) and fromWho is 255.
+        // Server-written packet includes the fromWho, the player that created it.
+        // Now in either case of this being server or player, the fromWho is the player.
+        whoAmI = reader.ReadUInt16();
+      }
+      ModNetHandler.Instance.HandlePacket(reader, whoAmI);
     }
   }
 }

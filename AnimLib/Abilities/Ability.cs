@@ -317,6 +317,8 @@ namespace AnimLib.Abilities {
     /// For <see cref="Networking.AbilityPacketHandler"/>.
     /// </summary>
     internal void PreReadPacket([NotNull] BinaryReader r) {
+      if (levelableDependency != null)
+        levelableDependency.Level = r.ReadInt32();
       state = (AbilityState)r.ReadByte();
       stateTime = r.ReadInt32();
       ReadPacket(r);
@@ -326,6 +328,8 @@ namespace AnimLib.Abilities {
     /// For <see cref="Networking.AbilityPacketHandler"/>.
     /// </summary>
     internal void PreWritePacket([NotNull] ModPacket packet) {
+      if (levelableDependency != null) 
+        packet.Write(levelableDependency.Level);
       packet.Write((byte)state);
       packet.Write(stateTime);
       WritePacket(packet);

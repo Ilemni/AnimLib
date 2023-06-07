@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using AnimLib.Abilities;
 using AnimLib.Animations;
+using AnimLib.Compat;
 using AnimLib.Extensions;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
+using Terraria.ModLoader.Core;
 using Terraria.ModLoader.Exceptions;
 
 namespace AnimLib.Internal {
@@ -72,6 +74,7 @@ namespace AnimLib.Internal {
     /// </summary>
     internal static void Load() {
       AnimLibMod.OnUnload += Unload;
+      AnimLibMod.OnUnload += GlobalCompatConditions.Unload;
 
       AnimationSources = new Dictionary<Mod, AnimationSource[]>();
       modAnimationControllerTypeDictionary = new Dictionary<Mod, Type>();
@@ -95,7 +98,7 @@ namespace AnimLib.Internal {
 
       // Collect all instantiatable types.
       // Collect only animation types if the mod is not being run on a server
-      types = (from t in mod.Code.GetTypes()
+      types = (from t in AssemblyManager.GetLoadableTypes(mod.Code)
         where !t.IsAbstract && !t.IsGenericType &&
               (UseAnimations && t.IsSubclassOf(typeof(AnimationSource)) ||
                UseAnimations && t.IsSubclassOf(typeof(AnimationController)) ||

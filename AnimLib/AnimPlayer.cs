@@ -2,6 +2,7 @@ using AnimLib.Abilities;
 using AnimLib.Animations;
 using AnimLib.Networking;
 using JetBrains.Annotations;
+using System;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.ModLoader;
@@ -13,6 +14,12 @@ namespace AnimLib {
   /// </summary>
   [UsedImplicitly]
   public sealed class AnimPlayer : ModPlayer {
+    /// <summary>
+    /// Old ability save data from AnimLib goes here
+    /// </summary>
+    public TagCompound OldAbilities { get; internal set; }
+
+    [Obsolete]
     private const string AllAbilityTagKey = "abilities";
 
     private static AnimPlayer _local;
@@ -95,7 +102,7 @@ namespace AnimLib {
     //     "{ability_name}":
     //       [ Remaining handled by Ability[AbilityID].Save()/.Load() ]
 
-    // TODO: Look into injecting ability save data into the owning mod rather than saving into this mod.
+    // Looked into injecting ability save data into the owning mod rather than saving into this mod.
     /// <summary>
     /// Saves all <see cref="Ability"/> data across all mods.
     /// </summary>
@@ -105,18 +112,25 @@ namespace AnimLib {
     /// This is set up so that player ability data is not lost if the mod author changes AutoSave from false to true.
     /// </remarks>
     /// <seealso cref="AbilityManager.AutoSave">AbilityManager.AutoSave</seealso>
+    [Obsolete]
     public override void SaveData(TagCompound tag)/* tModPorter Suggestion: Edit tag parameter instead of returning new TagCompound */
-        {
-      TagCompound allAbilitiesTag = new();
-      foreach ((Mod aMod, AnimCharacter character) in characters) allAbilitiesTag[aMod.Name] = character.abilityManager?.Save();
-
-      if (_unloadedModTags != null)
-        foreach ((string modName, TagCompound _utag) in _unloadedModTags)
-          allAbilitiesTag[modName] = _utag;
-
-      if (allAbilitiesTag.Count > 0) {
-        tag[AllAbilityTagKey] = allAbilitiesTag;
+    {
+      if ((OldAbilities?.Count ?? 0) > 0)
+      {
+        tag[AllAbilityTagKey] = OldAbilities;
       }
+        //  TagCompound allAbilitiesTag = new TagCompound();
+        //  foreach ((Mod aMod, AnimCharacter character) in characters) 
+        //    if(character.abilityManager != null)
+        //      allAbilitiesTag[aMod.Name] = character.abilityManager.Save();
+
+        //  if (_unloadedModTags != null)
+        //    foreach ((string modName, TagCompound _utag) in _unloadedModTags)
+        //      allAbilitiesTag[modName] = _utag;
+
+        //  if (allAbilitiesTag.Count > 0) {
+        //    tag[AllAbilityTagKey] = allAbilitiesTag;
+        //  }
     }
 
     /// <summary>
@@ -127,25 +141,28 @@ namespace AnimLib {
     /// <see cref="AbilityManager.AutoSave"/> will only prevent automatic loading of ability data.
     /// This is set up so that player ability data is not lost if the mod author changes AutoSave from false to true.
     /// </remarks>
+    [Obsolete]
     public override void LoadData(TagCompound tag) {
-      TagCompound allAbilitiesTag = tag.GetCompound(AllAbilityTagKey);
-      if (allAbilitiesTag is null) return;
+      if(tag.ContainsKey(AllAbilityTagKey))
+        OldAbilities = tag.GetCompound(AllAbilityTagKey);
+      //TagCompound allAbilitiesTag = tag.GetCompound(AllAbilityTagKey);
+      //if (allAbilitiesTag is null) return;
 
-      // TODO: Consider serializing AnimCharacterCollection character enabled state.
-      foreach ((string key, object value) in allAbilitiesTag) {
-        if (value is not TagCompound abilityTag) continue;
-        Mod aMod = ModLoader.GetMod(key);
-        // Store unloaded data if mod not loaded, character collection missing mod, or character missing ability manager (mod removed implementation?) 
-        if (aMod is null || !characters.TryGetValue(Mod, out AnimCharacter character) || character?.abilityManager == null) {
-          _unloadedModTags ??= new Dictionary<string, TagCompound>();
-          _unloadedModTags[key] = abilityTag;
-        }
-        else {
-          AbilityManager manager = character.abilityManager;
-          if (!manager.AutoSave) continue;
-          manager.Load(abilityTag);
-        }
-      }
+      //// TODO: Consider serializing AnimCharacterCollection character enabled state.
+      //foreach ((string key, object value) in allAbilitiesTag) {
+      //  if (value is not TagCompound abilityTag) continue;
+      //  Mod aMod = ModLoader.GetMod(key);
+      //  // Store unloaded data if mod not loaded, character collection missing mod, or character missing ability manager (mod removed implementation?) 
+      //  if (aMod is null || !characters.TryGetValue(Mod, out AnimCharacter character) || character?.abilityManager == null) {
+      //    _unloadedModTags ??= new Dictionary<string, TagCompound>();
+      //    _unloadedModTags[key] = abilityTag;
+      //  }
+      //  else {
+      //    AbilityManager manager = character.abilityManager;
+      //    if (!manager.AutoSave) continue;
+      //    manager.Load(abilityTag);
+      //  }
+      //}
     }
   }
 }
