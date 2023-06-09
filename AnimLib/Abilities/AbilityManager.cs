@@ -87,7 +87,7 @@ namespace AnimLib.Abilities {
     public IEnumerable<Ability> UnlockedAbilities => this.Where(ability => ability.Unlocked);
     #endregion
 
-    #region Properties - Mod-defined
+    #region Properties - Mod-defined (Get-only properties defined by mods that should not change)
     /// <summary>
     /// Whether or not to automatically load abilities onto this mod.
     /// <para>
@@ -108,8 +108,7 @@ namespace AnimLib.Abilities {
     public virtual bool AutoSave => true;
     #endregion
 
-    #region Properties - Runtime
-    // Properties that are expected to change throughout the ability manager's lifespan are kept in this region.
+    #region Properties - Runtime (Properties expected to change throughout the ability manager's lifespan)
     /// <summary>
     /// Whether or not this ability needs to be synced.
     /// </summary>

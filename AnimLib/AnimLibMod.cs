@@ -144,10 +144,8 @@ namespace AnimLib {
       Instance = null;
     }
 
-    public override void HandlePacket(BinaryReader reader, int whoAmI)
-    {
-      if (Main.netMode == NetmodeID.MultiplayerClient)
-      {
+    public override void HandlePacket(BinaryReader reader, int whoAmI) {
+      if (Main.netMode == NetmodeID.MultiplayerClient) {
         // If packet is sent TO server, it is FROM player.
         // If packet is sent TO player, it is FROM server (This block) and fromWho is 255.
         // Server-written packet includes the fromWho, the player that created it.

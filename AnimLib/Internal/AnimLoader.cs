@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using AnimLib.Abilities;
@@ -199,10 +199,9 @@ namespace AnimLib.Internal {
 
   internal static class AbilityLoader {
     public static void Load(Mod mod, List<Type> types) {
-      if (GetAbilityTypesFromTypes(types, mod, out var abilityTypes)) {
-        AnimLoader.modAbilityTypeDictionary[mod] = abilityTypes;
-        if (GetAbilityManagerTypeFromTypes(types, mod, out Type managerType)) AnimLoader.modAbilityManagerTypeDictionary[mod] = managerType;
-      }
+      if (!GetAbilityTypesFromTypes(types, mod, out var abilityTypes)) return;
+      AnimLoader.modAbilityTypeDictionary[mod] = abilityTypes;
+      if (GetAbilityManagerTypeFromTypes(types, mod, out Type managerType)) AnimLoader.modAbilityManagerTypeDictionary[mod] = managerType;
     }
 
     private static bool GetAbilityManagerTypeFromTypes(IEnumerable<Type> types, Mod mod, out Type type) {

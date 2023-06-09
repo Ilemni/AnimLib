@@ -13,17 +13,17 @@ namespace AnimLib.Extensions {
     private static readonly Func<ArmorShaderData, Vector2> _uTargetPosition;
 
     static ArmorShaderDataGetSet() {
-      Type _type = typeof(ArmorShaderData);
+      Type type = typeof(ArmorShaderData);
       _uColor = ClassHacking.GenerateGetter<ArmorShaderData, Vector3>(
-        _type.GetField("_uColor", BindingFlags.Instance | BindingFlags.NonPublic));
+        type.GetField("_uColor", BindingFlags.Instance | BindingFlags.NonPublic));
       _uSecondaryColor = ClassHacking.GenerateGetter<ArmorShaderData, Vector3>(
-        _type.GetField("_uSecondaryColor", BindingFlags.Instance | BindingFlags.NonPublic));
+        type.GetField("_uSecondaryColor", BindingFlags.Instance | BindingFlags.NonPublic));
       _uSaturation = ClassHacking.GenerateGetter<ArmorShaderData, float>(
-        _type.GetField("_uSaturation", BindingFlags.Instance | BindingFlags.NonPublic));
+        type.GetField("_uSaturation", BindingFlags.Instance | BindingFlags.NonPublic));
       _uOpacity = ClassHacking.GenerateGetter<ArmorShaderData, float>(
-        _type.GetField("_uOpacity", BindingFlags.Instance | BindingFlags.NonPublic));
+        type.GetField("_uOpacity", BindingFlags.Instance | BindingFlags.NonPublic));
       _uTargetPosition = ClassHacking.GenerateGetter<ArmorShaderData, Vector2>(
-        _type.GetField("_uTargetPosition", BindingFlags.Instance | BindingFlags.NonPublic));
+        type.GetField("_uTargetPosition", BindingFlags.Instance | BindingFlags.NonPublic));
     }
 
     public static Color GetColor(this ArmorShaderData a) => new(_uColor(a));

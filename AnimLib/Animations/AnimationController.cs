@@ -368,8 +368,8 @@ namespace AnimLib.Animations {
     /// </summary>
     public readonly HashSet<string> AnimCompatSystemBlocklist = new();
 
-    private bool _graphicsDisabledDirtectly = false;
-    private bool _animationUpdDisabledDirtectly = false;
+    private bool _graphicsDisabledDirectly = false;
+    private bool _animationUpdateDisabledDirectly = false;
 
     /// <summary>
     /// State of GraphicsDisable conditions since previous update's evaluation.
@@ -389,17 +389,12 @@ namespace AnimLib.Animations {
     /// Called at start phase of game state update
     /// evaluates conditions and sets appropriate condition flags
     /// </summary>
-    internal void UpdateConditions()
-    {
-      if (!_graphicsDisabledDirtectly) 
-      {
-        GraphicsEnabledCompat = 
-          !GlobalCompatConditions.EvaluateDisableGraphics(player);
+    internal void UpdateConditions() {
+      if (!_graphicsDisabledDirectly) {
+        GraphicsEnabledCompat = !GlobalCompatConditions.EvaluateDisableGraphics(player);
       }
-      if (!_animationUpdDisabledDirtectly)
-      {
-        AnimationUpdEnabledCompat =
-          !GlobalCompatConditions.EvaluateDisableAnimationUpd(player);
+      if (!_animationUpdateDisabledDirectly) {
+        AnimationUpdEnabledCompat = !GlobalCompatConditions.EvaluateDisableAnimationUpdate(player);
       }
       UpdateCustomConditions();
     }
@@ -408,10 +403,9 @@ namespace AnimLib.Animations {
     /// Called at post phase of game state update
     /// evaluates conditions and sets appropriate condition flags
     /// </summary>
-    internal void UpdateConditionsPost()
-    {
-      _graphicsDisabledDirtectly = false;
-      _animationUpdDisabledDirtectly = false;
+    internal void UpdateConditionsPost() {
+      _graphicsDisabledDirectly = false;
+      _animationUpdateDisabledDirectly = false;
     }
 
     /// <summary>
@@ -427,20 +421,18 @@ namespace AnimLib.Animations {
     /// (hiding vanilla layers and displaying game character)
     /// (as example, morph ball from NetroidMod should hide players' character)
     /// </summary>
-    public void DisableGraphicsDirectly()
-    {
+    public void DisableGraphicsDirectly() {
       GraphicsEnabledCompat = false;
-      _graphicsDisabledDirtectly = true;
+      _graphicsDisabledDirectly = true;
     }
 
     /// <summary>
     /// Use this for compatibility, if you want to trigger directly
     /// disabling of animations of this controller updating
     /// </summary>
-    public void DisableAnimationsUpdDirectly()
-    {
+    public void DisableAnimationsUpdDirectly() {
       AnimationUpdEnabledCompat = false;
-      _animationUpdDisabledDirtectly = true;
+      _animationUpdateDisabledDirectly = true;
     }
   }
 }

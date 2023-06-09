@@ -1,14 +1,12 @@
-using AnimLib.Animations;
+﻿using AnimLib.Animations;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Terraria;
 
-namespace AnimLib.Compat
-{
-  public static class GlobalCompatConditions
-  {
+namespace AnimLib.Compat {
+  public static class GlobalCompatConditions {
     /// <summary>
     /// The <see cref="Predicate{Player}"/> list to determine if layers' display
     /// should be disabled, contains conditions, if any return true,
@@ -25,14 +23,14 @@ namespace AnimLib.Compat
     /// <summary>
     /// Evaluates conditions of <see cref="_disableGraphicsOrPredicates"/>
     /// </summary>
-    internal static bool EvaluateDisableGraphics(Player player_inst) =>
-      _disableGraphicsOrPredicates.Any(p => p is not null && p(player_inst));
+    internal static bool EvaluateDisableGraphics(Player player) =>
+      _disableGraphicsOrPredicates.Any(p => p is not null && p(player));
 
     /// <summary>
     /// Evaluates conditions of <see cref="_disableAnimationsUpdating"/>
     /// </summary>
-    internal static bool EvaluateDisableAnimationUpd(Player player_inst) =>
-      _disableAnimationsUpdating.Any(p => p is not null && p(player_inst));
+    internal static bool EvaluateDisableAnimationUpdate(Player player) =>
+      _disableAnimationsUpdating.Any(p => p is not null && p(player));
 
     /// <summary>
     /// Adds <see cref="Predicate{Player}"/> to list
@@ -59,7 +57,7 @@ namespace AnimLib.Compat
     /// Use this for compatibility, if you want to add trigger for
     /// disabling of animation (if using AnimationController) updating
     /// </summary>
-    public static void AddAnimationUpdDisableCondition(Predicate<Player> p) =>
+    public static void AddAnimationUpdateDisableCondition(Predicate<Player> p) =>
       _disableAnimationsUpdating.Add(p);
 
     internal static void Unload()

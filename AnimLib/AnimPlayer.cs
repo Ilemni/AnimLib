@@ -52,6 +52,14 @@ namespace AnimLib {
     /// </summary>
     [CanBeNull] private AnimCharacter ActiveCharacter => characters.ActiveCharacter;
 
+    /// <summary>
+    /// Whether any <see cref="AnimCharacter"/>s need to be net-synced.<br />
+    /// When this property is set to <b><see langword="false"/></b>, all
+    /// <see cref="AbilityManager.netUpdate">AbilityManager.netUpdate</see> on this player
+    /// will also be set to <b><see langword="false"/></b>.<br />
+    /// When any <see cref="AbilityManager.netUpdate">AbilityManager.netUpdate</see> on this player
+    /// is set to <b><see langword="true"/></b>, this property will also be set to <b><see langword="true"/></b>.
+    /// </summary>
     internal bool abilityNetUpdate {
       get => _abilityNetUpdate;
       set {

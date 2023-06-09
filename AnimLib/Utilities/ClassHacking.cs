@@ -8,21 +8,21 @@ namespace AnimLib.Utilities {
     /// <summary>
     /// Allows you to generate getter for any (including nonpublic) member of class
     /// </summary>
-    public static Func<Tclass, Tout> GenerateGetter<Tclass, Tout>(FieldInfo field) {
-      ParameterExpression instanceExp = Expression.Parameter(typeof(Tclass), "instance");
+    public static Func<TClass, TOut> GenerateGetter<TClass, TOut>(FieldInfo field) {
+      ParameterExpression instanceExp = Expression.Parameter(typeof(TClass), "instance");
       MemberExpression fieldExp = Expression.Field(instanceExp, field);
-      return Expression.Lambda<Func<Tclass, Tout>>(fieldExp, instanceExp).Compile();
+      return Expression.Lambda<Func<TClass, TOut>>(fieldExp, instanceExp).Compile();
     }
 
     /// <summary>
     /// Allows you to generate setter for any (including nonpublic) member of class
     /// </summary>
-    public static Action<Tclass, Tin> GenerateSetter<Tclass, Tin>(FieldInfo field) {
-      ParameterExpression instanceExp = Expression.Parameter(typeof(Tclass), "instance");
-      ParameterExpression valueExp = Expression.Parameter(typeof(Tin), "value");
+    public static Action<TClass, TIn> GenerateSetter<TClass, TIn>(FieldInfo field) {
+      ParameterExpression instanceExp = Expression.Parameter(typeof(TClass), "instance");
+      ParameterExpression valueExp = Expression.Parameter(typeof(TIn), "value");
       MemberExpression fieldExp = Expression.Field(instanceExp, field);
       BinaryExpression assignExp = Expression.Assign(fieldExp, valueExp);
-      return Expression.Lambda<Action<Tclass, Tin>>(assignExp, instanceExp, valueExp).Compile();
+      return Expression.Lambda<Action<TClass, TIn>>(assignExp, instanceExp, valueExp).Compile();
     }
   }
 }

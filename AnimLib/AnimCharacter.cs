@@ -274,32 +274,26 @@ namespace AnimLib {
     }
 
     internal void PostUpdate() {
-        if (abilityManager is not null)
-        {
-            try 
-            {
-                abilityManager.PostUpdate();
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"[{abilityManager.mod.Name}:{abilityManager.GetType().UniqueTypeName()}]: Caught exception.", ex);
-                Main.NewText($"AnimLib -> {abilityManager.mod.Name}: Caught exception while updating abilities. See client.log for more information.", Color.Red);
-            }
+      if (abilityManager is not null) {
+        try {
+          abilityManager.PostUpdate();
         }
+        catch (Exception ex) {
+          Log.Error($"[{abilityManager.mod.Name}:{abilityManager.GetType().UniqueTypeName()}]: Caught exception.", ex);
+          Main.NewText($"AnimLib -> {abilityManager.mod.Name}: Caught exception while updating abilities. See client.log for more information.", Color.Red);
+        }
+      }
 
-        if (animationController is not null)
-        {
-            try
-            {
-                if (animationController.PreUpdate()) animationController.Update();
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"[{animationController.mod.Name}:{animationController.GetType().UniqueTypeName()}]: Caught exception.", ex);
-                Main.NewText($"AnimLib -> {animationController.mod.Name}: Caught exception while updating animations. See client.log for more information.", Color.Red);
-            }
-            animationController.UpdateConditionsPost();
+      if (animationController is not null) {
+        try {
+          if (animationController.PreUpdate()) animationController.Update();
         }
+        catch (Exception ex) {
+          Log.Error($"[{animationController.mod.Name}:{animationController.GetType().UniqueTypeName()}]: Caught exception.", ex);
+          Main.NewText($"AnimLib -> {animationController.mod.Name}: Caught exception while updating animations. See client.log for more information.", Color.Red);
+        }
+        animationController.UpdateConditionsPost();
+      }
     }
 
     #region Constructor Methods
@@ -325,7 +319,7 @@ namespace AnimLib {
         manager.player = animPlayer.Player;
         manager.mod = mod;
 
-        if (manager.Autoload && (abilityTypes is not null)) AutoloadAbilities(manager, abilityTypes);
+        if (manager.Autoload && abilityTypes is not null) AutoloadAbilities(manager, abilityTypes);
 
         InitializeAbilityManager(manager);
         return manager;
@@ -355,10 +349,9 @@ namespace AnimLib {
       return ability.Autoload;
     }
 
-    private static void InitializeAbilityManager(AbilityManager manager)
-    {
+    private static void InitializeAbilityManager(AbilityManager manager) {
       manager.Initialize();
-      if (manager.abilityArray is not null) foreach (Ability ability in manager.abilityArray) ability.Initialize();
+      foreach (Ability ability in manager.abilityArray) ability.Initialize();
     }
     #endregion
   }

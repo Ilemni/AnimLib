@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
@@ -232,13 +232,13 @@ namespace AnimLib.Animations {
       frameIdx = (int)MathHelper.Clamp(frameIdx, 0, length - 1);
 
       // Short-circuit if this frame has texture.
-      if (textures.ContainsKey(frameIdx)) return textures[frameIdx];
+      if (textures.TryGetValue(frameIdx, out Texture2D texture)) return texture;
 
       // Get the highest key before frameIdx
       int idx = -1;
       foreach (int key in textures.Keys.Where(key => key > idx && key < frameIdx)) idx = key;
 
-      return textures.ContainsKey(idx) ? textures[idx] : null;
+      return textures.TryGetValue(idx, out Texture2D texture1) ? texture1 : null;
     }
 
     /// <summary>

@@ -1,11 +1,9 @@
-using System;
+﻿using System;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace AnimLib.Compat
-{
-  public abstract class AnimCompatSystem : ModSystem
-  {
+namespace AnimLib.Compat {
+  public abstract class AnimCompatSystem : ModSystem {
     /// <summary>
     /// Set this flag to true, if system activation
     /// succeed and predicates were registered
@@ -38,14 +36,13 @@ namespace AnimLib.Compat
     /// Checks that this compat system is not
     /// blacklisted in AnimPlayer's character controllers
     /// </summary>
-    public bool IsBlockListed(AnimPlayer player)
-    {
-      var character = player.characters.ActiveCharacter;
+    public bool IsBlockListed(AnimPlayer player) {
+      AnimCharacter character = player.characters.ActiveCharacter;
       return character != null && (
-        (character.abilityManager != null &&
-          character.abilityManager.AnimCompatSystemBlocklist.Contains(Name)) ||
-        (character.animationController != null &&
-          character.animationController.AnimCompatSystemBlocklist.Contains(Name))
+        character.abilityManager != null &&
+        character.abilityManager.AnimCompatSystemBlocklist.Contains(Name) ||
+        character.animationController != null &&
+        character.animationController.AnimCompatSystemBlocklist.Contains(Name)
       );
     }
 
@@ -54,23 +51,19 @@ namespace AnimLib.Compat
     /// for safe operation
     /// (prevents running when is not allowed and throwing exceptions outside)
     /// </summary>
-    public Predicate<Player> GetStandardPredicate(Predicate<Player> predicate) => p =>
-    {
-      if (!IsAllowed(p)) return false;
-      try
-      {
-        return predicate(p);
+    public Predicate<Player> GetStandardPredicate(Predicate<Player> predicate) => player => {
+      if (!IsAllowed(player)) return false;
+      try {
+        return predicate(player);
       }
-      catch (Exception ex)
-      {
+      catch (Exception ex) {
         _fault = true;
         Log.Error($"Something went wrong in {Name} compat module, it was disabled...", ex);
         return false;
       }
     };
 
-    public override void Unload()
-    {
+    public override void Unload() {
       _initialized = false;
       _fault = false;
     }
