@@ -1,11 +1,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using JetBrains.Annotations;
 using Terraria;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
+using NotNull = System.Diagnostics.CodeAnalysis.NotNullAttribute;
 
 namespace AnimLib.Abilities {
   /// <summary>
@@ -69,7 +71,7 @@ namespace AnimLib.Abilities {
     /// otherwise, <see langword="null"/>.
     /// </param>
     /// <returns><see langword="true"/> if an <see cref="Ability"/> has an <see cref="Ability.Id"/> matching <paramref name="key"/>; otherwise, <see langword="false"/>.</returns>
-    public bool TryGet(int key, out Ability ability) => (ability = abilityArray.FirstOrDefault(a => a.Id == key)) != null;
+    public bool TryGet(int key, [NotNullWhen(true)] out Ability ability) => (ability = abilityArray.FirstOrDefault(a => a.Id == key)) != null;
 
     /// <summary>
     /// Returns an enumerator that iterates through all <see cref="Ability"/> instances in this <see cref="AbilityManager"/>.
@@ -235,7 +237,7 @@ namespace AnimLib.Abilities {
     /// </summary>
     /// <returns>An instance of <see cref="TagCompound"/> containing <see cref="Ability"/> save data.</returns>
     public TagCompound Save() {
-      TagCompound tag = new TagCompound();
+      TagCompound tag = new();
       foreach (Ability ability in this) {
         TagCompound abilityTag = ability.Save();
         if (abilityTag is null) continue;

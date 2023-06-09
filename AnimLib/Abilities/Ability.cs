@@ -328,7 +328,7 @@ namespace AnimLib.Abilities {
     /// For <see cref="Networking.AbilityPacketHandler"/>.
     /// </summary>
     internal void PreWritePacket([NotNull] ModPacket packet) {
-      if (levelableDependency != null) 
+      if (levelableDependency != null)
         packet.Write(levelableDependency.Level);
       packet.Write((byte)state);
       packet.Write(stateTime);
@@ -413,7 +413,7 @@ namespace AnimLib.Abilities {
     /// Whether or not the <see cref="Ability"/> is in use.
     /// </summary>
     /// <seealso cref="InUse"/>
-    public static implicit operator bool(Ability ability) => !(ability is null) && ability.InUse;
+    public static implicit operator bool(Ability ability) => ability is not null && ability.InUse;
     #endregion
   }
 

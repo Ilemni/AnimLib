@@ -64,12 +64,12 @@ namespace AnimLib {
     /// Creates an instance of <see cref="Point"/> using the values of the <see cref="PointByte"/>.
     /// </summary>
     /// <param name="point">The <see cref="PointByte"/>.</param>
-    public static implicit operator Point(PointByte point) => new Point(point.x, point.y);
+    public static implicit operator Point(PointByte point) => new(point.x, point.y);
 
     /// <summary>
     /// Creates an instance of <see cref="PointByte"/> casting the <see cref="int"/> values of the <see cref="Point"/> to <see cref="byte"/>s.
     /// </summary>
     /// <param name="point">The <see cref="Point"/>.</param>
-    public static explicit operator PointByte(Point point) => new PointByte((byte)point.X, (byte)point.Y);
+    public static explicit operator PointByte(Point point) => new((byte)point.X, (byte)point.Y);
   }
 }

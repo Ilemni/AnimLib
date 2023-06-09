@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using AnimLib.Internal;
@@ -18,7 +19,7 @@ namespace AnimLib {
       foreach (var ch in this) ch.Value.characters = this; 
     }
 
-    internal Dictionary<Mod, AnimCharacter> dict { get; } = new Dictionary<Mod, AnimCharacter>();
+    internal Dictionary<Mod, AnimCharacter> dict { get; } = new();
     [CanBeNull] public AnimCharacter ActiveCharacter { get; private set; }
 
     public bool ContainsKey(Mod key) => dict.ContainsKey(key);
@@ -54,7 +55,7 @@ namespace AnimLib {
     /// </summary>
     /// <param name="character"></param>
     /// <param name="priority"></param>
-    internal void Enable([NotNull] AnimCharacter character, AnimCharacter.Priority priority = AnimCharacter.Priority.Default) {
+    internal void Enable([NotNull] AnimCharacter character, AnimCharacter.Priority priority) {
       AnimCharacter previous = ActiveCharacter;
       if (previous is not null) {
         previous.Disable();
@@ -88,8 +89,12 @@ namespace AnimLib {
 
     public int Count => items.Count;
 
-    public void Push(T item) => items.Add(item);
+    public void Push([NotNull] T item) {
+      ArgumentNullException.ThrowIfNull(item);
+      items.Add(item);
+    }
 
+    [CanBeNull]
     public T Pop() {
       if (items.Count <= 0) return default;
       T temp = items[^1];
@@ -97,11 +102,15 @@ namespace AnimLib {
       return temp;
     }
 
-    public bool Contains(T item) => items.IndexOf(item) >= 0;
+    public bool Contains([NotNull] T item) {
+      ArgumentNullException.ThrowIfNull(item);
+      return items.IndexOf(item) >= 0;
+    }
 
     public void Remove(int itemAtPosition) => items.RemoveAt(itemAtPosition);
 
-    public void TryRemove(T item) {
+    public void TryRemove([NotNull] T item) {
+      ArgumentNullException.ThrowIfNull(item);
       int index = items.IndexOf(item);
       if (index >= 0) Remove(index);
     }

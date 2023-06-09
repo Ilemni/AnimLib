@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
@@ -54,7 +54,7 @@ namespace AnimLib.Animations {
     /// <exception cref="ArgumentNullException"><paramref name="frames"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException"><paramref name="frames"/> is empty.</exception>
     public Track(LoopMode loopMode, Direction direction, Frame[] frames) : this(loopMode, direction) {
-      if (frames is null) throw new ArgumentNullException(nameof(frames));
+      ArgumentNullException.ThrowIfNull(frames);
       if (frames.Length == 0) throw new ArgumentException($"{nameof(frames)} cannot be empty", nameof(frames));
 
       this.frames = frames;
@@ -94,7 +94,7 @@ namespace AnimLib.Animations {
     /// </exception>
     /// <exception cref="ArgumentException"><paramref name="frames"/> is empty.</exception>
     public Track(LoopMode loopMode, Direction direction, IFrame[] frames) : this(loopMode, direction) {
-      if (frames is null) throw new ArgumentNullException(nameof(frames));
+      ArgumentNullException.ThrowIfNull(frames);
       if (frames.Length == 0) throw new ArgumentException($"{nameof(frames)} cannot be empty", nameof(frames));
 
       var newFrames = new Frame[frames.Length];
@@ -185,7 +185,7 @@ namespace AnimLib.Animations {
       for (int y = start.tile.y; y < end.tile.y; y++) frames.Add(new Frame(start.tile.x, y, start.duration));
 
       frames.Add(end);
-      Track track = new Track(loopMode, direction, frames.ToArray());
+      Track track = new(loopMode, direction, frames.ToArray());
       return track;
     }
 
@@ -195,7 +195,7 @@ namespace AnimLib.Animations {
     /// <param name="frame">Assigns to <see cref="frames"/> as a single <see cref="Frame"/>.</param>
     /// <returns>A new <see cref="Track"/> with a single <see cref="Frame"/>.</returns>
     [NotNull]
-    public static Track Single(Frame frame) => new Track(new[] { frame });
+    public static Track Single(Frame frame) => new(new[] { frame });
 
 
     /// <summary>
@@ -259,7 +259,7 @@ namespace AnimLib.Animations {
       if (frameIndex < 0 || frameIndex >= length)
         throw new ArgumentOutOfRangeException(nameof(frameIndex), $"{nameof(frameIndex)} must be non-negative and less than the length of frames.");
       var texture = ModContent.Request<Texture2D>(texturePath);
-      if (textures is null) textures = new SortedDictionary<int, Texture2D>();
+      textures ??= new SortedDictionary<int, Texture2D>();
       texture.Wait();
       textures[frameIndex] = texture.Value;
     }

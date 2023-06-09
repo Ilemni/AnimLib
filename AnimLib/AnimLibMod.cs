@@ -57,7 +57,7 @@ namespace AnimLib {
     /// </exception>
     [NotNull]
     public static T GetAnimationController<T>([NotNull] ModPlayer modPlayer) where T : AnimationController {
-      if (modPlayer is null) throw new ArgumentNullException(nameof(modPlayer));
+      ArgumentNullException.ThrowIfNull(modPlayer);
       AnimationController controller = modPlayer.GetAnimCharacter().animationController;
       return controller is T t ? t : throw ThrowHelper.BadType<T>(controller, modPlayer.Mod, nameof(T));
     }
@@ -74,7 +74,7 @@ namespace AnimLib {
     /// <exception cref="ArgumentException"><paramref name="mod"/> has no <see cref="AnimationSource"/>, or source from the wrong mod was used.</exception>
     [NotNull]
     public static T GetAnimationSource<T>([NotNull] Mod mod) where T : AnimationSource {
-      if (mod is null) throw new ArgumentNullException(nameof(mod));
+      ArgumentNullException.ThrowIfNull(mod);
       if (!AnimLoader.AnimationSources.TryGetValue(mod, out var sources))
         throw new ArgumentException($"The mod {mod.Name} does not have any {nameof(AnimationSource)}s loaded.");
 
@@ -97,9 +97,9 @@ namespace AnimLib {
     /// </exception>
     [NotNull]
     public static T GetAbilityManager<T>([NotNull] ModPlayer modPlayer) where T : AbilityManager {
-      if (modPlayer is null) throw new ArgumentNullException(nameof(modPlayer));
+      ArgumentNullException.ThrowIfNull(modPlayer);
       AbilityManager manager = modPlayer.GetAnimCharacter().abilityManager;
-      return manager is T t ? t : throw ThrowHelper.BadType<T>(manager, modPlayer.Mod, nameof(T));
+      return manager as T ?? throw ThrowHelper.BadType<T>(manager, modPlayer.Mod, nameof(T));
     }
 
 
