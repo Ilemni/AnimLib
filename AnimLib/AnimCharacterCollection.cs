@@ -11,24 +11,19 @@ namespace AnimLib {
     private AnimCharacter.Priority activePriority;
 
     internal AnimCharacterCollection(AnimPlayer animPlayer) {
-      if (AnimLoader.GetLoadedMods(out var mods)) {
-        foreach (Mod mod in mods) this[mod] = new AnimCharacter(animPlayer, mod);
+      if (!AnimLoader.GetLoadedMods(out var mods)) return;
+      foreach (Mod mod in mods) dict[mod] = new AnimCharacter(animPlayer, mod, this);
 
-        characterStack = new CharStack<AnimCharacter>(mods.Count);
-      }
-      foreach (var ch in this) ch.Value.characters = this; 
+      characterStack = new CharStack<AnimCharacter>(mods.Count);
     }
 
-    internal Dictionary<Mod, AnimCharacter> dict { get; } = new();
+    internal readonly Dictionary<Mod, AnimCharacter> dict = new();
     [CanBeNull] public AnimCharacter ActiveCharacter { get; private set; }
 
     public bool ContainsKey(Mod key) => dict.ContainsKey(key);
     public bool TryGetValue(Mod key, out AnimCharacter value) => dict.TryGetValue(key, out value);
 
-    public AnimCharacter this[Mod mod] {
-      get => dict[mod];
-      private set => dict[mod] = value;
-    }
+    public AnimCharacter this[Mod mod] => dict[mod];
 
     public IEnumerable<Mod> Keys => dict.Keys;
     public IEnumerable<AnimCharacter> Values => dict.Values;

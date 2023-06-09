@@ -133,7 +133,7 @@ namespace AnimLib {
       Highest = 4
     }
 
-    internal AnimCharacter(AnimPlayer animPlayer, Mod mod) {
+    internal AnimCharacter(AnimPlayer animPlayer, Mod mod, AnimCharacterCollection characters) {
       if (AnimLoader.modAnimationControllerTypeDictionary.TryGetValue(mod, out Type controllerType))
         animationController = TryCreateControllerForPlayer(animPlayer, mod, controllerType);
 
@@ -142,6 +142,7 @@ namespace AnimLib {
       if (hasManager || hasAbilities) abilityManager = CreateAbilityManagerForPlayer(animPlayer, mod, managerType ?? typeof(AbilityManager), abilityTypes);
 
       this.mod = mod;
+      this.characters = characters;
     }
 
     /// <summary>
@@ -165,7 +166,7 @@ namespace AnimLib {
     /// </summary>
     [CanBeNull] public AbilityManager abilityManager { get; internal set; }
 
-    [NotNull] internal AnimCharacterCollection characters { get; set; }
+    [NotNull] internal AnimCharacterCollection characters { get; }
 
 
     /// <summary>
