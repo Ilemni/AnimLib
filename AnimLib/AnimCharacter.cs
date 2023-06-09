@@ -282,7 +282,7 @@ namespace AnimLib {
             }
             catch (Exception ex)
             {
-                Log.LogError($"[{abilityManager.mod.Name}:{abilityManager.GetType().UniqueTypeName()}]: Caught exception.", ex);
+                Log.Error($"[{abilityManager.mod.Name}:{abilityManager.GetType().UniqueTypeName()}]: Caught exception.", ex);
                 Main.NewText($"AnimLib -> {abilityManager.mod.Name}: Caught exception while updating abilities. See client.log for more information.", Color.Red);
             }
         }
@@ -295,7 +295,7 @@ namespace AnimLib {
             }
             catch (Exception ex)
             {
-                Log.LogError($"[{animationController.mod.Name}:{animationController.GetType().UniqueTypeName()}]: Caught exception.", ex);
+                Log.Error($"[{animationController.mod.Name}:{animationController.GetType().UniqueTypeName()}]: Caught exception.", ex);
                 Main.NewText($"AnimLib -> {animationController.mod.Name}: Caught exception while updating animations. See client.log for more information.", Color.Red);
             }
             animationController.UpdateConditionsPost();
@@ -313,7 +313,7 @@ namespace AnimLib {
         return controller;
       }
       catch (Exception ex) {
-        Log.LogError($"Exception thrown when constructing {nameof(AnimationController)} from [{mod.Name}:{type.FullName}]", ex);
+        Log.Error($"Exception thrown when constructing {nameof(AnimationController)} from [{mod.Name}:{type.FullName}]", ex);
         throw;
       }
     }
@@ -331,7 +331,7 @@ namespace AnimLib {
         return manager;
       }
       catch (Exception ex) {
-        Log.LogError($"Exception thrown when constructing {nameof(AbilityManager)} from [{mod.Name}:{managerType.FullName}]", ex);
+        Log.Error($"Exception thrown when constructing {nameof(AbilityManager)} from [{mod.Name}:{managerType.FullName}]", ex);
         throw;
       }
     }

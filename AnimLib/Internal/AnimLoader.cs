@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AnimLib.Abilities;
@@ -61,7 +61,7 @@ namespace AnimLib.Internal {
 
 
     private static void Unload() {
-      Log.LogDebug($"{nameof(AnimLoader)}.{nameof(Unload)} called.");
+      Log.Debug($"{nameof(AnimLoader)}.{nameof(Unload)} called.");
       AnimationSources = null;
       modAnimationControllerTypeDictionary = null;
       modAbilityManagerTypeDictionary = null;
@@ -87,7 +87,7 @@ namespace AnimLib.Internal {
       }
 
       if (!AnimationSources.Any() && !modAnimationControllerTypeDictionary.Any())
-        Log.LogInfo("AnimLibMod loaded; no mods contained Animations or Abilities. Currently there is no reason for this mod to be enabled.");
+        Log.Info("AnimLibMod loaded; no mods contained Animations or Abilities. Currently there is no reason for this mod to be enabled.");
     }
 
     private static bool CanLoadMod(Mod mod, out List<Type> types) {
@@ -123,7 +123,7 @@ namespace AnimLib.Internal {
           AnimLoader.modAnimationControllerTypeDictionary[mod] = controllerType;
         }
         else {
-          Log.LogWarning(
+          Log.Warn(
             $"{mod.Name} error: {mod.Name} contains {(sources.Count > 1 ? "classes" : "a class")} extending {nameof(AnimationSource)}, but does not contain any classes extending {nameof(AnimationController)}s");
         }
       }
@@ -139,7 +139,7 @@ namespace AnimLib.Internal {
 
         if (!TryConstructSource(type, mod, out AnimationSource source)) continue;
         sources.Add(source);
-        Log.LogInfo($"[{mod.Name}]: Collected {nameof(AnimationSource)} \"{type.UniqueTypeName()}\"");
+        Log.Info($"[{mod.Name}]: Collected {nameof(AnimationSource)} \"{type.UniqueTypeName()}\"");
       }
 
       return sources.Any();
@@ -157,7 +157,7 @@ namespace AnimLib.Internal {
             null);
         }
 
-        Log.LogInfo($"[{mod.Name}]: Collected {nameof(AnimationController)} \"{type.UniqueTypeName()}\"");
+        Log.Info($"[{mod.Name}]: Collected {nameof(AnimationController)} \"{type.UniqueTypeName()}\"");
         result = type;
       }
 
@@ -211,7 +211,7 @@ namespace AnimLib.Internal {
         if (!t.IsSubclassOf(typeof(AbilityManager))) continue;
         if (type is not null) throw new CustomModDataException(mod, $"Cannot have more than one {nameof(AbilityManager)} per mod.", null);
 
-        Log.LogInfo($"[{mod.Name}]: Collected {nameof(AbilityManager)} \"{t.UniqueTypeName()}\"");
+        Log.Info($"[{mod.Name}]: Collected {nameof(AbilityManager)} \"{t.UniqueTypeName()}\"");
         type = t;
       }
 
@@ -223,7 +223,7 @@ namespace AnimLib.Internal {
       foreach (Type type in types) {
         if (!type.IsSubclassOf(typeof(Ability))) continue;
         abilityTypes.Add(type);
-        Log.LogInfo($"From mod {mod.Name} collected {nameof(AnimationSource)} \"{type.UniqueTypeName()}\"");
+        Log.Info($"From mod {mod.Name} collected {nameof(AnimationSource)} \"{type.UniqueTypeName()}\"");
       }
 
       return abilityTypes.Any();

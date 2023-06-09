@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using Terraria.ModLoader;
 
 namespace AnimLib.Compat.Implementations
@@ -24,7 +24,7 @@ namespace AnimLib.Compat.Implementations
         }
         else
         {
-          Log.LogWarning($"{Name} compat subsystem is unable to start, " +
+          Log.Warn($"{Name} compat subsystem is unable to start, " +
             $"due to desired content was not found, " +
             $"though mod {ModName} is present, " +
             $"please notify developers of AnimLib");

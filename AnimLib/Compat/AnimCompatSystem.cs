@@ -64,7 +64,7 @@ namespace AnimLib.Compat
       catch (Exception ex)
       {
         _fault = true;
-        Log.LogError($"Something went wrong in {Name} compat module, it was disabled...", ex);
+        Log.Error($"Something went wrong in {Name} compat module, it was disabled...", ex);
         return false;
       }
     };
