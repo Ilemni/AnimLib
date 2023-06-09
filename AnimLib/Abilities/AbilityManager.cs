@@ -98,7 +98,7 @@ namespace AnimLib.Abilities {
     public virtual bool Autoload => mod.ContentAutoloadingEnabled;
 
     /// <summary>
-    /// Whether or not to automatically save ability data during <see cref="ModPlayer.Save"/>.
+    /// Whether or not to automatically save ability data during <see cref="ModPlayer.SaveData"/>.
     /// If <see langword="true"/>, this will save ability data in <see cref="AnimLibMod"/>.
     /// Set to <see langword="false"/> if you wish to save ability data in your own mod.
     /// </summary>
@@ -127,9 +127,9 @@ namespace AnimLib.Abilities {
     private bool _netUpdate;
 
     /// <summary>
-    /// List names of <see cref="AnimCompatSystem"/>s active by default
+    /// List names of <see cref="Compat.AnimCompatSystem"/>s active by default
     /// in order to block their work, when <see cref="AnimCharacter"/>
-    /// with this <see cref="AnimationController"/> is active.
+    /// with this <see cref="Animations.AnimationController"/> is active.
     /// </summary>
     public readonly HashSet<string> AnimCompatSystemBlocklist = new();
     #endregion
@@ -156,8 +156,8 @@ namespace AnimLib.Abilities {
     /// Physics update method
     /// <para>Can be used for synchronized player movement modifications</para>
     /// <para>
-    /// Is called even when 
-    /// <see cref="Ability.CanUseAnyAbilities"/> is false
+    /// Is called even when
+    /// <see cref="CanUseAnyAbilities"/> is false
     /// </para>
     /// </summary>
     public virtual void PhysicsPreUpdate() { }
@@ -231,7 +231,7 @@ namespace AnimLib.Abilities {
     #region Serializing
     /// <summary>
     /// Serializes all <see cref="Ability"/> data into a new <see cref="TagCompound"/> and returns it.
-    /// If <see cref="AutoSave"/> is <see langword="false"/>, you will want to call this in <see cref="ModPlayer.Save"> ModPlayer.Save() </see>
+    /// If <see cref="AutoSave"/> is <see langword="false"/>, you will want to call this in <see cref="ModPlayer.SaveData" />
     /// </summary>
     /// <returns>An instance of <see cref="TagCompound"/> containing <see cref="Ability"/> save data.</returns>
     public TagCompound Save() {

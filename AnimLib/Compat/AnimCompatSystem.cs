@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Terraria;
 using Terraria.ModLoader;
 
@@ -7,14 +7,14 @@ namespace AnimLib.Compat
   public abstract class AnimCompatSystem : ModSystem
   {
     /// <summary>
-    /// Set this flag to true, if system activation 
+    /// Set this flag to true, if system activation
     /// succeed and predicates were registered
     /// </summary>
     protected bool _initialized = false;
 
 
     /// <summary>
-    /// Set this flag to true, if system activation 
+    /// Set this flag to true, if system activation
     /// succeed and predicates were registered
     /// </summary>
     protected bool _fault = false;
@@ -28,14 +28,14 @@ namespace AnimLib.Compat
       _initialized && !_fault && !IsBlockListed(player);
 
     /// <summary>
-    /// Checks that this compat system is not 
+    /// Checks that this compat system is not
     /// blacklisted in player's character controllers
     /// </summary>
     public bool IsBlockListed(Player player) =>
       IsBlockListed(player.GetModPlayer<AnimPlayer>());
 
     /// <summary>
-    /// Checks that this compat system is not 
+    /// Checks that this compat system is not
     /// blacklisted in AnimPlayer's character controllers
     /// </summary>
     public bool IsBlockListed(AnimPlayer player)

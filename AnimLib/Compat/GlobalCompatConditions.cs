@@ -1,4 +1,4 @@
-﻿using AnimLib.Animations;
+using AnimLib.Animations;
 using JetBrains.Annotations;
 using System;
 using System.Collections.Generic;
@@ -17,7 +17,7 @@ namespace AnimLib.Compat
     [NotNull] private static readonly List<Predicate<Player>> _disableGraphicsOrPredicates = new();
 
     /// <summary>
-    /// The <see cref="Predicate{Player}"/> list to determine if 
+    /// The <see cref="Predicate{Player}"/> list to determine if
     /// animations updates should be disabled
     /// </summary>
     [NotNull] private static readonly List<Predicate<Player>> _disableAnimationsUpdating = new();
@@ -42,7 +42,7 @@ namespace AnimLib.Compat
     /// <see cref="AnimationController.GraphicsEnabledCompat"/> becomes false until the
     /// next evaluation.
     /// Use this for compatibility, if you want to add trigger for
-    /// disabling of PlayerDrawLayers' changes 
+    /// disabling of PlayerDrawLayers' changes
     /// (hiding vanilla layers and displaying game character)
     /// (as example, morph ball from NetroidMod should hide players' character)
     /// </summary>
@@ -57,7 +57,7 @@ namespace AnimLib.Compat
     /// <see cref="AnimationController.AnimationUpdEnabledCompat"/> becomes false until the
     /// next evaluation.
     /// Use this for compatibility, if you want to add trigger for
-    /// disabling of animation (if using AnimationController) updating 
+    /// disabling of animation (if using AnimationController) updating
     /// </summary>
     public static void AddAnimationUpdDisableCondition(Predicate<Player> p) =>
       _disableAnimationsUpdating.Add(p);

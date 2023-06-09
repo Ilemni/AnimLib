@@ -74,7 +74,7 @@ namespace AnimLib.Abilities {
     ///   public override int Id => AbilityID.MyFunAbility;
     ///   // omitted for brevity ...
     /// }
-    /// 
+    ///
     /// static class AbilityID {
     ///   public static int MyFunAbility => 1;
     ///   public static int MyOtherFunAbility => 2;

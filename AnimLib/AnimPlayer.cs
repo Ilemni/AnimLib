@@ -95,7 +95,7 @@ namespace AnimLib {
     public override void PostUpdate() => ActiveCharacter?.PostUpdate();
 
     // AnimLibMod Save/Load TagCompound structure:
-    // 
+    //
     // "abilities":
     //   "{mod_name}":
     //     "{ability_name}":
@@ -119,7 +119,7 @@ namespace AnimLib {
         tag[AllAbilityTagKey] = OldAbilities;
       }
         //  TagCompound allAbilitiesTag = new TagCompound();
-        //  foreach ((Mod aMod, AnimCharacter character) in characters) 
+        //  foreach ((Mod aMod, AnimCharacter character) in characters)
         //    if(character.abilityManager != null)
         //      allAbilitiesTag[aMod.Name] = character.abilityManager.Save();
 
@@ -151,7 +151,7 @@ namespace AnimLib {
       //foreach ((string key, object value) in allAbilitiesTag) {
       //  if (value is not TagCompound abilityTag) continue;
       //  Mod aMod = ModLoader.GetMod(key);
-      //  // Store unloaded data if mod not loaded, character collection missing mod, or character missing ability manager (mod removed implementation?) 
+      //  // Store unloaded data if mod not loaded, character collection missing mod, or character missing ability manager (mod removed implementation?)
       //  if (aMod is null || !characters.TryGetValue(Mod, out AnimCharacter character) || character?.abilityManager == null) {
       //    _unloadedModTags ??= new Dictionary<string, TagCompound>();
       //    _unloadedModTags[key] = abilityTag;

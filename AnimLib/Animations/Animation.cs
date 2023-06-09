@@ -34,7 +34,7 @@ namespace AnimLib.Animations {
 
     /// <summary>
     /// Creates a new instance of <see cref="Animation"/> for the given <see cref="AnimPlayer"/>, using the given <see cref="AnimationSource"/> and
-    /// rendering with <see cref="PlayerLayer"/>.
+    /// rendering with <see cref="PlayerDrawLayer"/>.
     /// </summary>
     /// <param name="controller"><see cref="AnimationController"/> instance this will belong to.</param>
     /// <param name="source"><see cref="AnimationSource"/> to determine which sprite is drawn.</param>
@@ -107,7 +107,7 @@ namespace AnimLib.Animations {
     /// Gets a <see cref="DrawData"/> that is based on this <see cref="Animation"/>.
     /// <list type="bullet">
     /// <item><see cref="DrawData.texture"/> is <see cref="CurrentTexture"/> (recommended)</item>
-    /// <item><see cref="DrawData.position"/> is the center of the <see cref="PlayerDrawInfo.drawPlayer"/>, in screen-space. (recommended)</item>
+    /// <item><see cref="DrawData.position"/> is the center of the <see cref="PlayerDrawSet.drawPlayer"/>, in screen-space. (recommended)</item>
     /// <item><see cref="DrawData.sourceRect"/> is <see cref="CurrentTile"/> (recommended)</item>
     /// <item><see cref="DrawData.rotation"/> is <see cref="Entity.direction"/> <see langword="*"/> <see cref="AnimationController.SpriteRotation"/> (recommended)</item>
     /// <item><see cref="DrawData.origin"/> is half of <see cref="CurrentTile"/>'s size, plus (5 * <see cref="Player.gravDir"/>) on the Y axis. Feel free to modify this.</item>
@@ -116,28 +116,28 @@ namespace AnimLib.Animations {
     /// </summary>
     /// <remarks>
     /// If your sprites are asymmetrical and cannot be flipped (i.e. Samus from Metroid),
-    /// you should modify <see cref="DrawData.effect"/> and <see cref="DrawData.rotation"/> to get your desired effect.
+    /// you should modify <see cref="DrawData.effect"/> and <see cref="DrawData.rotation"/> to get your desired effect.<br />
     /// If your sprites are not correctly positioned in the world, you may need to tweak <see cref="DrawData.origin"/>.
     /// </remarks>
-    /// <param name="drawInfo">Parameter of <see cref="PlayerLayer(string, string, System.Action{PlayerDrawInfo})"/>.</param>
+    /// <param name="drawInfo">Parameter of <see cref="PlayerDrawLayer.Draw(ref PlayerDrawSet)">PlayerDrawLayer.Draw(ref PlayerDrawSet)</see>.</param>
     /// <returns>A <see cref="DrawData"/> based on this <see cref="Animation"/>.</returns>
     public DrawData GetDrawData(PlayerDrawSet drawInfo) {
       Player player = drawInfo.drawPlayer;
       Texture2D texture = CurrentTexture;
-      Vector2 pos = drawInfo.Position - Main.screenPosition + player.Size / 2;
+      Vector2 position = drawInfo.Position - Main.screenPosition + player.Size / 2;
       Rectangle rect = CurrentTile;
       SpriteEffects effect = controller.Effects;
-      Vector2 orig = new Vector2(rect.Width / 2f, rect.Height / 2f);
+      Vector2 origin = new Vector2(rect.Width / 2f, rect.Height / 2f);
 
-      return new DrawData(texture, pos, rect, Color.White, controller.SpriteRotation, orig, 1, effect, 0);
+      return new DrawData(texture, position, rect, Color.White, controller.SpriteRotation, origin, 1, effect);
     }
 
     /// <summary>
-    /// Attempts to add the given <see cref="PlayerLayer"/> to <paramref name="layers"/>.
+    /// Attempts to add the given <see cref="PlayerDrawLayer"/> to <paramref name="layers"/>.
     /// If <see cref="Valid"/> is <see langword="false"/>, this will do nothing and return <see langword="false"/>.
     /// </summary>
-    /// <param name="layers">The <see cref="List{T}"/> of <see cref="PlayerLayer"/> to insert in.</param>
-    /// <param name="playerLayer"><see cref="PlayerLayer"/> to use for this <see cref="Animation"/>.</param>
+    /// <param name="layers">The <see cref="List{T}"/> of <see cref="PlayerDrawLayer"/> to insert in.</param>
+    /// <param name="playerLayer"><see cref="PlayerDrawLayer"/> to use for this <see cref="Animation"/>.</param>
     /// <returns><see langword="true"/> if <paramref name="playerLayer"/> was inserted; otherwise, <see langword="false"/>.</returns>
     public bool TryAddToLayers(List<PlayerDrawLayer> layers, PlayerDrawLayer playerLayer) {
       if (Valid) layers.Add(playerLayer);
@@ -145,11 +145,11 @@ namespace AnimLib.Animations {
     }
 
     /// <summary>
-    /// Attempts to insert the given <see cref="PlayerLayer"/> to <paramref name="layers"/>. If <see cref="Valid"/> is <see langword="false"/>,
+    /// Attempts to insert the given <see cref="PlayerDrawLayer"/> to <paramref name="layers"/>. If <see cref="Valid"/> is <see langword="false"/>,
     /// this will do nothing and return <see langword="false"/>.
     /// </summary>
-    /// <param name="layers">The <see cref="List{T}"/> of <see cref="PlayerLayer"/> to insert in.</param>
-    /// <param name="playerLayer"><see cref="PlayerLayer"/> to use for this <see cref="Animation"/>.</param>
+    /// <param name="layers">The <see cref="List{T}"/> of <see cref="PlayerDrawLayer"/> to insert in.</param>
+    /// <param name="playerLayer"><see cref="PlayerDrawLayer"/> to use for this <see cref="Animation"/>.</param>
     /// <param name="idx">Position to insert the <paramref name="playerLayer"/> into.</param>
     /// <returns><see langword="true"/> if <paramref name="playerLayer"/> was inserted; otherwise, <see langword="false"/>.</returns>
     public bool TryAddToLayers(List<PlayerDrawLayer> layers, PlayerDrawLayer playerLayer, int idx) {

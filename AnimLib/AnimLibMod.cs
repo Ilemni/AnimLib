@@ -104,18 +104,18 @@ namespace AnimLib {
 
 
     /// <summary>
-    /// Gets a <see cref="DrawData"/> from the given <see cref="PlayerDrawInfo"/>, based on your <see cref="AnimationController"/> and
+    /// Gets a <see cref="DrawData"/> from the given <see cref="PlayerDrawSet"/>, based on your <see cref="AnimationController"/> and
     /// <see cref="AnimationSource"/>.
     /// <para>
     /// This can be a quick way to get a <see cref="DrawData"/> that's ready to use for your <see cref="PlayerDrawLayer"/>s.
     /// For a more performant way of getting a <see cref="DrawData"/>, cache your <see cref="AnimationController"/> in your <see cref="ModPlayer"/>
     /// and <see cref="Animations.Animation"/> in your <see cref="AnimationController"/>, and use
-    /// <see cref="Animations.Animation.GetDrawData(PlayerDrawInfo)"/>.
+    /// <see cref="Animations.Animation.GetDrawData(PlayerDrawSet)"/>.
     /// </para>
     /// </summary>
     /// <typeparam name="TController"> Your type of <see cref="AnimationController"/>.</typeparam>
     /// <typeparam name="TSource"> Your type of <see cref="AnimationSource"/>.</typeparam>
-    /// <param name="drawInfo">The <see cref="PlayerDrawInfo"/> to get the <see cref="DrawData"/> from.</param>
+    /// <param name="drawInfo">The <see cref="PlayerDrawSet"/> to get the <see cref="DrawData"/> from.</param>
     /// <returns>A <see cref="DrawData"/> that is ready to be drawn. Feel free to modify it.</returns>
     public static DrawData GetDrawData<TController, TSource>(PlayerDrawSet drawInfo)
       where TController : AnimationController where TSource : AnimationSource {
