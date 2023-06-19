@@ -135,7 +135,7 @@ namespace AnimLib.Animations {
     /// <see cref="AnimationSource.F(string, int, int, int)"/>, or new <see cref="SwitchTextureFrame(byte, byte, ushort, string)"/>
     /// </para>
     /// </summary>
-    public bool HasTextures => !(textures is null);
+    public bool HasTextures => textures is not null;
     // TODO: Allow Track.Range to use multiple columns of textures
     // For that to work, Track will require knowing the AnimationSource.spriteSize
     // and the source's texture's dimensions
@@ -185,7 +185,7 @@ namespace AnimLib.Animations {
       for (int y = start.tile.y; y < end.tile.y; y++) frames.Add(new Frame(start.tile.x, y, start.duration));
 
       frames.Add(end);
-      Track track = new Track(loopMode, direction, frames.ToArray());
+      Track track = new(loopMode, direction, frames.ToArray());
       return track;
     }
 
@@ -195,7 +195,7 @@ namespace AnimLib.Animations {
     /// <param name="frame">Assigns to <see cref="frames"/> as a single <see cref="Frame"/>.</param>
     /// <returns>A new <see cref="Track"/> with a single <see cref="Frame"/>.</returns>
     [NotNull]
-    public static Track Single(Frame frame) => new Track(new[] { frame });
+    public static Track Single(Frame frame) => new(new[] { frame });
 
 
     /// <summary>
@@ -259,7 +259,7 @@ namespace AnimLib.Animations {
       if (frameIndex < 0 || frameIndex >= length)
         throw new ArgumentOutOfRangeException(nameof(frameIndex), $"{nameof(frameIndex)} must be non-negative and less than the length of frames.");
       var texture = ModContent.Request<Texture2D>(texturePath);
-      if (textures is null) textures = new SortedDictionary<int, Texture2D>();
+      textures ??= new SortedDictionary<int, Texture2D>();
       texture.Wait();
       textures[frameIndex] = texture.Value;
     }
