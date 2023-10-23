@@ -3,7 +3,6 @@ using AnimLib.Animations;
 using AnimLib.Networking;
 using JetBrains.Annotations;
 using System;
-using System.Collections.Generic;
 using Terraria;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
@@ -25,11 +24,6 @@ namespace AnimLib {
     private static AnimPlayer _local;
 
     private bool _abilityNetUpdate;
-
-    /// <summary>
-    /// We need to make sure we don't lose ability data whenever a previous mod was not used during this session.
-    /// </summary>
-    private Dictionary<string, TagCompound> _unloadedModTags;
 
     internal AnimCharacterCollection characters =>
       _characters ??= new AnimCharacterCollection(this);
