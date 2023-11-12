@@ -52,5 +52,8 @@ namespace AnimLib.Animations {
 
     /// <inheritdoc cref="Frame(byte, byte, ushort)"/>
     public static explicit operator Frame(SwitchTextureFrame stf) => new(stf.tile.x, stf.tile.y, stf.duration);
+
+    /// <inheritdoc cref="Frame(byte, byte, ushort)"/>
+    public static explicit operator Frame(SwitchTextureFrameAsset stf) => new(stf.tile.x, stf.tile.y, stf.duration);
   }
 }

@@ -366,6 +366,8 @@ namespace AnimLib.Animations {
     /// in order to block their work, when <see cref="AnimCharacter"/>
     /// with this <see cref="AnimationController"/> is active.
     /// </summary>
+    [Obsolete("Will be reworked")]
+    [NotNull]
     public readonly HashSet<string> AnimCompatSystemBlocklist = new();
 
     private bool _graphicsDisabledDirectly = false;

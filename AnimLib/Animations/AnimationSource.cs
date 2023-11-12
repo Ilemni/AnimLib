@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using JetBrains.Annotations;
 using Microsoft.Xna.Framework.Graphics;
+using ReLogic.Content;
 using Terraria.ModLoader;
 
 namespace AnimLib.Animations {
@@ -27,13 +28,23 @@ namespace AnimLib.Animations {
     /// </summary>
     public abstract Dictionary<string, Track> tracks { get; }
 
+    /// <summary>
+    /// All <see cref="Texture2D"/>s this uses.
+    /// </summary>
+    internal static Dictionary<string, Asset<Texture2D>> texture_assets = new();
+
 
     /// <summary>
     /// Default spritesheet used for animations.
     /// <para>This may be overwritten if you have any of your <see cref="Track"/>s use their own textures.</para>
     /// </summary>
     // ReSharper disable once NotNullMemberIsNotInitialized
-    [NotNull] public Texture2D texture { get; internal set; }
+    [NotNull] public Asset<Texture2D> texture { get; internal set; }
+
+    public Texture2D GetDefaultTexture() {
+      if(!texture.IsLoaded) texture.Wait();
+      return texture.Value;
+    }
 
     /// <summary>
     /// The mod that this <see cref="AnimationSource"/> belongs to.
@@ -69,5 +80,12 @@ namespace AnimLib.Animations {
     /// </summary>
     /// <inheritdoc cref="SwitchTextureFrame(byte, byte, ushort, string)"/>
     protected static SwitchTextureFrame F(string texturePath, int x, int y, int duration = 0) => new(x, y, duration, texturePath);
+
+    /// <summary>
+    /// <para>Shorthand for <see cref="SwitchTextureFrameAsset"/>. Use this to switch the texture at this frame.</para>
+    /// <inheritdoc cref="SwitchTextureFrameAsset"/>
+    /// </summary>
+    /// <inheritdoc cref="SwitchTextureFrameAsset"/>
+    protected static SwitchTextureFrameAsset F(Asset<Texture2D> textureAsset, int x, int y, int duration = 0) => new(x, y, duration, textureAsset);
   }
 }

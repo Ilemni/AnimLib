@@ -4,6 +4,7 @@ using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using ReLogic.Content;
 using Terraria.ModLoader;
 
 namespace AnimLib.Animations {
@@ -29,8 +30,9 @@ namespace AnimLib.Animations {
     /// <inheritdoc cref="LoopMode"/>
     public readonly LoopMode loopMode;
 
-    [CanBeNull] internal SortedDictionary<int, Texture2D> textures;
+    [CanBeNull] internal Dictionary<int, Asset<Texture2D>> textures;
 
+    private bool _load_completed;
 
     /// <summary>
     /// Creates a track using <see cref="LoopMode.Always"/> and <see cref="Direction.Forward"/>, and with the given <see cref="Frame"/> array.
@@ -109,6 +111,10 @@ namespace AnimLib.Animations {
             SetTextureAtFrameIndex(stf.texturePath, i);
             newFrames[i] = (Frame)stf;
             break;
+          case SwitchTextureFrameAsset stf:
+            SetTextureAtFrameIndexAsset(stf.textureAsset, i);
+            newFrames[i] = (Frame)stf;
+            break;
           case Frame frame:
             newFrames[i] = frame;
             break;
@@ -135,7 +141,7 @@ namespace AnimLib.Animations {
     /// <see cref="AnimationSource.F(string, int, int, int)"/>, or new <see cref="SwitchTextureFrame(byte, byte, ushort, string)"/>
     /// </para>
     /// </summary>
-    public bool HasTextures => !(textures is null);
+    public bool HasTextures => textures is not null;
     // TODO: Allow Track.Range to use multiple columns of textures
     // For that to work, Track will require knowing the AnimationSource.spriteSize
     // and the source's texture's dimensions
@@ -228,17 +234,18 @@ namespace AnimLib.Animations {
     /// <returns>A valid <see cref="Texture2D"/> if <see cref="AnimationSource.texture"/> should be overridden, else <see langword="null"/>.</returns>
     public Texture2D GetTexture(int frameIdx) {
       if (textures is null) return null;
+      if(!_load_completed) CompleteLoading();
 
       frameIdx = (int)MathHelper.Clamp(frameIdx, 0, length - 1);
 
       // Short-circuit if this frame has texture.
-      if (textures.TryGetValue(frameIdx, out Texture2D texture)) return texture;
+      if (textures.TryGetValue(frameIdx, out var texture)) return texture?.Value;
 
       // Get the highest key before frameIdx
       int idx = -1;
       foreach (int key in textures.Keys.Where(key => key > idx && key < frameIdx)) idx = key;
 
-      return textures.TryGetValue(idx, out Texture2D texture1) ? texture1 : null;
+      return textures.TryGetValue(idx, out var texture1) ? texture1?.Value : null;
     }
 
     /// <summary>
@@ -252,16 +259,48 @@ namespace AnimLib.Animations {
     /// <summary>
     /// Adds an override texture path at the given frame index. A frame played at this or a later index will use the texture at that path.
     /// </summary>
+    /// <param name="textureAsset">Texture <see cref="Asset{T}"/>, -or- <see langword="null"/> to use the <see cref="AnimationSource"/>'s texture.</param>
+    /// <param name="frameIndex">Index of the frame that this texture will be used for.</param>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="frameIndex"/> cannot be less than 0 or greater than the length of frames.</exception>
+    public void SetTextureAtFrameIndexAsset(Asset<Texture2D> textureAsset, int frameIndex) {
+      if (frameIndex < 0 || frameIndex >= length)
+        throw new ArgumentOutOfRangeException(nameof(frameIndex), $"{nameof(frameIndex)} must be non-negative and less than the length of frames.");
+      textures ??= new Dictionary<int, Asset<Texture2D>>();
+      textures[frameIndex] = textureAsset;
+    }
+
+    /// <summary>
+    /// Adds an override texture path at the given frame index. A frame played at this or a later index will use the texture at that path.
+    /// </summary>
     /// <param name="texturePath">Path to the texture, -or- <see langword="null"/> to use the <see cref="AnimationSource"/>'s texture.</param>
     /// <param name="frameIndex">Index of the frame that this texture will be used for.</param>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="frameIndex"/> cannot be less than 0 or greater than the length of frames.</exception>
     public void SetTextureAtFrameIndex(string texturePath, int frameIndex) {
       if (frameIndex < 0 || frameIndex >= length)
         throw new ArgumentOutOfRangeException(nameof(frameIndex), $"{nameof(frameIndex)} must be non-negative and less than the length of frames.");
-      var texture = ModContent.Request<Texture2D>(texturePath);
-      textures ??= new SortedDictionary<int, Texture2D>();
-      texture.Wait();
-      textures[frameIndex] = texture.Value;
+      if(texturePath is null) {
+        SetTextureAtFrameIndexAsset(null, frameIndex);
+        return;
+      }
+      if (AnimationSource.texture_assets.TryGetValue(texturePath, out var tex)) {
+        SetTextureAtFrameIndexAsset(tex, frameIndex);
+      }
+      else {
+        var texture = ModContent.Request<Texture2D>(texturePath);
+        AnimationSource.texture_assets.Add(texturePath, texture);
+        SetTextureAtFrameIndexAsset(texture, frameIndex);
+      }
+    }
+
+    /// <summary>
+    /// Waits for all track's textures to be loaded
+    /// </summary>
+    public void CompleteLoading() {
+      if(_load_completed) return;
+      foreach (var texture in textures.Values) {
+        texture?.Wait();
+      }
+      _load_completed = true;
     }
   }
 }

@@ -78,7 +78,7 @@ namespace AnimLib.Animations {
     /// <see cref="AnimationSource"/>'s <see cref="Texture2D"/>.
     /// </para>
     /// </summary>
-    public Texture2D CurrentTexture => CurrentTrack.GetTexture(controller.FrameIndex) ?? source.texture;
+    public Texture2D CurrentTexture => CurrentTrack.GetTexture(controller.FrameIndex) ?? source.GetDefaultTexture();
 
     /// <summary>
     /// Whether or not the current <see cref="AnimationController.TrackName"/> maps to a valid <see cref="Track"/> on this <see cref="AnimationSource"/>.
