@@ -297,9 +297,10 @@ namespace AnimLib.Animations {
     /// </summary>
     public void CompleteLoading() {
       if(_load_completed) return;
-      foreach (var texture in textures.Values) {
-        texture?.Wait();
-      }
+      if(textures is not null) 
+        foreach (var texture in textures.Values) {
+          texture?.Wait();
+        }
       _load_completed = true;
     }
   }
