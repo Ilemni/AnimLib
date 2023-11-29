@@ -171,6 +171,7 @@ namespace AnimLib.Internal {
     private static bool TryConstructSource(Type type, Mod mod, out AnimationSource source) {
       source = (AnimationSource)Activator.CreateInstance(type, true);
 
+      // ReSharper disable once PossibleNullReferenceException
       string fullName = source.GetType().FullName;
       if (fullName is null) throw new ArgumentException($"Invalid full type name from type {source.GetType()}", nameof(type));
 

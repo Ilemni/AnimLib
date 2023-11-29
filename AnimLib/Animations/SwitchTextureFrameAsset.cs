@@ -30,11 +30,11 @@ namespace AnimLib.Animations {
     /// <param name="x">X position of the tile.</param>
     /// <param name="y">Y position of the tile.</param>
     /// <param name="duration">Duration of the frame.</param>
-    /// <param name="texturePath">
+    /// <param name="textureAsset">
     /// Spritesheet that this track will switch to upon reaching this frame, -or- <see langword="null"/> to use the
     /// <see cref="AnimationSource"/>'s texture.
     /// </param>
-    /// <exception cref="ArgumentException"><paramref name="texturePath"/> is <see langword="null"/> or white space.</exception>
+    /// <exception cref="ArgumentException"><paramref name="textureAsset"/> is <see langword="null"/> or white space.</exception>
     public SwitchTextureFrameAsset(byte x, byte y, ushort duration, [CanBeNull] Asset<Texture2D> textureAsset) {
       tile = new PointByte(x, y);
       this.duration = duration;

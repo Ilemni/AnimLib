@@ -8,14 +8,14 @@ namespace AnimLib.Compat {
     /// Set this flag to true, if system activation
     /// succeed and predicates were registered
     /// </summary>
-    protected bool _initialized = false;
+    protected bool _initialized;
 
 
     /// <summary>
     /// Set this flag to true, if system activation
     /// succeed and predicates were registered
     /// </summary>
-    protected bool _fault = false;
+    protected bool _fault;
 
     /// <summary>
     /// Used for determining, if this compat system

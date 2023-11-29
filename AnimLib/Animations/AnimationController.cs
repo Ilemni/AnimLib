@@ -370,8 +370,8 @@ namespace AnimLib.Animations {
     [NotNull]
     public readonly HashSet<string> AnimCompatSystemBlocklist = new();
 
-    private bool _graphicsDisabledDirectly = false;
-    private bool _animationUpdateDisabledDirectly = false;
+    private bool _graphicsDisabledDirectly;
+    private bool _animationUpdateDisabledDirectly;
 
     /// <summary>
     /// State of GraphicsDisable conditions since previous update's evaluation.

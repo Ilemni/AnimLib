@@ -59,7 +59,7 @@ namespace AnimLib {
     public static T GetAnimationController<T>([NotNull] ModPlayer modPlayer) where T : AnimationController {
       ArgumentNullException.ThrowIfNull(modPlayer);
       AnimationController controller = modPlayer.GetAnimCharacter().animationController;
-      return controller is T t ? t : throw ThrowHelper.BadType<T>(controller, modPlayer.Mod, nameof(T));
+      return controller as T ?? throw ThrowHelper.BadType<T>(controller, modPlayer.Mod, nameof(T));
     }
 
     /// <summary>

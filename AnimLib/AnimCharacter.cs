@@ -148,7 +148,7 @@ namespace AnimLib {
     /// <summary>
     /// The <see cref="Mod"/> that this <see cref="AnimCharacter"/> instance belongs to.
     /// </summary>
-    [NotNull] public Mod mod { get; internal set; }
+    [NotNull] public Mod mod { get; internal init; }
 
     /// <summary>
     /// The <see cref="AnimationController"/> of this character.
@@ -156,7 +156,7 @@ namespace AnimLib {
     /// This value is your type of <see cref="AnimationController"/> if your mod has a type inheriting <see cref="AnimationController"/>;
     /// otherwise, it is <see langword="null"/>.
     /// </summary>
-    [CanBeNull] public AnimationController animationController { get; internal set; }
+    [CanBeNull] public AnimationController animationController { get; internal init; }
 
     /// <summary>
     /// The <see cref="AbilityManager"/> of this character.
@@ -164,7 +164,7 @@ namespace AnimLib {
     /// This value is your type of <see cref="AbilityManager"/> if your mod has a type inheriting <see cref="AbilityManager"/>;
     /// otherwise, it is <see cref="AnimLib"/>'s type <see cref="AbilityManager"/>.
     /// </summary>
-    [CanBeNull] public AbilityManager abilityManager { get; internal set; }
+    [CanBeNull] public AbilityManager abilityManager { get; internal init; }
 
     [NotNull] internal AnimCharacterCollection characters { get; }
 
@@ -301,6 +301,7 @@ namespace AnimLib {
     internal static AnimationController TryCreateControllerForPlayer(AnimPlayer animPlayer, Mod mod, Type type) {
       try {
         AnimationController controller = (AnimationController)Activator.CreateInstance(type, true);
+        // ReSharper disable once PossibleNullReferenceException
         controller.player = animPlayer.Player;
         controller.mod = mod;
         controller.SetupAnimations();
@@ -316,6 +317,7 @@ namespace AnimLib {
     private static AbilityManager CreateAbilityManagerForPlayer(AnimPlayer animPlayer, Mod mod, Type managerType, IEnumerable<Type> abilityTypes) {
       try {
         AbilityManager manager = (AbilityManager)Activator.CreateInstance(managerType);
+        // ReSharper disable once PossibleNullReferenceException
         manager.animPlayer = animPlayer;
         manager.player = animPlayer.Player;
         manager.mod = mod;
@@ -345,6 +347,7 @@ namespace AnimLib {
 
     private static bool AutoloadAbility(Type abilityType, AbilityManager manager, out Ability ability) {
       ability = (Ability)Activator.CreateInstance(abilityType);
+      // ReSharper disable once PossibleNullReferenceException
       ability.abilities = manager;
       ability.player = manager.player;
       return ability.Autoload;

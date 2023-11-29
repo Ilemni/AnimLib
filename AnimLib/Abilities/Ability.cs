@@ -16,7 +16,7 @@ namespace AnimLib.Abilities {
     /// <inheritdoc cref="Ability.abilities"/>
     public new TManager abilities {
       get => (TManager)base.abilities;
-      internal set => base.abilities = value;
+      internal init => base.abilities = value;
     }
   }
 

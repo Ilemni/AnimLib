@@ -87,9 +87,9 @@ namespace AnimLib.Commands {
         : $"{ability.GetType().Name} is currently {(ability.Unlocked ? "Unlocked" : "Locked")} at level {levelable.Level}/{levelable.MaxLevel}");
     }
 
-    private static Message Error(string message) => new Message(message, Color.Red);
-    private static Message SuccessWarn(string message) => new Message(message, Color.GreenYellow);
-    private static Message Success(string message) => new Message(message, Color.LightGreen);
+    private static Message Error(string message) => new(message, Color.Red);
+    private static Message SuccessWarn(string message) => new(message, Color.GreenYellow);
+    private static Message Success(string message) => new(message, Color.LightGreen);
 
     private class Message {
       public readonly Color color;
