@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Linq;
 using AnimLib.States;
 using AnimLib.Systems;
@@ -5,6 +6,7 @@ using Terraria.ModLoader.IO;
 
 namespace AnimLib;
 
+[DebuggerDisplay("ActiveCharacter = {ActiveCharacter?.Name}, Player = {Player.name}")]
 public sealed partial class AnimCharacterCollection : StateMachine {
   public AnimCharacter? ActiveCharacter => ActiveChild as AnimCharacter;
 

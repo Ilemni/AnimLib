@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using AnimLib.Animations;
 using AnimLib.Menus.Debug;
 using JetBrains.Annotations;
@@ -15,6 +15,7 @@ namespace AnimLib.States;
 /// </summary>
 [UsedImplicitly(ImplicitUseTargetFlags.WithInheritors)]
 [PublicAPI]
+[DebuggerDisplay("Name = {Name}, Player = {Player?.name}, Active = {Active}, ActiveTime = {ActiveTime}")]
 public abstract partial class State {
   /// <summary>
   /// The string used to represent this State in the UI.

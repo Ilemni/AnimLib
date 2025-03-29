@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Linq;
 using AnimLib.Animations;
 using AnimLib.States;
@@ -11,6 +12,7 @@ namespace AnimLib;
 /// <br /> States which belong to this character will not recieve most hook updates when this character is disabled.
 /// </summary>
 [PublicAPI]
+[DebuggerDisplay("Name = {Name}, Active = {Active}, Player = {Player?.name}")]
 public abstract partial class AnimCharacter : State {
   protected AnimCharacter() {
     // We want Colors to always default to whatever GetDefaultColors() returns.
