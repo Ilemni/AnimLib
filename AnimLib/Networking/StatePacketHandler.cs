@@ -6,7 +6,7 @@ namespace AnimLib.Networking;
 /// <summary>
 /// Sends and receives <see cref="ModPacket"/>s that sync <see cref="AnimCharacterCollection"/> and all children.
 /// </summary>
-internal class StatePacketHandler(byte handlerType) : PacketHandler(handlerType) {
+internal sealed class StatePacketHandler(byte handlerType) : PacketHandler(handlerType) {
   protected override void HandlePacket(ReadSyncer reader, int fromWho) {
     var states = GetStates(fromWho);
     int count = reader.Reader.Read7BitEncodedInt();

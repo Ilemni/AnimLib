@@ -1,15 +1,22 @@
-﻿using AnimLib.Networking;
+using AnimLib.Networking;
 using AnimLib.States;
 using Terraria.ModLoader.IO;
 
 namespace AnimLib;
 
 public abstract partial class AnimCharacter {
+  /// <summary>
+  /// Key for storing value of <see cref="State.Active"/>.
+  /// This value is saved separately from collection.ActiveCharacter to allow
+  /// re-enabling characters whose mod was previously disabled,
+  /// but wil not re-enable if a new character is enabled.
+  /// </summary>
   private const string ActiveKey = "active";
   private const string StyleKey = "style";
 
   /// <summary>
-  /// Ensures that all <see cref="AbilityStates"/> levels are synced.
+  /// Syncs <see cref="AbilityStates"/>'s <see cref="AbilityState.Level"/>,
+  /// and <see cref="Style"/>.
   /// </summary>
   internal override void NetSyncInternal(NetSyncer sync) {
     foreach (AbilityState abilityState in AbilityStates) {

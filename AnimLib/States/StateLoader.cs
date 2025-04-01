@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using Terraria.DataStructures;
@@ -14,6 +14,8 @@ using HookList = HookList<State>;
 /// </summary>
 [UsedImplicitly]
 public sealed class StateLoader : ModSystem {
+  public static StateLoader Instance => ModContent.GetInstance<StateLoader>();
+
   private static readonly List<HookList> HookLists = [];
   internal static readonly List<State> TemplateStates = [];
   internal static readonly List<AnimCharacter> SelectableCharacters = [];

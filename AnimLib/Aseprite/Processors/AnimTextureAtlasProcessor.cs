@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.Linq;
 using AnimLib.Animations;
 using AsepriteDotNet.Aseprite;
@@ -12,10 +12,8 @@ namespace AnimLib.Aseprite.Processors;
 /// <summary>
 /// Defines a processor for processing multiple <see cref="AsepriteDotNet.TextureAtlas"/>es from an <see cref="AsepriteFile"/>,
 /// each corresponding to a target layer.
-/// <para />
-/// A target layer is any layer, regardless of nesting, whose UserData color is Green.
-/// <para />
-/// Creates a Dictionary of the following structure:
+/// <para/> A target layer is any layer, regardless of nesting, whose UserData color is Green.
+/// <para/> Creates a Dictionary of the following structure:
 /// <b>Key:</b> string representing the target layer path (e.g. "Root/Parent/Child")
 /// <b>Value:</b> <see cref="AsepriteDotNet.TextureAtlas"/> where the Texture is either:
 ///   <li>An image of the image layer, or</li>
@@ -74,15 +72,15 @@ public static class AnimTextureAtlasProcessor {
   /// </param>
   /// <param name="frames">
   /// Used to validate that a layer contains any cels.
-  /// <br /> Any otherwise valid target layers that do not contain cels will be ignored.
-  /// <br /> A group layer will still be valid if any child layer contains at least one cel.
+  /// <br/> Any otherwise valid target layers that do not contain cels will be ignored.
+  /// <br/> A group layer will still be valid if any child layer contains at least one cel.
   /// </param>
   /// <param name="options">
   /// Options to determine whether a layer will be skipped.
   /// </param>
   /// <param name="names">
   /// List of layer names representing the resulting target layers.
-  /// <br /> Unlike <see cref="AsepriteLayer.Name"/>, a name represents the full path of the layer.
+  /// <br/> Unlike <see cref="AsepriteLayer.Name"/>, a name represents the full path of the layer.
   /// </param>
   /// <returns></returns>
   private static AsepriteLayer[] GetTargetLayers(
@@ -148,7 +146,7 @@ public static class AnimTextureAtlasProcessor {
         // Some layers we want imported but not visible while working on them in Aseprite
 
         // Skip if layer does not contain any cels
-        // (A use case may be a 1-frame file with dozens of programmatically accessed layers, with some layers not yet drawn)
+        // A use case may be a 1-frame file with a large number of programmatically accessed layers, with some layers not yet drawn
         foreach (AsepriteFrame frame in frames) {
           foreach (AsepriteCel cel in frame.Cels) {
             if (ReferenceEquals(cel.Layer, layer)) {

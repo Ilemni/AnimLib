@@ -36,10 +36,10 @@ public abstract partial class State {
   /// Sync additional data with other clients.
   /// </summary>
   /// <param name="sync">
-  /// An instance which implements either <see cref="IReadSync"/> or <see cref="IWriteSync"/>.
-  /// If you need to access the underlying <see cref="BinaryReader"/> or <see cref="ModPacket"/>,
-  /// cast as <see cref="IReadSync"/> or <see cref="IWriteSync"/> to access their respective
-  /// <see cref="IReadSync.Reader"/> or <see cref="IWriteSync.Writer"/>.
+  /// An instance of either <see cref="ReadSyncer"/> or <see cref="WriteSyncer"/>.
+  /// If you need to access the underlying <see cref="BinaryReader"/> or <see cref="BinaryWriter"/>,
+  /// cast as <see cref="ReadSyncer"/> or <see cref="WriteSyncer"/> to access their respective
+  /// <see cref="ReadSyncer.Reader"/> or <see cref="WriteSyncer.Writer"/>.
   /// </param>
   /// <remarks>
   /// To reduce packet size, if there's anything that only needs to be synced at the start of the state,

@@ -1,11 +1,11 @@
-﻿using System.Reflection;
+using System.Reflection;
 using JetBrains.Annotations;
 using Terraria.GameContent.Liquid;
 
 namespace AnimLib.Systems;
 
 /// <summary>
-/// System exists just to block the
+/// This ModSystem exists just to block the
 /// "WaveMaskData texture recreated." console spam in
 /// <see cref="LiquidRenderer.SetWaveMaskData"/>.
 /// </summary>
@@ -29,9 +29,9 @@ public class WaveMaskBlockConsoleWriteSystem : ModSystem {
     Rectangle drawArea = (Rectangle)DrawAreaField.GetValue(self)!;
     var waveMask = (Color[])WaveMaskField.GetValue(self)!;
     try {
-      if (texture == null || texture.Width < drawArea.Height || texture.Height < drawArea.Width) {
+      if (texture is null || texture.Width < drawArea.Height || texture.Height < drawArea.Width) {
         // Console.WriteLine("WaveMaskData texture recreated. {0}x{1}", drawArea.Height, drawArea.Width);
-        if (texture != null) {
+        if (texture is not null) {
           try {
             texture.Dispose();
           }

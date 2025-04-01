@@ -33,24 +33,24 @@ public sealed partial class AnimCharacterCollection {
 
     ref Race race = ref Player.GetModPlayer<MrPlagueRacesPlayer>().race;
     if (race is Human) {
+      // Assign our stored race to override MPR's default
       race = result;
       return;
     }
 
-    // Race is already something else, discard AnimLib's saved value
+    // Race is already something else, replace AnimLib's saved value
     _storedRace = race.FullName;
   }
 
   [JITWhenModsEnabled(MrPlagueRacesModName)]
   private void Disable_PlagueRace() {
-    MrPlagueRacesPlayer racePlayer = Player.GetModPlayer<MrPlagueRacesPlayer>();
-    Race? race = racePlayer.race;
-
-    // Change race to Human
-    RaceLoader.TryGetRace("MrPlagueRaces/Human", out racePlayer.race);
+    ref Race race = ref Player.GetModPlayer<MrPlagueRacesPlayer>().race;
     if (race is not null) {
       _storedRace = race.FullName;
     }
+
+    // Change race to Human
+    RaceLoader.TryGetRace("MrPlagueRaces/Human", out race);
   }
 
 

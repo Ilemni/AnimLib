@@ -24,14 +24,14 @@ public sealed class AnimPlayer : ModPlayer {
       return t;
     }
 
-    throw new ArgumentException("Specified index does not refer to a State of type " + typeof(T).Name);
+    throw new ArgumentException("Specified index does not refer to a State that inherits type " + typeof(T).Name);
   }
 
   public State GetState(State templateState) => GetState(templateState.Index);
 
   public State GetState(int index) {
-    ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
-    ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, States.Length, nameof(index));
+    ArgumentOutOfRangeException.ThrowIfNegative(index);
+    ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, States.Length);
     return States[index];
   }
 
@@ -40,7 +40,7 @@ public sealed class AnimPlayer : ModPlayer {
   }
 
   public override ModPlayer NewInstance(Player entity) {
-    AnimPlayer? newInstance = (AnimPlayer)base.NewInstance(entity);
+    AnimPlayer newInstance = (AnimPlayer)base.NewInstance(entity);
     StateLoader.NewInstance(newInstance); // Creates and populates States array
     return newInstance;
   }
@@ -56,7 +56,9 @@ public sealed class AnimPlayer : ModPlayer {
   public override void CopyClientState(ModPlayer targetCopy) => base.CopyClientState(targetCopy);
 
   public override void SaveData(TagCompound tag) {
-    tag[StateDataKey] = StateIO.SaveStateData(Player);
+    if (StateIO.SaveStateData(Player) is { Count: > 0 } stateData) {
+      tag[StateDataKey] = stateData;
+    }
   }
 
   public override void LoadData(TagCompound tag) {

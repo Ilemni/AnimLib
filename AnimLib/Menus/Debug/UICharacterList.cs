@@ -56,14 +56,13 @@ public sealed class UICharacterList : DebugUIElement<AnimCharacterCollection> {
   [JITWhenModsEnabled("MrPlagueRaces")]
   private void AddRaceListItems() {
     foreach (Race race in RaceLoader.Races) {
-      if (race is Human) {
-        continue;
+      if (race is not Human) {
+        _characterList.Add(new UIPlagueRaceListItem(race, this));
       }
-      _characterList.Add(new UIPlagueRaceListItem(race, this));
     }
   }
 
-  private class UICharacterListItem : UIPanel {
+  private sealed class UICharacterListItem : UIPanel {
     private readonly int _characterIndex;
     private readonly UICharacterList _parent;
 
@@ -110,7 +109,7 @@ public sealed class UICharacterList : DebugUIElement<AnimCharacterCollection> {
       bool isSelectedCharacter = IsSelectedCharacter(out _);
       _button.SetImage(isSelectedCharacter
         ? AnimLibMod.Instance.Assets.Request<Texture2D>("AnimLib/UI/ButtonExit", AssetRequestMode.ImmediateLoad)
-        : Main.Assets.Request<Texture2D>("Images/UI/ButtonPlay", AssetRequestMode.ImmediateLoad));
+        : Main.Assets.Request<Texture2D>("Images/UI/ButtonPlay"));
       BackgroundColor = isSelectedCharacter
         ? new Color(63, 151, 82) * 0.7f
         : Color.Transparent;
@@ -137,18 +136,13 @@ public sealed class UICharacterList : DebugUIElement<AnimCharacterCollection> {
   }
 
   [JITWhenModsEnabled("MrPlagueRaces")]
-  private class UIPlagueRaceListItem : UIPanel {
+  private sealed class UIPlagueRaceListItem : UIPanel {
     private readonly Race _race;
     private readonly UICharacterList _parent;
 
-    private MrPlagueRacesPlayer? ModPlayer => _parent.State?.Player.GetModPlayer<MrPlagueRacesPlayer>();
+    private MrPlagueRacesPlayer? GetRacePlayer() => _parent.State?.Player.GetModPlayer<MrPlagueRacesPlayer>();
 
-    private bool IsSelectedCharacter {
-      get {
-        MrPlagueRacesPlayer? modPlayer = ModPlayer;
-        return modPlayer is not null && ReferenceEquals(modPlayer.race, _race);
-      }
-    }
+    private bool IsSelectedRace => GetRacePlayer()?.race is { } playerRace && ReferenceEquals(playerRace, _race);
 
     private UIImageButton _button = null!;
 
@@ -183,15 +177,10 @@ public sealed class UICharacterList : DebugUIElement<AnimCharacterCollection> {
     }
 
     public override void Update(GameTime gameTime) {
-      MrPlagueRacesPlayer? racePlayer = ModPlayer;
-      if (racePlayer is null) {
-        return;
-      }
-
-      bool isSelectedCharacter = IsSelectedCharacter;
+      bool isSelectedCharacter = IsSelectedRace;
       _button.SetImage(isSelectedCharacter
         ? AnimLibMod.Instance.Assets.Request<Texture2D>("AnimLib/UI/ButtonExit", AssetRequestMode.ImmediateLoad)
-        : Main.Assets.Request<Texture2D>("Images/UI/ButtonPlay", AssetRequestMode.ImmediateLoad));
+        : Main.Assets.Request<Texture2D>("Images/UI/ButtonPlay"));
       BackgroundColor = isSelectedCharacter
         ? new Color(131, 63, 221) * 0.7f
         : new Color(121, 63, 151) * 0.4f;
@@ -199,7 +188,7 @@ public sealed class UICharacterList : DebugUIElement<AnimCharacterCollection> {
 
     protected override void DrawSelf(SpriteBatch spriteBatch) {
       if (_button.IsMouseHovering) {
-        Main.instance.MouseText(IsSelectedCharacter
+        Main.instance.MouseText(IsSelectedRace
           ? "Disable this race."
           : "Enable this race.");
       }
@@ -212,14 +201,14 @@ public sealed class UICharacterList : DebugUIElement<AnimCharacterCollection> {
         return;
       }
 
-      MrPlagueRacesPlayer modPlayer = ModPlayer!;
-      if (IsSelectedCharacter) {
+      MrPlagueRacesPlayer racePlayer = GetRacePlayer()!;
+      if (IsSelectedRace) {
         RaceLoader.TryGetRace("MrPlagueRaces/Human", out Race human);
-        modPlayer.race = human;
+        racePlayer.race = human;
         return;
       }
 
-      modPlayer.race = _race;
+      racePlayer.race = _race;
       if (_parent.State.ActiveCharacter is { } character) {
         character.Disable();
       }

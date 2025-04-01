@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using AnimLib.States;
 using AnimLib.UI.Elements;
 using JetBrains.Annotations;
@@ -7,7 +7,8 @@ using Terraria.GameContent.UI.Elements;
 using Terraria.GameContent.UI.States;
 using Terraria.ID;
 using Terraria.UI;
-// ReSharper disable PossibleLossOfFraction
+
+// ReSharper disable PossibleLossOfFraction - UI rounding
 
 namespace AnimLib.Systems;
 
@@ -15,8 +16,9 @@ using ColoredButtonTextures = (Asset<Texture2D>? texture, Asset<Texture2D>? midd
 using MouseEvents = ReadOnlySpan<UIElement.MouseEvent>;
 
 /// <summary>
-/// System to modify the vanilla <see cref="UICharacterCreation"/> instance to include AnimLib characters,
-/// and related functionality.
+/// This ModSystem modifies the vanilla <see cref="UICharacterCreation"/> instance
+/// to include AnimLib characters and related functionality.
+/// <para/> This is the main system for modifying the character creation menu.
 /// </summary>
 [UsedImplicitly]
 public sealed class UICharacterCreationAnimCharacterSystem : ModSystem {
@@ -119,6 +121,7 @@ public sealed class UICharacterCreationAnimCharacterSystem : ModSystem {
     Unset();
   }
 
+  /// Remove any references to the UICharacterCreation instance and its member references
   private static void Unset() {
     _self = null!;
     _player = null!;
@@ -133,6 +136,7 @@ public sealed class UICharacterCreationAnimCharacterSystem : ModSystem {
     }
   }
 
+  /// After the categories bar is created, modify it to include our custom categories
   private static void PostMakeCategoriesBar(UIElement categoryContainer) {
     _categoryContainer = categoryContainer;
     _vanillaHairStylesListElement = _self.GetHairStylesContainer()
@@ -150,6 +154,7 @@ public sealed class UICharacterCreationAnimCharacterSystem : ModSystem {
   private static void AddVanillaToOrderedCategories() {
     var pickers = _self.GetColorPickers();
 
+    // In vanilla, these elements are null.
     // Adding these shouldn't change any vanilla behavior,
     // but allows us to index pickers by these CategoryIds.
     pickers[(int)CategoryId.CharInfo] = _self.GetCharInfoCategoryButton();
@@ -204,6 +209,8 @@ public sealed class UICharacterCreationAnimCharacterSystem : ModSystem {
       return (button.GetTexture(), button.GetMiddleTexture());
     }
   }
+
+  #region Character Select methods
 
   private static void MakeAnimCharacterSelectMenu(UIElement middleInnerPanel) {
     UIElement characterSelectContainer = new() {
@@ -300,6 +307,7 @@ public sealed class UICharacterCreationAnimCharacterSystem : ModSystem {
   }
 
 
+  /// On click, select the character and update various UI elements to reflect the character's style
   internal static void Click_SelectAnimCharacter(UIMouseEvent evt, UIElement listeningElement) {
     _self.Ex_UpdateColorPickers();
     UIAnimCharacterButton listeningButton = (UIAnimCharacterButton)listeningElement;
@@ -367,15 +375,9 @@ public sealed class UICharacterCreationAnimCharacterSystem : ModSystem {
 
     return;
 
-    void AddOrRemoveCategory(bool hide, CategoryId id,
-      ColoredButtonTextures? tex) {
+    void AddOrRemoveCategory(bool hide, CategoryId id, ColoredButtonTextures? tex) {
       UIColoredImageButton button = categoryButtons[(int)id];
-      if (hide) {
-        button.Remove();
-      }
-      else {
-        _categoryContainer.Append(button);
-      }
+      _categoryContainer.AddOrRemoveChild(button, !hide);
 
       if (tex is { } textures) {
         if (textures.texture is not null) {
@@ -390,6 +392,9 @@ public sealed class UICharacterCreationAnimCharacterSystem : ModSystem {
     }
   }
 
+  #endregion
+
+  /// Method appended to On_UICharacterCreation.UnselectAllCategories to also unselect the AnimCharacter category
   private static void UnselectAnimCharacterCategory() {
     foreach (UIColoredImageButton button in OrderedCategories) {
       button.SetSelected(false);
@@ -398,6 +403,7 @@ public sealed class UICharacterCreationAnimCharacterSystem : ModSystem {
     _characterSelectContainer.Remove();
   }
 
+  /// Repositions the category buttons after initial modifications by this system
   private static void RecalculateCategoryPositions() {
     const int xPositionPerId = 48;
     int categoryCount = OrderedCategories.Count;
@@ -419,6 +425,7 @@ public sealed class UICharacterCreationAnimCharacterSystem : ModSystem {
     parent.Recalculate();
   }
 
+  /// Repositions the category buttons after hiding an arbitrary number of them
   private static void RecalculateCategoryPositionsAfterHiding() {
     const int xPositionPerId = 48;
 
@@ -440,6 +447,7 @@ public sealed class UICharacterCreationAnimCharacterSystem : ModSystem {
     parent.Recalculate();
   }
 
+  /// After widening menu, this will shift the children of the clothes style menu
   private static void TweakClothesStyleMenuChildrenPosition() {
     UIElement container = _self.GetClothesStyleContainer();
     int newCategoryCount = OrderedCategories.Count - 10;
@@ -453,6 +461,7 @@ public sealed class UICharacterCreationAnimCharacterSystem : ModSystem {
     }
   }
 
+  /// After widening menu, we need to shift the children of the hairstyle menu
   private static void TweakHairStyleMenuChildrenPosition() {
     UIElement container = _self.GetHairStylesContainer();
     UIElement listElement = container.Children.ElementAt(0);

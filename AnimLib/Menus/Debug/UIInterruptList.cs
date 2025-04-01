@@ -14,7 +14,7 @@ public sealed class UIInterruptList : DebugUIElement<AnimCharacter> {
   protected override string HeaderHoverText =>
     "Displays a list of states which can interrupt the\ncurrent active states on the selected character.";
 
-  private readonly Dictionary<int, List<UIInterruptListItem>> _interruptItems = new();
+  private readonly Dictionary<int, List<UIInterruptListItem>> _interruptItems = [];
 
   private UIList _interruptList = null!;
 
@@ -90,11 +90,11 @@ public sealed class UIInterruptList : DebugUIElement<AnimCharacter> {
     _interruptList.Clear();
   }
 
-  private class UIInterruptListItem : UIPanel, IStateUIElement {
+  private sealed class UIInterruptListItem : UIPanel, IStateUIElement {
     private readonly int _stateIndex;
     private readonly UIInterruptList _parent;
 
-    private readonly Dictionary<int, UIText> _interruptTexts = new();
+    private readonly Dictionary<int, UIText> _interruptTexts = [];
 
     private UIText _name = null!;
     public State State => _parent.State?.GetState(_stateIndex) ?? StateLoader.TemplateStates[_stateIndex];

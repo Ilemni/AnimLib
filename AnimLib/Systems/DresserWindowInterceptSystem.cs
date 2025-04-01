@@ -11,7 +11,7 @@ namespace AnimLib.Systems;
 /// based on the active character.
 /// </summary>
 [UsedImplicitly]
-public sealed class DresserWindowInderceptSystem : ModSystem {
+public sealed class DresserWindowInterceptSystem : ModSystem {
   public override void Load() {
     Log.Debug("Adding hooks to Main.DrawClothesWindow, for updating AnimCharacter UI fields");
     On_Main.DrawClothesWindow += (orig, self) => OnDrawClothesWindow(() => orig(self));

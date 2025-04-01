@@ -7,7 +7,7 @@ namespace AnimLib.Networking;
 /// Receives all <see cref="ModPacket"/>s and distributes them to the desired <see cref="PacketHandler"/>.
 /// </summary>
 [UsedImplicitly]
-internal class ModNetHandler : ModSystem {
+internal sealed class ModNetHandler : ModSystem {
   /// <summary> Identifier for <see cref="StatePacketHandler"/>. </summary>
   private const byte SyncStates = 1;
 

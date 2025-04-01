@@ -6,7 +6,7 @@ namespace AnimLib.Compat.Implementations;
 /// Hides character sprite when MetroidMod's
 /// MorphBall is active
 /// </summary>
-internal class MetroidModMorphBallCompat : AnimCompatSystem {
+internal sealed class MetroidModMorphBallCompat : AnimCompatSystem {
   private const string ModName = "MetroidMod";
 
   public override void PostSetupContent() {

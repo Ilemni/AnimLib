@@ -7,7 +7,7 @@ namespace AnimLib.Projectiles;
 /// Base class for ability projectiles.
 /// </summary>
 [PublicAPI, UsedImplicitly(ImplicitUseTargetFlags.WithInheritors)]
-public abstract class AbilityProjectile<T> : AbilityProjectile where T : AbilityState {
+public abstract class AbilityProjectile<T> : AbilityProjectile where T : AbilityState, new() {
   /// <summary>
   /// The <see cref="AbilityState"/> that this <see cref="AbilityProjectile{T}"/> belongs to.
   /// </summary>
@@ -32,9 +32,8 @@ public abstract class AbilityProjectile : ModProjectile {
 
   /// <summary>
   /// The <see cref="AbilityState"/> that this <see cref="AbilityProjectile"/> belongs to.
-  /// <para />
-  /// This must be set before the getter is used, else it will return <see langword="null"/>.
-  /// Inherit from <see cref="AbilityProjectile{T}"/> generic instead to allow lazy getter and auto cast.
+  /// <para/> This must be set before the getter is used, else it will return <see langword="null"/>.
+  /// <para/> Alternatively, inherit from <see cref="AbilityProjectile{T}"/> generic instead to allow lazy getter and auto cast.
   /// </summary>
   public virtual AbilityState? Ability { get; set; }
 }

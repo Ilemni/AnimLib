@@ -1,4 +1,4 @@
-﻿using AnimLib.Networking;
+using AnimLib.Networking;
 using JetBrains.Annotations;
 using Terraria.ModLoader.IO;
 using Terraria.UI;
@@ -7,8 +7,8 @@ namespace AnimLib;
 
 /// <summary>
 /// Colors and styles for the player when an AnimCharacter is active.
-/// <br /> Also contains options for displaying icons, and replacing their textures, in the Character Creation screen.
-/// <br /> These values are stored independently of the vanilla player's colors,
+/// <br/> Also contains options for displaying icons, and replacing their textures, in the Character Creation screen.
+/// <br/> These values are stored independently of the vanilla player's colors,
 /// and are applied to the player when the character is enabled.
 /// </summary>
 [PublicAPI]
@@ -194,27 +194,35 @@ public sealed class AnimCharacterStyle {
     if (hasHairColor) {
       tag.Set(HairColorKey, HairColor);
     }
+
     if (hasSkinColor) {
       tag.Set(SkinColorKey, SkinColor);
     }
+
     if (hasEyeColor) {
       tag.Set(EyeColorKey, EyeColor);
     }
+
     if (hasShirtColor) {
       tag.Set(ShirtColorKey, ShirtColor);
     }
+
     if (hasUnderShirtColor) {
       tag.Set(UndershirtColorKey, UnderShirtColor);
     }
+
     if (hasPantsColor) {
       tag.Set(PantsColorsKey, PantsColor);
     }
+
     if (hasShoeColor) {
       tag.Set(ShoeColorKey, ShoeColor);
     }
+
     if (hasHairStyle) {
       tag.Set(HairStyleKey, HairStyle);
     }
+
     if (hasSkinVariant) {
       tag.Set(SkinVariantKey, SkinVariant);
     }

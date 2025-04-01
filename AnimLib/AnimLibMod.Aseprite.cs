@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Reflection;
 using AnimLib.Aseprite;
 using ReLogic.Content.Readers;
@@ -10,13 +10,17 @@ namespace AnimLib;
 public sealed partial class AnimLibMod {
   /// <summary>
   /// Add the Aseprite reader <see cref="AseReader"/>.
-  /// <br /> This will allow mods using AnimLib to request Aseprite files from Assets.
+  /// <br/> This will allow mods using AnimLib to request Aseprite files from Assets.
   /// </summary>
   /// <remarks>
   /// Autoload for aseprite files will not work for mods that load earlier than Animlib,
   /// unless this <see cref="AseReader"/>, or a derivative of it, is added to tML proper.
   /// </remarks>
   public override IContentSource CreateDefaultContentSource() {
+    if (Main.dedServ) {
+      return base.CreateDefaultContentSource();
+    }
+
     AseReader.AddDefaultProcessors();
     GetAssetReaderCollection().RegisterReader(new AseReader(), ".ase", ".aseprite");
     return base.CreateDefaultContentSource();
@@ -25,7 +29,7 @@ public sealed partial class AnimLibMod {
   private static AssetReaderCollection GetAssetReaderCollection() =>
     Main.instance.Services.Get<AssetReaderCollection>();
 
-  public static void UnloadAse() {
+  public void UnloadAse() {
     // Method exists just to remove our AseReader which was registered in CreateDefaultContentSource()
     AseReader.Unload();
 
@@ -38,6 +42,7 @@ public sealed partial class AnimLibMod {
       .GetField("_readersByExtension", flags)!
       .GetValue(collection)!;
 
+    // Bitwise OR is intended
     if (readers.Remove(".ase") | readers.Remove(".aseprite")) {
       type.GetField("_extensions", flags)!
         .SetValue(collection, readers.Keys.ToArray());

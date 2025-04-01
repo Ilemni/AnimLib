@@ -12,9 +12,9 @@ internal static class Log {
   }
 
   [Conditional("DEBUG")]
-  internal static void Debug(string message) {
+  internal static void Debug(string message, bool newText = false) {
     AnimLibMod.Instance.Logger.Debug(message);
-    if (Program.IsMainThread) {
+    if (newText && Program.IsMainThread) {
       Main.NewText(message, Color.Gray);
     }
   }
@@ -22,9 +22,4 @@ internal static class Log {
   internal static void Info(string message) {
     AnimLibMod.Instance.Logger.Info(message);
   }
-
-  internal static bool IsErrorEnabled => AnimLibMod.Instance.Logger.IsErrorEnabled;
-  internal static bool IsWarnEnabled => AnimLibMod.Instance.Logger.IsWarnEnabled;
-  internal static bool IsDebugEnabled => AnimLibMod.Instance.Logger.IsDebugEnabled;
-  internal static bool IsInfoEnabled => AnimLibMod.Instance.Logger.IsInfoEnabled;
 }

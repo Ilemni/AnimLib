@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using AnimLib.Animations;
 
 namespace AnimLib.States;
 
@@ -6,8 +7,7 @@ namespace AnimLib.States;
 /// <see cref="State"/> where up to one child State is active at a time.
 /// Supports transitions to and from children States.
 /// Includes logic for <see cref="State.RegisterInterruptibles"/> and <see cref="TrySetActiveChild"/>
-/// <para />
-/// The first child added with <see cref="State.RegisterChildren"/> will be the <see cref="ActiveChild"/>
+/// <para/> The first child added with <see cref="State.RegisterChildren"/> will be the <see cref="ActiveChild"/>
 /// when <see cref="Enter"/> is used.
 /// </summary>
 public abstract partial class StateMachine : State {
@@ -21,8 +21,7 @@ public abstract partial class StateMachine : State {
 
   /// <summary>
   /// Whether to set <see cref="ActiveChild"/> to the first child of <see cref="State.Children"/> when <see cref="Enter"/> is called.
-  /// <para />
-  /// Set this value to <see langword="false"/> if you want to start this state without any active state.
+  /// <para/> Set this value to <see langword="false"/> if you want to start this state without any active state.
   /// </summary>
   protected virtual bool SetActiveChildOnEnter => true;
 
@@ -139,7 +138,7 @@ public abstract partial class StateMachine : State {
   }
 
   private void SetActiveChild(State toChild, bool silent, State? lastActiveChild) {
-    lastActiveChild?.SetActive(false);
+    lastActiveChild?.SetActive(false, toChild);
     ActiveChild = toChild;
     toChild.SetActive(true, lastActiveChild);
     if (!silent) {
@@ -161,5 +160,9 @@ public abstract partial class StateMachine : State {
     if (!silent) {
       NetUpdate = true;
     }
+  }
+
+  public override AnimationOptions? GetAnimationOptions() {
+    return ActiveChild?.GetAnimationOptions() ?? null;
   }
 }

@@ -20,10 +20,8 @@ public sealed class UICharacterName : UIElement {
     _player = player;
     Width = StyleDimension.FromPixels(400f);
     Height = StyleDimension.FromPixels(40f);
-    _basePanel =
-      Main.Assets.Request<Texture2D>("Images/UI/CharCreation/CategoryPanel", AssetRequestMode.ImmediateLoad);
-    _hoveredBorder =
-      Main.Assets.Request<Texture2D>("Images/UI/CharCreation/CategoryPanelBorder", AssetRequestMode.ImmediateLoad);
+    _basePanel = Main.Assets.Request<Texture2D>("Images/UI/CharCreation/CategoryPanel");
+    _hoveredBorder = Main.Assets.Request<Texture2D>("Images/UI/CharCreation/CategoryPanelBorder");
 
     UIText title = new("Character:") {
       HAlign = 0f,
@@ -74,6 +72,6 @@ public sealed class UICharacterName : UIElement {
 
   private string GetCharacterName() {
     AnimCharacter? character = _player.GetActiveCharacter();
-    return character?.DisplayName ?? character?.Name ?? "Human";
+    return character?.DisplayName ?? character?.Name ?? "None";
   }
 }

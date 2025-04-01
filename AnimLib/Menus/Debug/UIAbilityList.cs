@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using AnimLib.States;
 using AnimLib.UI.Debug;
 using AnimLib.UI.Elements;
@@ -29,30 +29,12 @@ public sealed class UIAbilityList : DebugUIElement<AnimCharacter> {
       IgnoresMouseInteraction = true
     };
     _tableHeaderContainer.SetPadding(0);
-    _tableHeaderContainer.Append(new UIText("Ability") {
-      VAlign = 0.5f,
-      Left = StyleDimension.FromPixels(65),
-    });
 
-    _tableHeaderContainer.Append(new UIText("Level") {
-      VAlign = 0.5f,
-      Left = StyleDimension.FromPixels(195),
-    });
-
-    _tableHeaderContainer.Append(new UIText("(Max)") {
-      VAlign = 0.5f,
-      Left = StyleDimension.FromPixels(245),
-    });
-
-    _tableHeaderContainer.Append(new UIText("CD Time") {
-      VAlign = 0.5f,
-      Left = StyleDimension.FromPixels(325),
-    });
-
-    _tableHeaderContainer.Append(new UIText("On CD") {
-      VAlign = 0.5f,
-      Left = StyleDimension.FromPixels(405),
-    });
+    AddHeaderText("Ability", 65);
+    AddHeaderText("Level", 195);
+    AddHeaderText("(Max)", 245);
+    AddHeaderText("CD Time", 325);
+    AddHeaderText("On CD", 405);
     BodyContainer.Append(_tableHeaderContainer);
 
     _abilityList = new UIList {
@@ -87,6 +69,15 @@ public sealed class UIAbilityList : DebugUIElement<AnimCharacter> {
         list.Add(item);
       }
     }
+
+    return;
+
+    void AddHeaderText(string text, float left) {
+      _tableHeaderContainer.Append(new UIText(text) {
+        VAlign = 0.5f,
+        Left = StyleDimension.FromPixels(left),
+      });
+    }
   }
 
   protected override void OnSetState(AnimCharacter? character) {
@@ -104,7 +95,7 @@ public sealed class UIAbilityList : DebugUIElement<AnimCharacter> {
     }
   }
 
-  private class UIAbilityListItem : UIPanel, IStateUIElement<AbilityState> {
+  private sealed class UIAbilityListItem : UIPanel, IStateUIElement<AbilityState> {
     private readonly int _abilityIndex;
     private readonly UIAbilityList _parent;
 
@@ -131,7 +122,7 @@ public sealed class UIAbilityList : DebugUIElement<AnimCharacter> {
 
       AbilityState templateAbility = (AbilityState)StateLoader.TemplateStates[_abilityIndex];
 
-      _button = new UIImageButton(Main.Assets.Request<Texture2D>("Images/UI/ButtonPlay", AssetRequestMode.ImmediateLoad)) {
+      _button = new UIImageButton(Main.Assets.Request<Texture2D>("Images/UI/ButtonPlay")) {
         HAlign = 0,
         VAlign = 0.5f,
         Left = StyleDimension.FromPixels(8)
@@ -139,46 +130,22 @@ public sealed class UIAbilityList : DebugUIElement<AnimCharacter> {
       _button.OnLeftClick += Button_OnClick;
       Append(_button);
 
-      UIText name = new(templateAbility.Name) {
-        HAlign = 0,
-        VAlign = 0.5f,
-        Left = StyleDimension.FromPixels(40),
-        IgnoresMouseInteraction = true,
-        DynamicallyScaleDownToWidth = true
-      };
-      Append(name);
+      AddTextElement(40, out _, templateAbility.Name);
+      AddTextElement(190, out _levelText);
+      AddTextElement(240, out _maxLevelText, templateAbility.MaxLevel.ToString());
+      AddTextElement(320, out _cooldownText);
+      AddTextElement(380, out _onCooldownText);
+      return;
 
-      _levelText = new UIText("") {
-        HAlign = 0,
-        VAlign = 0.5f,
-        Left = StyleDimension.FromPixels(190),
-        IgnoresMouseInteraction = true
-      };
-      Append(_levelText);
-
-      _maxLevelText = new UIText(templateAbility.MaxLevel.ToString()) {
-        HAlign = 0,
-        VAlign = 0.5f,
-        Left = StyleDimension.FromPixels(240),
-        IgnoresMouseInteraction = true
-      };
-      Append(_maxLevelText);
-
-      _cooldownText = new UIText("") {
-        HAlign = 0,
-        VAlign = 0.5f,
-        Left = StyleDimension.FromPixels(320),
-        IgnoresMouseInteraction = true
-      };
-      Append(_cooldownText);
-
-      _onCooldownText = new UIText("") {
-        HAlign = 0,
-        VAlign = 0.5f,
-        Left = StyleDimension.FromPixels(380),
-        IgnoresMouseInteraction = true
-      };
-      Append(_onCooldownText);
+      void AddTextElement(float left, out UIText element, string text = "") {
+        element = new UIText(text) {
+          HAlign = 0,
+          VAlign = 0.5f,
+          Left = StyleDimension.FromPixels(left),
+          IgnoresMouseInteraction = true
+        };
+        Append(element);
+      }
     }
 
     protected override void DrawSelf(SpriteBatch spriteBatch) {
@@ -209,7 +176,7 @@ public sealed class UIAbilityList : DebugUIElement<AnimCharacter> {
       if (ability is { Unlocked: true, SupportsCooldown: true }) {
         _cooldownText.SetText((ability.CooldownLeft / 60f).ToString("F"));
         _onCooldownText.SetText(ability.IsOnCooldown ? "On CD" : "Ready");
-        _onCooldownText.TextColor = ability.IsOnCooldown ? Color.Red : new Color(0, 255, 0);
+        _onCooldownText.TextColor = ability.IsOnCooldown ? Color.Red : Color.Lime;
       }
       else {
         _cooldownText.SetText("");

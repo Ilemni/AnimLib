@@ -12,27 +12,27 @@ public abstract partial class AbilityState {
   /// A <see cref="TagCompound"/> with data specific to this <see cref="AbilityState"/>.
   /// </returns>
   /// <seealso cref="LoadData"/>
-  public override void SaveData(TagCompound compound) {
-    compound[nameof(Level)] = Level;
+  public override void SaveData(TagCompound tag) {
+    if (Level != 0) {
+      tag[nameof(Level)] = Level;
+    }
   }
 
   /// <summary>
   /// Load data that is specific to this <see cref="AbilityState"/>.
   /// <br/> By default, loads the ability's level.
-  /// <para /> The level will be clamped between 0 and <see cref="MaxLevel"/>.
+  /// <para/> The level will be clamped between 0 and <see cref="MaxLevel"/>.
   /// </summary>
   /// <param name="tag">The tag to load ability data from.</param>
   /// <seealso cref="SaveData"/>
   public override void LoadData(TagCompound tag) {
-    Level = tag.GetInt(nameof(Level));
-    Level = Math.Clamp(Level, 0, MaxLevel);
+    Level = tag.TryGet(nameof(Level), out int level) ? level : 0;
   }
 
   /// <summary>
   /// Syncs the values of
   /// <see cref="Level"/>, <see cref="CooldownLeft"/>, and <see cref="IsOnCooldown"/>.
-  /// <para />
-  /// Calls State:
+  /// <para/> Calls State:
   /// <para><inheritdoc cref="State.NetSyncInternal"/></para>
   /// </summary>
   /// <param name="sync"></param>

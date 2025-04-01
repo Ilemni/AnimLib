@@ -11,14 +11,14 @@ public sealed class PlayerHidingMount : AnimCompatSystem {
   private readonly List<int> _mountIds = [MountID.Wolf];
 
   public override void PostSetupContent() {
-    Span<(string modName, string[] mounts)> modMounts = [
+    Span<(string modName, IEnumerable<string> mounts)> modMounts = [
       ("MountAndJourney", [
         "MAJ_SquirrelTransformation",
         "MAJ_ArcticFoxTransformation"
       ])
     ];
 
-    foreach ((string modName, string[] mounts) in modMounts) {
+    foreach ((string modName, var mounts) in modMounts) {
       if (!ModLoader.TryGetMod(modName, out Mod mod)) {
         continue;
       }

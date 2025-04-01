@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using JetBrains.Annotations;
 using Terraria.DataStructures;
 using Terraria.GameInput;
@@ -8,10 +8,10 @@ namespace AnimLib.States;
 
 /// <summary>
 /// A <see cref="ModPlayer"/> which conditionally passes all hooks the player's <see cref="State"/> instances.
-/// <para /> Most hooks for a state require at least their <see cref="State.Character"/> to be <see cref="State.Active"/>.
-/// <para /> Hooks which are called every frame require the State itself to be active
+/// <para/> Most hooks for a state require at least their <see cref="State.Character"/> to be <see cref="State.Active"/>.
+/// <para/> Hooks which are called every frame require the State itself to be active
 /// (except <see cref="PreUpdate"/> and <see cref="PostUpdate"/>, which are always called).
-/// <para /> Some hooks are always called, such as <see cref="State.Initialize"/>, <see cref="State.ProcessTriggers"/>,
+/// <para/> Some hooks are always called, such as <see cref="State.Initialize"/>, <see cref="State.ProcessTriggers"/>,
 /// <see cref="State.PlayerConnect"/>, <see cref="State.PreSavePlayer"/>, <see cref="State.OnEnterWorld"/>.
 /// </summary>
 /// <remarks>
@@ -19,7 +19,7 @@ namespace AnimLib.States;
 /// during <see cref="PreUpdate"/>, <see cref="PostUpdate"/>, and <see cref="ProcessTriggers"/>.
 /// </remarks>
 [UsedImplicitly]
-internal class StateHooksPlayer : ModPlayer {
+internal sealed class StateHooksPlayer : ModPlayer {
   #region Enumeration Methods
 
   [field: AllowNull, MaybeNull]

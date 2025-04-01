@@ -8,7 +8,7 @@ namespace AnimLib.Networking;
 /// Used when a <see cref="State.NetSync"/> method is currently receiving a <see cref="ModPacket" />,
 /// and should make changes to the client.
 /// </summary>
-public class ReadSyncer : NetSyncer {
+public sealed class ReadSyncer : NetSyncer {
   internal void SetReader(BinaryReader reader) => Reader = reader;
   internal void ClearReader() => Reader = null!;
 
@@ -129,16 +129,6 @@ public class ReadSyncer : NetSyncer {
 
   public override void Sync7BitEncodedInt64(ref long value) => value = Reader.Read7BitEncodedInt64();
 
-  public override void SyncSmallestCast(ref uint value, uint netMaxValue) {
-    value = netMaxValue switch {
-      <= byte.MaxValue => Reader.ReadByte(),
-      <= ushort.MaxValue >> 2 => (uint)Reader.Read7BitEncodedInt(),
-      <= ushort.MaxValue => Reader.ReadUInt16(),
-      <= uint.MaxValue >> 4 => (uint)Reader.Read7BitEncodedInt(),
-      _ => Reader.ReadUInt32()
-    };
-  }
-
   public override void SyncFunc<TOwner>(TOwner owner, Action<TOwner, BinaryWriter> writeFunc,
     Action<TOwner, BinaryReader> readFunc) where TOwner : class => readFunc(owner, Reader);
 
@@ -180,14 +170,13 @@ public class ReadSyncer : NetSyncer {
       Null => null,
       PlayerType => Main.player[Reader.Read7BitEncodedInt()],
       NpcType => Main.npc[Reader.Read7BitEncodedInt()],
-      ProjectileType => FindProjectile(Reader),
+      ProjectileType => FindProjectile((ushort)Reader.Read7BitEncodedInt()),
       ItemType => Main.item[Reader.Read7BitEncodedInt()],
       _ => null
     };
     return;
 
-    Projectile? FindProjectile(BinaryReader r) {
-      ushort identity = r.ReadUInt16();
+    Projectile? FindProjectile(ushort identity) {
       foreach (Projectile p in Main.projectile) {
         if (p.identity == identity)
           return p;
@@ -212,7 +201,7 @@ public class ReadSyncer : NetSyncer {
 /// <summary>
 /// Used when a <see cref="State.NetSync"/> method is currently writing to a <see cref="ModPacket"/>.
 /// </summary>
-public class WriteSyncer : NetSyncer {
+public sealed class WriteSyncer : NetSyncer {
   internal void SetWriter(BinaryWriter writer) => Writer = writer;
 
   internal void ClearWriter() => Writer = null!;
@@ -276,31 +265,6 @@ public class WriteSyncer : NetSyncer {
 
   public override void Sync7BitEncodedInt64(ref long value) => Writer.Write7BitEncodedInt64(value);
 
-  public override void SyncSmallestCast(ref uint value, uint netMaxValue) {
-    switch (netMaxValue) {
-      case <= 0xFF:
-        // Value always 1 byte long
-        Writer.Write((byte)value);
-        break;
-      case <= 0x4000:
-        // Value always either 1 or 2 bytes long
-        Writer.Write7BitEncodedInt((int)value);
-        break;
-      case <= 0xFFFF:
-        // Value always 2 bytes long
-        Writer.Write((ushort)value);
-        break;
-      case <= 0x10000000:
-        // Value always between 1 and 4
-        Writer.Write7BitEncodedInt((int)value);
-        break;
-      default:
-        // Value always 4 bytes long
-        Writer.Write(value);
-        break;
-    }
-  }
-
   public override void SyncFunc<TOwner>(TOwner owner,
     Action<TOwner, BinaryWriter> writeFunc,
     Action<TOwner, BinaryReader> readFunc) where TOwner : class => writeFunc(owner, Writer);
@@ -348,7 +312,7 @@ public class WriteSyncer : NetSyncer {
         break;
       case Projectile projectile:
         Writer.Write(ProjectileType);
-        Writer.Write(projectile.identity);
+        Writer.Write7BitEncodedInt(projectile.identity);
         break;
     }
   }
@@ -455,7 +419,6 @@ public abstract class NetSyncer {
 
   public abstract void Sync7BitEncodedInt(ref int value);
   public abstract void Sync7BitEncodedInt64(ref long value);
-  public abstract void SyncSmallestCast(ref uint value, uint netMaxValue);
 
   /// <summary>
   /// Sync arbitrary data
@@ -539,8 +502,7 @@ public abstract class NetSyncer {
   /// When writing, this method writes the return value of <paramref name="onWriteCount" />.
   /// It will iterate over <paramref name="onWriteIterator" />,
   /// calling <paramref name="writeFunc" /> on each of them.
-  /// <para />
-  /// When reading, this method will read the count,
+  /// <para/> When reading, this method will read the count,
   /// and in a for loop, call <paramref name="readFunc" />.
   /// <typeparamref name="TOwner" />/<paramref name="owner" /> exists to avoid closures.
   /// </remarks>

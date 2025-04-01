@@ -13,13 +13,13 @@ public static class ModPlayerExtensions {
   /// with <see cref="AnimCharacter"/> as the type parameter,
   /// and is included for readability.
   /// </remarks>
-  public static T GetCharacter<T>(this Player player) where T : AnimCharacter => player.GetAnimPlayer().GetState<T>();
+  public static T GetCharacter<T>(this Player player) where T : AnimCharacter, new() => player.GetAnimPlayer().GetState<T>();
 
   /// <summary>
   /// Gets the <see cref="State"/> of type <typeparamref name="T"/>
   /// on the specified <paramref name="player"/>.
   /// </summary>
-  public static T GetState<T>(this Player player) where T : State => player.GetAnimPlayer().GetState<T>();
+  public static T GetState<T>(this Player player) where T : State, new() => player.GetAnimPlayer().GetState<T>();
 
   /// <summary>
   /// Get the <see cref="State"/> of base type <typeparamref name="T"/>,

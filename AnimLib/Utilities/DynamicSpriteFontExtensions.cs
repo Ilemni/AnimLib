@@ -37,7 +37,7 @@ public static class DynamicSpriteFontExtensions {
       origin, new Vector2(scale), effects, layerDepth);
   }
 
-  private static void InternalDraw(this DynamicSpriteFont font,
+  private static void InternalDraw(DynamicSpriteFont font,
     ReadOnlySpan<char> text,
     SpriteBatch spriteBatch,
     Vector2 startPosition,
@@ -79,7 +79,7 @@ public static class DynamicSpriteFontExtensions {
           continue;
       }
 
-      SpriteCharacterData characterData = font.GetCharacterData(c);
+      SpriteCharacterData characterData = GetCharacterData(font, c);
       Vector3 kerning = characterData.Kerning;
       Rectangle padding = characterData.Padding;
       if (spriteEffects.HasFlag(SpriteEffects.FlipHorizontally))
@@ -94,7 +94,7 @@ public static class DynamicSpriteFontExtensions {
         charPosition.X += font.CharacterSpacing * scale.X * flipDir.X;
 
       charPosition.X += kerning.X * scale.X * flipDir.X;
-      Vector2 position = charPosition + padding.Size() * scale;
+      Vector2 position = charPosition + padding.TopLeft() * scale;
       Vector2.Transform(ref position, ref matrix, out position);
       position += startPosition;
       spriteBatch.Draw(characterData.Texture, position, characterData.Glyph, color, rotation, Vector2.Zero, scale,
@@ -128,7 +128,7 @@ public static class DynamicSpriteFontExtensions {
           continue;
       }
 
-      SpriteCharacterData characterData = font.GetCharacterData(c);
+      SpriteCharacterData characterData = GetCharacterData(font, c);
       Vector3 kerning = characterData.Kerning;
       if (isNewLine)
         kerning.X = Math.Max(kerning.X, 0f);
@@ -147,7 +147,7 @@ public static class DynamicSpriteFontExtensions {
     return size;
   }
 
-  private static SpriteCharacterData GetCharacterData(this DynamicSpriteFont font, char character) {
+  private static SpriteCharacterData GetCharacterData(DynamicSpriteFont font, char character) {
     var dict = font.GetSpriteCharacters();
     return dict.TryGetValue(character, out SpriteCharacterData value) ? value : font.GetDefaultCharacterData();
   }

@@ -1,4 +1,4 @@
-﻿using AnimLib.Compat;
+using AnimLib.Compat;
 
 namespace AnimLib;
 
@@ -15,8 +15,7 @@ public abstract partial class AnimCharacter {
   /// <summary>
   /// State of GraphicsDisable conditions since previous update's evaluation.
   /// If <see langword="false"/>, <see cref="PlayerDrawLayer"/>s should not draw.
-  /// <para />
-  /// If any of conditions return <see langword="true"/>,
+  /// <para/> If any of conditions return <see langword="true"/>,
   /// associated flag is turned to <see langword="false"/>.
   /// If none - to <see langword="true"/>
   /// </summary>

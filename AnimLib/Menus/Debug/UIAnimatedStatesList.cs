@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using AnimLib.Animations;
@@ -17,7 +17,7 @@ namespace AnimLib.Menus.Debug;
 public sealed class UIAnimatedStatesList : DebugUIElement<AnimCharacter> {
   protected override string HeaderHoverText => "Displays info about all animated states on the selected character.";
 
-  private readonly Dictionary<int, List<UIAnimatedStateListItem>> _stateItems = new();
+  private readonly Dictionary<int, List<UIAnimatedStateListItem>> _stateItems = [];
   private UIList _stateList = null!;
 
   public override void OnInitialize() {
@@ -194,7 +194,7 @@ public sealed class UIAnimatedStatesList : DebugUIElement<AnimCharacter> {
     }
   }
 
-  private class UIAnimTagProgressBar : UIElement {
+  private sealed class UIAnimTagProgressBar : UIElement {
     private float _progress;
     private float _subProgress;
 

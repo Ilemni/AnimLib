@@ -3,7 +3,7 @@
 namespace AnimLib.Commands;
 
 [UsedImplicitly]
-internal class AnimDebugCommand : ModCommand {
+internal sealed class AnimDebugCommand : ModCommand {
   public override string Command => "animdebug";
   public override CommandType Type => CommandType.Chat;
 

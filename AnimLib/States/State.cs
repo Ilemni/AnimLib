@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Linq;
 using AnimLib.Animations;
 using AnimLib.Menus.Debug;
@@ -8,10 +9,9 @@ namespace AnimLib.States;
 /// <summary>
 /// Base class for all States.
 /// Represents a single state which the specified <see cref="Player"/> can be in.
-/// <para />
-/// Most update methods are called only when
-/// <see cref="Character"/>.Active is <see langword="true"/>, or
-/// <see cref="Active"/> is <see langword="true"/>.
+/// <para/> Most update methods are called only when
+/// <see cref="Character"/>.<see cref="Active"/> is <see langword="true"/>, or
+/// <see langword="this"/>.<see cref="Active"/> is <see langword="true"/>.
 /// </summary>
 [UsedImplicitly(ImplicitUseTargetFlags.WithInheritors)]
 [PublicAPI]
@@ -63,17 +63,16 @@ public abstract partial class State {
 
 
   /// <summary>
-  /// Whether this State is currently active. Accounts for whether the parents are active.
+  /// Whether this State is currently active. Accounts for whether the <see cref="Parent"/>s are active.
   /// </summary>
   public bool Active => ActiveSelf && ActiveCondition &&
     (Parent is null || Parent.Active && Parent.IsChildActiveToThis(this));
 
   /// <summary>
-  /// Time which this State was active, in ticks.
-  /// <para />
-  /// This is incremented every tick just before <see cref="State.PreUpdate"/>,
+  /// Time which this State was <see cref="Active"/>, in ticks.
+  /// <para/> This is incremented every tick just before <see cref="State.PreUpdate"/>,
   /// and is reset to 0 before <see cref="State.OnEnter"/> and after <see cref="State.OnExit"/>.
-  /// <para /> This property is always synced for calls to <see cref="NetSync"/>, and can safely be used for conditional syncing.
+  /// <para/> This property is always synced for calls to <see cref="NetSync"/>, and can safely be used for conditional syncing.
   /// </summary>
   public int ActiveTime {
     get => _activeTime;
@@ -81,12 +80,11 @@ public abstract partial class State {
   }
 
   /// <summary>
-  /// Time since this State was previously active, in ticks.
+  /// Time since this State was previously <see cref="Active"/>, in ticks.
   /// If the State has never been active, this value is <see cref="int.MaxValue"/>.
-  /// <para />
-  /// This is incremented every tick just before <see cref="State.PreUpdate"/>,
+  /// <para/> This is incremented every tick just before <see cref="State.PreUpdate"/>,
   /// and is reset to 0 before <see cref="State.OnEnter"/> and after <see cref="State.OnExit"/>.
-  /// <para /> This property is always synced for calls to <see cref="NetSync"/>, and can safely be used for conditional syncing.
+  /// <para/> This property is always synced for calls to <see cref="NetSync"/>, and can safely be used for conditional syncing.
   /// </summary>
   public int InactiveTime {
     get => _inactiveTime;
@@ -123,9 +121,9 @@ public abstract partial class State {
   /// </param>
   /// <param name="otherState">
   /// Optional parameter for a State that was previously active, which is transitioning to this State.
-  /// <br /> If <paramref name="active"/> is <see langword="false"/>,
+  /// <br/> If <paramref name="active"/> is <see langword="false"/>,
   /// this is the State that is being transitioned to, and will become active.
-  /// <br /> If <paramref name="active"/> is <see langword="true"/>,
+  /// <br/> If <paramref name="active"/> is <see langword="true"/>,
   /// this is the State that is being transitioned from, and will become inactive.
   /// </param>
   public void SetActive(bool active, State? otherState = null) {
@@ -158,8 +156,7 @@ public abstract partial class State {
 
   /// <summary>
   /// This is where you add any children to this State.
-  /// <para />
-  /// Note that this is only called on the template instance of this State, and is not called on Player instances.
+  /// <para/> Note that this is only called on the template instance of this State, and is not called on Player instances.
   /// </summary>
   public virtual void RegisterChildren(List<State> statesToAdd) {
   }
@@ -179,8 +176,7 @@ public abstract partial class State {
 
   /// <summary>
   /// Method called once the parent <see cref="State"/> actives this as its child <see cref="State"/>.
-  /// <para />
-  /// If anything set here, or in <see cref="UpdateInterrupt"/>, needs to be synced,
+  /// <para/> If anything set here, or in <see cref="UpdateInterrupt"/>, needs to be synced,
   /// set <see cref="NetUpdate"/> to <see langword="true"/> here.
   /// </summary>
   /// <seealso cref="OnExit"/>
@@ -212,17 +208,15 @@ public abstract partial class State {
   /// Called every tick immediately after <see cref="ProcessTriggers"/>,
   /// if any instance that was added during
   /// <see cref="State.RegisterInterruptibles"/> is currently active.
-  /// <para />
-  /// If both this and <see cref="CanEnter"/> return <see langword="true"/>,
+  /// <para/> If both this and <see cref="CanEnter"/> return <see langword="true"/>,
   /// the interrupt will be successful.
   /// If any state successfully interrupts during this tick,
   /// any remaining interrupts will not be called.
-  /// <para />
-  /// By default, returns <see langword="false"/>.
+  /// <para/> By default, returns <see langword="false"/>.
   /// </summary>
   /// <param name="activeState">
   /// The currently active state, which would be cancelled if this returns <see langword="true"/>.
-  /// <br />This will be a state that was added during <see cref="State.RegisterInterruptibles"/>.
+  /// <br/>This will be a state that was added during <see cref="State.RegisterInterruptibles"/>.
   /// </param>
   /// <returns>
   /// <see langword="true"/> to change the active state to this instance,
@@ -231,8 +225,7 @@ public abstract partial class State {
   /// <remarks>
   /// Where <see cref="CanEnter"/> is intended to show when a State is eligible to be entered,
   /// <see cref="UpdateInterrupt"/> is intended for when a player is also actively trying to enter the state.
-  /// <para />
-  /// As an example, an "Air Attack" state's
+  /// <para/> As an example, an "Air Attack" state's
   /// <br/><see cref="CanEnter"/> may check for the player being in the air, while its
   /// <br/><see cref="UpdateInterrupt"/> may check for the player pressing the relevant attack button.
   /// </remarks>
@@ -240,9 +233,7 @@ public abstract partial class State {
 
   /// <summary>
   /// Displays runtime information about this <see cref="State"/> in the Debug UI.
-  /// <para />
-  /// Information is mostly displayed by using methods
-  /// `DrawAppendX`
+  /// <para/> Information is mostly displayed by using methods <c>DrawAppendX</c>
   /// </summary>
   /// <param name="ui">The UI in which this information will be displayed.</param>
   protected internal virtual void DebugText(UIStateInfo ui) {
@@ -304,13 +295,10 @@ public abstract partial class State {
 
   /// <summary>
   /// Attempt to trigger the <see cref="State"/> of type <typeparamref name="T"/> to activate.
-  /// <para />
-  /// This method does nothing if the current instance's <see cref="Active"/> is <see langword="false"/>.
-  /// <para />
-  /// The transition will not occur if the target state's <see cref="State.CanEnter()"/> returns <see langword="false"/>.
-  /// <para />
-  /// This method will throw if the State Machine tree does not allow the transition,
-  /// i.e. the target state is missing, or is not a child of any parent
+  /// <para/> This method does nothing if <see langword="this"/>.<see cref="Active"/> is <see langword="false"/>.
+  /// <para/> The transition will not occur if the target state's <see cref="State.CanEnter()"/> returns <see langword="false"/>.
+  /// <para/> This method will throw if the State Machine tree does not allow the transition,
+  /// i.e. the target state is missing, or is not an immediate child of any parent
   /// of the state which this method is called from.
   /// </summary>
   /// <typeparam name="T">
@@ -321,7 +309,8 @@ public abstract partial class State {
   /// <see langword="true"/> if the active state was successfully changed; otherwise, <see langword="false"/>.
   /// </returns>
   /// <exception cref="ArgumentException">
-  /// There is no parent which has a child of type <typeparamref name="T"/>.
+  /// There is no parent which has a child of type <typeparamref name="T"/>,
+  /// or no parent of <see langword="this"/> is an <see cref="AnimCharacter"/>.
   /// </exception>
   public bool TriggerState<T>() where T : State, new() {
     T state = GetState<T>();
@@ -360,27 +349,19 @@ public abstract partial class State {
 
   /// <summary>
   /// Determines the frame of animation to play for the current character state.
+  /// <br/> By default, returns <see langword="null"/>.
+  /// <br/> If <see langword="this"/> is a <see cref="StateMachine"/>, the default implementation will return
+  /// <see cref="StateMachine.ActiveChild"/>'s <see cref="GetAnimationOptions"/>.
   /// </summary>
   /// <returns></returns>
   /// <remarks>
-  /// For simple animations, all that is needed is
-  /// <para><c>
+  /// For simple animations, all that is needed is:
+  /// <code>
   /// protected override AnimationOptions? GetAnimationOptions() => new("MyAnimationName");
-  /// </c></para>
+  /// </code>
   /// More complex animations may modify the various properties of <see cref="AnimationOptions"/>.
   /// </remarks>
-  protected virtual AnimationOptions? GetAnimationOptions() => null;
-
-  /// <summary>
-  /// Whether to not call <see cref="State.GetAnimationOptions"/> of this <see cref="ActiveChildren"/>.
-  /// <br /> If there are no children, this method has no effect.
-  /// </summary>
-  /// <returns>
-  /// <see langword="true"/> to use this instance's <see cref="State.GetAnimationOptions"/>,
-  /// <br /><see langword="false"/> to use <see cref="ActiveChildren"/>'s <see cref="State.GetAnimationOptions"/>.
-  /// <br />By default, returns <see langword="false"/>.
-  /// </returns>
-  protected virtual bool BlockChildAnimation() => false;
+  public virtual AnimationOptions? GetAnimationOptions() => null;
 
   public override string ToString() => Name;
 
@@ -413,10 +394,5 @@ public abstract partial class State {
 
     ActiveTime = 0;
     InactiveTime = 0;
-  }
-
-  internal virtual AnimationOptions? GetAnimationOptionsInternal() {
-    State? child = BlockChildAnimation() ? null : ActiveChildren.FirstOrDefault();
-    return child?.GetAnimationOptionsInternal() ?? GetAnimationOptions();
   }
 }

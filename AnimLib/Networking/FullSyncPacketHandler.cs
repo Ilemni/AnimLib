@@ -3,7 +3,7 @@ using AnimLib.States;
 
 namespace AnimLib.Networking;
 
-internal class FullSyncPacketHandler(byte handlerType) : PacketHandler(handlerType) {
+internal sealed class FullSyncPacketHandler(byte handlerType) : PacketHandler(handlerType) {
   protected override void HandlePacket(ReadSyncer readSyncer, int fromWho) {
     var states = GetStates(fromWho);
     BinaryReader reader = readSyncer.Reader;

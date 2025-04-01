@@ -7,7 +7,12 @@ public interface IStateUIElement : IComparable<IStateUIElement> {
   public StateHierarchy? Hierarchy => State?.Hierarchy;
 
   int IComparable<IStateUIElement>.CompareTo(IStateUIElement? other) {
-    return Hierarchy?.CompareTo(other?.Hierarchy) ?? (other?.Hierarchy is null ? 0 : 1);
+    return (Hierarchy, other?.Hierarchy) switch {
+      (null, null) => 0,
+      (null, _) => -1,
+      (_, null) => 1,
+      var (a, b) => a.CompareTo(b)
+    };
   }
 }
 

@@ -115,10 +115,8 @@ public sealed partial class AnimCharacterCollection : StateMachine {
     float delta = (float)(currentTime - _lastAnimationUpdate).TotalSeconds;
     _lastAnimationUpdate = currentTime;
 
-    if (delta > 0) {
-      foreach (AnimCharacter animCharacter in Characters) {
-        animCharacter.UpdateAnimations(delta);
-      }
+    if (delta != 0) {
+      ActiveCharacter?.UpdateAnimations(delta);
     }
   }
 
@@ -159,17 +157,11 @@ public sealed partial class AnimCharacterCollection : StateMachine {
   }
 
   public override void SaveData(TagCompound tag) {
-    if (ActiveCharacter is null) {
-      return;
-    }
-
-    tag["activeCharacter"] = new TagCompound {
-      ["mod"] = ActiveCharacter.Mod.Name,
-      ["name"] = ActiveCharacter.Name
-    };
-
-    if (_storedRace is not null) {
-      tag[RaceSaveString] = _storedRace;
+    if (ActiveCharacter is { } character) {
+      tag["activeCharacter"] = new TagCompound {
+        ["mod"] = character.Mod.Name,
+        ["name"] = character.Name
+      };
     }
 
     Save_PlagueRace(tag);

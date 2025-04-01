@@ -13,7 +13,7 @@ using Terraria.ModLoader.IO;
 namespace AnimLib.Aseprite;
 
 /// <summary>
-/// AssetReader to read an Aseprite file (*.ase/*.aseprite) into a format usable by Terraria.
+/// AssetReader to read an Aseprite file (*.ase|*.aseprite) into a format usable by Terraria.
 /// This Reader uses AsepriteDotNet to load the file into an <see cref="AsepriteFile"/> object,
 /// which this reader then uses to create an object that AnimLib and Terraria can use.
 /// https://github.com/AristurtleDev/AsepriteDotNet
@@ -23,24 +23,30 @@ public class AseReader : IAssetReader {
   private static readonly Dictionary<Type, IAsepriteProcessor> Processors = new();
 
   internal static void AddDefaultProcessors() {
+    // Texture atlas
+    // Supports frames, expected to be used in PlayerDrawLayers
     AddProcessor<AnimSpriteSheetProcessor, AnimSpriteSheet>();
+    // Basic Texture2D
+    // Ignores frames, merges all visible layers
     AddProcessor<TextureProcessor, Texture2D>();
-    AddProcessor<TextureDictionaryProcessor, Dictionary<string, Asset<Texture2D>>>();
+    // Texture atlas
+    // Ignores frames, separate layers are merged into atlas textures. Requires usage of SourceRect and Origin.
+    AddProcessor<LayeredTextureProcessor, LayeredTexture2D>();
+    // Dictionary of texture assets
+    // Ignores frames, separate layers is are their own texture.
     AddProcessor<TextureDictionaryProcessor, TextureDictionary>();
   }
 
   /// <summary>
   /// Add a processor of type <typeparam name="TProcessor"></typeparam>
-  /// which can process an <see cref="AsepriteFile"/> (*.ase/*.aseprite)
+  /// which can process an <see cref="AsepriteFile"/> (*.ase|*.aseprite)
   /// into an object of type <typeparam name="T"></typeparam>.
-  /// <para />
-  /// This allows for `ModContent.Request&lt;<typeparamref name="T"/>&gt;("Path/To/MyAsepriteFile")`
-  /// <para />
-  /// This must be called during your mod's <see cref="Mod.CreateDefaultContentSource"/>.
-  /// <see cref="Mod.Load"/> is too late in the loading process.
+  /// <para/> This allows for <c>ModContent.Request&lt;MyType&gt;("Path/To/MyAsepriteFile")</c>
+  /// <para/> This must be called during your <see cref="Mod"/>'s <see cref="Mod.CreateDefaultContentSource"/>.
+  /// <para/> <see cref="Mod.Load"/> is too late in the loading process.
   /// </summary>
   /// <typeparam name="TProcessor">Type of processor.</typeparam>
-  /// <typeparam name="T">The resulting object from the processor.</typeparam>
+  /// <typeparam name="T">The resulting type of object from the processor.</typeparam>
   public static void AddProcessor<TProcessor, T>() where T : class where TProcessor : IAsepriteProcessor<T>, new() {
     Processors.Add(typeof(T), new TProcessor());
   }

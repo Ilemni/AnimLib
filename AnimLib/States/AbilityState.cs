@@ -5,10 +5,8 @@ namespace AnimLib.States;
 
 /// <summary>
 /// <see cref="State"/> with additional logic such as Leveling and Cooldown.
-/// <para />
-/// This class also includes <see cref="SaveData"/>/<see cref="LoadData"/> functionality
-/// <para />
-/// This class requires that <see cref="State.Entity"/> is of type <see cref="Player"/>.
+/// <para/> This class also includes <see cref="SaveData"/>/<see cref="LoadData"/> functionality
+/// <para/> This class requires that <see cref="State.Entity"/> is of type <see cref="Player"/>.
 /// </summary>
 public abstract partial class AbilityState : State {
   /// <summary>
@@ -46,7 +44,7 @@ public abstract partial class AbilityState : State {
   /// Whether this ability uses cooldown features.
   /// <br/> By default, returns <see langword="true"/> if <see cref="MaxCooldown"/> is greater than 0.
   /// <br/> Set this to <see langword="true"/> if some other condition prevents this ability from leaving cooldown.
-  /// <para /> As an example, an airborne ability may have no cooldown timer,
+  /// <para/> As an example, an airborne ability may have no cooldown timer,
   /// but may still stay on cooldown until the player touches the ground.
   /// </summary>
   /// <remarks>
@@ -56,13 +54,13 @@ public abstract partial class AbilityState : State {
 
   /// <summary>
   /// Whether this ability should start its cooldown upon entering this state.
-  /// <br /> By default, <see langword="false"/>.
+  /// <br/> By default, <see langword="false"/>.
   /// </summary>
   protected virtual bool StartCooldownOnEnter => false;
 
   /// <summary>
   /// Whether this ability should start its cooldown upon exiting this state.
-  /// <br /> By default, <see langword="false"/>.
+  /// <br/> By default, <see langword="false"/>.
   /// </summary>
   protected virtual bool StartCooldownOnExit => false;
 
@@ -208,8 +206,17 @@ public abstract partial class AbilityState : State {
       }
 
       if (IsOnCooldown && CooldownLeft <= 0) {
-        ui.DrawAppendLine("Another condition prevents cooldown.", Color.LightGray);
+        DebugCooldownReason(ui);
       }
     }
+  }
+
+  /// <summary>
+  /// For abilities which override <see cref="CanRefresh"/> to return <see langword="false"/> when <c>cooledDown</c>,
+  /// this method is called to provide additional debug information for <see cref="DebugText"/>.
+  /// </summary>
+  /// <param name="ui"></param>
+  protected virtual void DebugCooldownReason(UIStateInfo ui) {
+    ui.DrawAppendLine("Another condition prevents cooldown.", Color.LightGray);
   }
 }

@@ -9,7 +9,7 @@ namespace AnimLib;
 
 /// <summary>
 /// <see cref="State"/> which represents a Character.
-/// <br /> States which belong to this character will not recieve most hook updates when this character is disabled.
+/// <br/> States which belong to this character will not receive most hook updates when this character is disabled.
 /// </summary>
 [PublicAPI]
 [DebuggerDisplay("Name = {Name}, Active = {Active}, Player = {Player?.name}")]
@@ -24,21 +24,20 @@ public abstract partial class AnimCharacter : State {
   }
 
   /// <summary>
-  /// Whether this character can be selected at the Character Creation screen.
+  /// Whether this character can be selected at the Character Creation menu during Player Creation.
   /// </summary>
   public virtual bool Selectable => true;
 
   /// <summary>
   /// The colors and styles to apply to the <see cref="Player"/>.
-  /// <para />
-  /// This field store what the colors and styles would be when the character isn't active,
+  /// <para/> This field store what the colors and styles would be when the character isn't active,
   /// assigns them to the player when this character becomes active,
   /// and is copied from the player when this character becomes inactive.
   /// </summary>
   public readonly AnimCharacterStyle Style;
 
   /// <summary>
-  /// Used to prevent saving default style values.
+  /// Used to prevent extra saving of default style values.
   /// </summary>
   private readonly AnimCharacterStyle _defaultStyle;
 
@@ -48,9 +47,9 @@ public abstract partial class AnimCharacter : State {
   public virtual int HairStyleCount { get; }
 
   /// <summary>
-  /// The number of skin variants available for this character.
+  /// The number of clothing styles available for this character.
   /// </summary>
-  public virtual int SkinVariantCount { get; }
+  public virtual int ClothingCount { get; }
 
   /// <summary>
   /// Whether the character is currently being drawn
@@ -104,8 +103,7 @@ public abstract partial class AnimCharacter : State {
 
   /// <summary>
   /// Whether this <see cref="AnimCharacter"/> is the current active character on the <see cref="Player"/>.
-  /// <para/>
-  /// Only one <see cref="AnimCharacter"/> instance may be active on a character at a given time.
+  /// <para/> Only one <see cref="AnimCharacter"/> instance may be active on a character at a given time.
   /// </summary>
   protected override bool ActiveCondition => AnimationUpdEnabledCompat;
 

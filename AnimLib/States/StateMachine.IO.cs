@@ -5,12 +5,9 @@ namespace AnimLib.States;
 public abstract partial class StateMachine {
   /// <summary>
   /// <inheritdoc cref="NetSyncActiveChild"/>
-  /// <para />
-  /// Calls State:
-  /// <br/>
-  /// <inheritdoc cref="State.NetSyncInternal"/>
-  /// <br/>
-  /// End State.
+  /// <para/> Calls State:
+  /// <br/><inheritdoc cref="State.NetSyncInternal"/>
+  /// <br/> End State.
   /// </summary>
   /// <param name="sync"></param>
   internal override void NetSyncInternal(NetSyncer sync) {

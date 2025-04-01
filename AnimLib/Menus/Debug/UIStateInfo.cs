@@ -10,7 +10,7 @@ using Terraria.UI.Chat;
 
 namespace AnimLib.Menus.Debug;
 
-public class UIStateInfo : DebugUIElement, IStateUIElement<State> {
+public sealed class UIStateInfo : DebugUIElement, IStateUIElement<State> {
   internal UIStateInfo(UIStateList.UIStateListItem parent) {
     _parent = parent;
   }
@@ -36,7 +36,7 @@ public class UIStateInfo : DebugUIElement, IStateUIElement<State> {
 
   protected override void DrawSelf(SpriteBatch spriteBatch) {
     base.DrawSelf(spriteBatch);
-    HeaderText.TextColor = State.Active ? new Color(0, 255, 0) : Color.White;
+    HeaderText.TextColor = State.Active ? Color.Lime : Color.White;
     _spriteBatch = spriteBatch;
 
     _textPosition = BodyContainer.GetInnerDimensions().Position();
@@ -59,10 +59,10 @@ public class UIStateInfo : DebugUIElement, IStateUIElement<State> {
   /// The label, if not specified, will be the argument expression for <paramref name="value"/>.
   /// </summary>
   /// <param name="value">The boolean value to draw.</param>
-  /// <param name="key">The label to draw.</param>
   /// <param name="color">The color for the text. If null, the color will be green if <paramref name="value"/> is <see langword="true"/>, red if <see langword="false"/>.</param>
-  public void DrawAppendBoolean(bool value, [CallerArgumentExpression(nameof(value))] string key = null!,
-    Color? color = null) {
+  /// <param name="key">The label to draw.</param>
+  public void DrawAppendBoolean(bool value, Color? color = null,
+    [CallerArgumentExpression(nameof(value))] string key = null!) {
     DrawAppendLabelValue(key, value.ToString().AsSpan(), color ?? (value ? Green : Red));
   }
 
@@ -98,9 +98,7 @@ public class UIStateInfo : DebugUIElement, IStateUIElement<State> {
   /// <typeparam name="T">Type that implements <see cref="ISpanFormattable"/>, where <see cref="ISpanFormattable.TryFormat"/> is used for the value.</typeparam>
   public void DrawAppendLabelValue<T>(T value,
     Color? color = null, ReadOnlySpan<char> format = default, IFormatProvider? provider = null,
-    [CallerArgumentExpression(nameof(value))]
-    string label = null!)
-    where T : ISpanFormattable =>
+    [CallerArgumentExpression(nameof(value))] string label = null!) where T : ISpanFormattable =>
     DrawAppendLabelValue(label, value, color, format, provider);
 
   /// <summary>

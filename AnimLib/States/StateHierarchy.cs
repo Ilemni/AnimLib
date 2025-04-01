@@ -215,7 +215,7 @@ public sealed class StateHierarchy : IComparable<StateHierarchy> {
         throw new InvalidOperationException($"State {toInterrupt.Name} is not a child of any parent of {state.Name}");
       }
 
-      var dict = interruptibleDict[commonParent] ??= new Dictionary<ushort, List<ushort>>();
+      var dict = interruptibleDict[commonParent] ??= [];
       if (!dict.TryGetValue(toInterrupt.Index, out var list)) {
         dict[toInterrupt.Index] = list = [];
       }

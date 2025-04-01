@@ -3,7 +3,6 @@ using AnimLib.States;
 using AnimLib.UI.Debug;
 using AnimLib.UI.Elements;
 using Terraria.GameContent.UI.Elements;
-using Terraria.ModLoader.Core;
 using Terraria.UI;
 
 namespace AnimLib.Menus.Debug;
@@ -14,7 +13,7 @@ namespace AnimLib.Menus.Debug;
 public sealed class UIStateList : DebugUIElement<AnimCharacter> {
   protected override string HeaderHoverText => "Displays info about all active states on the selected character.";
 
-  private readonly Dictionary<int, List<UIStateListItem>> _stateItems = new();
+  private readonly Dictionary<int, List<UIStateListItem>> _stateItems = [];
 
   private UIList _stateList = null!;
 
@@ -31,7 +30,12 @@ public sealed class UIStateList : DebugUIElement<AnimCharacter> {
     };
     _stateList.SetPadding(2);
     _stateList.PaddingRight = 4;
-    _stateList.ManualSortMethod = list => list.Sort(SortState);
+    _stateList.ManualSortMethod = list => list.Sort((a, b) => {
+      IStateUIElement itemA = (IStateUIElement)a;
+      IStateUIElement itemB = (IStateUIElement)b;
+
+      return itemA.CompareTo(itemB);
+    });
     BodyContainer.Append(_stateList);
 
     UIScrollbar scrollbar = new() {
@@ -56,13 +60,6 @@ public sealed class UIStateList : DebugUIElement<AnimCharacter> {
         list.Add(item);
       }
     }
-  }
-
-  private static int SortState(UIElement a, UIElement b) {
-    IStateUIElement itemA = (IStateUIElement)a;
-    IStateUIElement itemB = (IStateUIElement)b;
-
-    return itemA.CompareTo(itemB);
   }
 
   protected override void OnSetState(AnimCharacter? character) {
@@ -112,8 +109,7 @@ public sealed class UIStateList : DebugUIElement<AnimCharacter> {
       };
       Append(_name);
 
-      var query = LoaderUtils.MethodOverrideQuery<State>.Create(s => s.DebugText);
-      if (query.HasOverride(State)) {
+      if (ContentInstance<StateLoader>.Instance.DebugText.HasOverride(State)) {
         _button = new UIImageButton(
           Main.Assets.Request<Texture2D>("Images/UI/ButtonPlay", AssetRequestMode.ImmediateLoad)) {
           HAlign = 1f,
@@ -133,7 +129,7 @@ public sealed class UIStateList : DebugUIElement<AnimCharacter> {
     }
 
     protected override void DrawSelf(SpriteBatch spriteBatch) {
-      _name.TextColor = State.Active ? new Color(0, 1f, 0) : Color.LightGray;
+      _name.TextColor = State.Active ? Color.Lime : Color.LightGray;
       base.DrawSelf(spriteBatch);
 
       if (_button?.IsMouseHovering ?? false) {

@@ -7,8 +7,7 @@ namespace AnimLib.Menus.Debug;
 
 /// <summary>
 /// Debug UI state that displays info about a player's <see cref="AnimCharacterCollection"/>.
-/// <para />
-/// This menu does not draw anything, but contains all the UI panels for the character collection.
+/// <para/> This menu does not draw anything, but contains all the UI panels for the character collection.
 /// </summary>
 public sealed class UIDebugMenus : UIState {
   public AnimCharacterCollection? Characters { get; private set; }
@@ -40,7 +39,7 @@ public sealed class UIDebugMenus : UIState {
     (100, 100, 200, 300),
     (100 + 200 + 10, 100, 480, 300),
     (100 + 200 + 10 + 480 + 10, 100, 200, 300),
-    (100, 100 + 300 + 10, 360, 220),
+    (100, 100 + 300 + 10, 360, 500),
     (460 + 10, 100 + 300 + 10, 240, 180)
   ];
 
@@ -108,11 +107,13 @@ public sealed class UIDebugMenus : UIState {
           _container.Append(menu);
         }
       };
+
+      (x, y, w, h) = _menuRects[index];
       button.OnLeftDoubleClick += (_, _) => {
-        menu.Left.Pixels = _menuRects[index].x;
-        menu.Top.Pixels = _menuRects[index].y;
-        menu.Width.Pixels = _menuRects[index].w;
-        menu.Height.Pixels = _menuRects[index].h;
+        menu.Left.Pixels = x;
+        menu.Top.Pixels = y;
+        menu.Width.Pixels = w;
+        menu.Height.Pixels = h;
       };
       _categoryListContainer.Append(button);
 
@@ -122,22 +123,24 @@ public sealed class UIDebugMenus : UIState {
 
   protected override void DrawSelf(SpriteBatch spriteBatch) {
     base.DrawSelf(spriteBatch);
-    if (IsMouseHovering) {
-      if (_stateListButton.ContainsPoint(Main.MouseScreen)) {
-        Main.instance.MouseText("State List");
-      }
-      else if (_abilityListButton.ContainsPoint(Main.MouseScreen)) {
-        Main.instance.MouseText("Ability List");
-      }
-      else if (_interruptListButton.ContainsPoint(Main.MouseScreen)) {
-        Main.instance.MouseText("Interrupt List");
-      }
-      else if (_animatedStatesListButton.ContainsPoint(Main.MouseScreen)) {
-        Main.instance.MouseText("Animated States List");
-      }
-      else if (_characterListButton.ContainsPoint(Main.MouseScreen)) {
-        Main.instance.MouseText("Character List");
-      }
+    if (!IsMouseHovering) {
+      return;
+    }
+
+    if (_stateListButton.ContainsPoint(Main.MouseScreen)) {
+      Main.instance.MouseText("State List");
+    }
+    else if (_abilityListButton.ContainsPoint(Main.MouseScreen)) {
+      Main.instance.MouseText("Ability List");
+    }
+    else if (_interruptListButton.ContainsPoint(Main.MouseScreen)) {
+      Main.instance.MouseText("Interrupt List");
+    }
+    else if (_animatedStatesListButton.ContainsPoint(Main.MouseScreen)) {
+      Main.instance.MouseText("Animated States List");
+    }
+    else if (_characterListButton.ContainsPoint(Main.MouseScreen)) {
+      Main.instance.MouseText("Character List");
     }
   }
 }

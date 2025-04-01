@@ -19,8 +19,7 @@ public sealed class DebugUISystem : ModSystem {
 
   /// <summary>
   /// Attempts to set the character displayed in the UI to the specified collection's active character.
-  /// <para />
-  /// This method does nothing if the UI is not currently displaying the specified collection.
+  /// <para/> This method does nothing if the UI is not currently displaying the specified collection.
   /// </summary>
   /// <param name="collection"></param>
   public void TrySetActiveCharacter(AnimCharacterCollection collection) {
