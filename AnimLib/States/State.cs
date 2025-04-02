@@ -11,7 +11,8 @@ namespace AnimLib.States;
 /// Represents a single state which the specified <see cref="Player"/> can be in.
 /// <para/> Most update methods are called only when
 /// <see cref="Character"/>.<see cref="Active"/> is <see langword="true"/>, or
-/// <see langword="this"/>.<see cref="Active"/> is <see langword="true"/>.
+/// <see langword="this"/>.<see cref="Active"/> is <see langword="true"/>,
+/// according to <see cref="HookConditionAttribute"/>
 /// </summary>
 [UsedImplicitly(ImplicitUseTargetFlags.WithInheritors)]
 [PublicAPI]

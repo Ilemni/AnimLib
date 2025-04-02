@@ -106,6 +106,7 @@ public sealed partial class AnimCharacterCollection : StateMachine {
     }
   }
 
+  [HookCondition(HookConditionFlags.Always)]
   public override void FrameEffects() {
     if (IsDrawingInUI) {
       return;

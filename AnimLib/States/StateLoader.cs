@@ -7,8 +7,6 @@ using Terraria.ModLoader.Core;
 
 namespace AnimLib.States;
 
-using HookList = HookList<State>;
-
 /// <summary>
 /// Largely a copy of <see cref="PlayerLoader"/>, but for <see cref="State"/>s.
 /// </summary>
@@ -16,7 +14,7 @@ using HookList = HookList<State>;
 public sealed class StateLoader : ModSystem {
   public static StateLoader Instance => ModContent.GetInstance<StateLoader>();
 
-  private static readonly List<HookList> HookLists = [];
+  private static readonly List<StateHookList> HookLists = [];
   internal static readonly List<State> TemplateStates = [];
   internal static readonly List<AnimCharacter> SelectableCharacters = [];
 
@@ -31,14 +29,14 @@ public sealed class StateLoader : ModSystem {
     }
   }
 
-  private static HookList AddHook<T>(Expression<Func<State, T>> func) where T : Delegate {
-    var hookList = HookList.Create(func);
+  private static StateHookList AddHook<T>(Expression<Func<State, T>> func) where T : Delegate {
+    StateHookList hookList = StateHookList.Create(func);
     HookLists.Add(hookList);
     return hookList;
   }
 
   public override void PostSetupContent() {
-    foreach (var hookList in HookLists) {
+    foreach (StateHookList hookList in HookLists) {
       hookList.Update(TemplateStates);
     }
   }
@@ -85,434 +83,434 @@ public sealed class StateLoader : ModSystem {
     }
   }
 
-  public static readonly HookList HookInitialize =
+  public readonly StateHookList HookInitialize =
     AddHook<Action>(s => s.Initialize);
 
-  public static readonly HookList HookPostInitialize =
+  public readonly StateHookList HookPostInitialize =
     AddHook<Action>(s => s.PostInitialize);
 
-  public static readonly HookList HookResetEffects =
+  public readonly StateHookList HookResetEffects =
     AddHook<Action>(s => s.ResetEffects);
 
-  public static readonly HookList HookResetInfoAccessories =
+  public readonly StateHookList HookResetInfoAccessories =
     AddHook<Action>(s => s.ResetInfoAccessories);
 
-  public static readonly HookList HookRefreshInfoAccessoriesFromTeamPlayers =
+  public readonly StateHookList HookRefreshInfoAccessoriesFromTeamPlayers =
     AddHook<Action<Player>>(s => s.RefreshInfoAccessoriesFromTeamPlayers);
 
   private delegate void DelegateModifyMaxStats(out StatModifier health, out StatModifier mana);
 
-  public static readonly HookList HookModifyMaxStats =
+  public readonly StateHookList HookModifyMaxStats =
     AddHook<DelegateModifyMaxStats>(s => s.ModifyMaxStats);
 
-  public static readonly HookList HookUpdateDead =
+  public readonly StateHookList HookUpdateDead =
     AddHook<Action>(s => s.UpdateDead);
 
-  public static readonly HookList HookPreSavePlayer =
+  public readonly StateHookList HookPreSavePlayer =
     AddHook<Action>(s => s.PreSavePlayer);
 
-  public static readonly HookList HookPostSavePlayer =
+  public readonly StateHookList HookPostSavePlayer =
     AddHook<Action>(s => s.PostSavePlayer);
 
-  public static readonly HookList HookCopyClientState =
+  public readonly StateHookList HookCopyClientState =
     AddHook<Action<ModPlayer>>(s => s.CopyClientState);
 
-  public static readonly HookList HookSyncPlayer =
+  public readonly StateHookList HookSyncPlayer =
     AddHook<Action<int, int, bool>>(s => s.SyncPlayer);
 
-  public static readonly HookList HookSendClientChanges =
+  public readonly StateHookList HookSendClientChanges =
     AddHook<Action<ModPlayer>>(s => s.SendClientChanges);
 
-  public static readonly HookList HookUpdateBadLifeRegen =
+  public readonly StateHookList HookUpdateBadLifeRegen =
     AddHook<Action>(s => s.UpdateBadLifeRegen);
 
-  public static readonly HookList HookUpdateLifeRegen =
+  public readonly StateHookList HookUpdateLifeRegen =
     AddHook<Action>(s => s.UpdateLifeRegen);
 
   private delegate void DelegateNaturalLifeRegen(ref float regen);
 
-  public static readonly HookList HookNaturalLifeRegen =
+  public readonly StateHookList HookNaturalLifeRegen =
     AddHook<DelegateNaturalLifeRegen>(s => s.NaturalLifeRegen);
 
-  public static readonly HookList HookUpdateAutopause =
+  public readonly StateHookList HookUpdateAutopause =
     AddHook<Action>(s => s.UpdateAutoPause);
 
-  public static readonly HookList HookPreUpdate =
+  public readonly StateHookList HookPreUpdate =
     AddHook<Action>(s => s.PreUpdate);
 
-  public static readonly HookList HookSetControls =
+  public readonly StateHookList HookSetControls =
     AddHook<Action>(s => s.SetControls);
 
-  public static readonly HookList HookPreUpdateBuffs =
+  public readonly StateHookList HookPreUpdateBuffs =
     AddHook<Action>(s => s.PreUpdateBuffs);
 
-  public static readonly HookList HookPostUpdateBuffs =
+  public readonly StateHookList HookPostUpdateBuffs =
     AddHook<Action>(s => s.PostUpdateBuffs);
 
-  public static readonly HookList HookUpdateEquips =
+  public readonly StateHookList HookUpdateEquips =
     AddHook<Action>(s => s.UpdateEquips);
 
-  public static readonly HookList HookPostUpdateEquips =
+  public readonly StateHookList HookPostUpdateEquips =
     AddHook<Action>(s => s.PostUpdateEquips);
 
-  public static readonly HookList HookUpdateVisibleAccessories =
+  public readonly StateHookList HookUpdateVisibleAccessories =
     AddHook<Action>(s => s.UpdateVisibleAccessories);
 
-  public static readonly HookList HookUpdateVisibleVanityAccessories =
+  public readonly StateHookList HookUpdateVisibleVanityAccessories =
     AddHook<Action>(s => s.UpdateVisibleVanityAccessories);
 
-  public static readonly HookList HookUpdateDyes =
+  public readonly StateHookList HookUpdateDyes =
     AddHook<Action>(s => s.UpdateDyes);
 
-  public static readonly HookList HookPostUpdateMiscEffects =
+  public readonly StateHookList HookPostUpdateMiscEffects =
     AddHook<Action>(s => s.PostUpdateMiscEffects);
 
-  public static readonly HookList HookPostUpdateRunSpeeds =
+  public readonly StateHookList HookPostUpdateRunSpeeds =
     AddHook<Action>(s => s.PostUpdateRunSpeeds);
 
-  public static readonly HookList HookPreUpdateMovement =
+  public readonly StateHookList HookPreUpdateMovement =
     AddHook<Action>(s => s.PreUpdateMovement);
 
-  public static readonly HookList HookPostUpdate =
+  public readonly StateHookList HookPostUpdate =
     AddHook<Action>(s => s.PostUpdate);
 
   private delegate void DelegateModifyExtraJumpDuration(ExtraJump jump, ref float duration);
 
-  public static readonly HookList HookModifyExtraJumpDurationMultiplier =
+  public readonly StateHookList HookModifyExtraJumpDurationMultiplier =
     AddHook<DelegateModifyExtraJumpDuration>(s => s.ModifyExtraJumpDurationMultiplier);
 
-  public static readonly HookList HookCanStartExtraJump =
+  public readonly StateHookList HookCanStartExtraJump =
     AddHook<Func<ExtraJump, bool>>(s => s.CanStartExtraJump);
 
   private delegate void DelegateExtraJumpStarted(ExtraJump jump, ref bool playSound);
 
-  public static readonly HookList HookExtraJumpStarted =
+  public readonly StateHookList HookExtraJumpStarted =
     AddHook<DelegateExtraJumpStarted>(s => s.OnExtraJumpStarted);
 
-  public static readonly HookList HookOnExtraJumpEnded =
+  public readonly StateHookList HookOnExtraJumpEnded =
     AddHook<Action<ExtraJump>>(s => s.OnExtraJumpEnded);
 
-  public static readonly HookList HookOnExtraJumpRefreshed =
+  public readonly StateHookList HookOnExtraJumpRefreshed =
     AddHook<Action<ExtraJump>>(s => s.OnExtraJumpRefreshed);
 
-  public static readonly HookList HookExtraJumpVisuals =
+  public readonly StateHookList HookExtraJumpVisuals =
     AddHook<Action<ExtraJump>>(s => s.ExtraJumpVisuals);
 
-  public static readonly HookList HookCanShowExtraJumpVisuals =
+  public readonly StateHookList HookCanShowExtraJumpVisuals =
     AddHook<Func<ExtraJump, bool>>(s => s.CanShowExtraJumpVisuals);
 
-  public static readonly HookList HookOnExtraJumpCleared =
+  public readonly StateHookList HookOnExtraJumpCleared =
     AddHook<Action<ExtraJump>>(s => s.OnExtraJumpCleared);
 
-  public static readonly HookList HookFrameEffects =
+  public readonly StateHookList HookFrameEffects =
     AddHook<Action>(s => s.FrameEffects);
 
-  public static readonly HookList HookImmuneTo =
+  public readonly StateHookList HookImmuneTo =
     AddHook<Func<PlayerDeathReason, int, bool, bool>>(s => s.ImmuneTo);
 
-  public static readonly HookList HookFreeDodge =
+  public readonly StateHookList HookFreeDodge =
     AddHook<Func<Player.HurtInfo, bool>>(s => s.FreeDodge);
 
-  public static readonly HookList HookConsumableDodge =
+  public readonly StateHookList HookConsumableDodge =
     AddHook<Func<Player.HurtInfo, bool>>(s => s.ConsumableDodge);
 
   private delegate void DelegateModifyHurt(ref Player.HurtModifiers modifiers);
 
-  public static readonly HookList HookModifyHurt =
+  public readonly StateHookList HookModifyHurt =
     AddHook<DelegateModifyHurt>(s => s.ModifyHurt);
 
-  public static readonly HookList HookOnHurt =
+  public readonly StateHookList HookOnHurt =
     AddHook<Action<Player.HurtInfo>>(s => s.OnHurt);
 
-  public static readonly HookList HookPostHurt =
+  public readonly StateHookList HookPostHurt =
     AddHook<Action<Player.HurtInfo>>(s => s.PostHurt);
 
   private delegate bool DelegatePreKill(double damage, int hitDirection, bool pvp, ref bool playSound,
     ref bool genGore, ref PlayerDeathReason damageSource);
 
-  public static readonly HookList HookPreKill =
+  public readonly StateHookList HookPreKill =
     AddHook<DelegatePreKill>(s => s.PreKill);
 
-  public static readonly HookList HookKill =
+  public readonly StateHookList HookKill =
     AddHook<Action<double, int, bool, PlayerDeathReason>>(s => s.Kill);
 
   private delegate bool DelegatePreModifyLuck(ref float luck);
 
-  public static readonly HookList HookPreModifyLuck =
+  public readonly StateHookList HookPreModifyLuck =
     AddHook<DelegatePreModifyLuck>(s => s.PreModifyLuck);
 
   private delegate void DelegateModifyLuck(ref float luck);
 
-  public static readonly HookList HookModifyLuck =
+  public readonly StateHookList HookModifyLuck =
     AddHook<DelegateModifyLuck>(s => s.ModifyLuck);
 
-  public static readonly HookList HookPreItemCheck =
+  public readonly StateHookList HookPreItemCheck =
     AddHook<Func<bool>>(s => s.PreItemCheck);
 
-  public static readonly HookList HookPostItemCheck =
+  public readonly StateHookList HookPostItemCheck =
     AddHook<Action>(s => s.PostItemCheck);
 
-  public static readonly HookList HookUseTimeMultiplier =
+  public readonly StateHookList HookUseTimeMultiplier =
     AddHook<Func<Item, float>>(s => s.UseTimeMultiplier);
 
-  public static readonly HookList HookUseAnimationMultiplier =
+  public readonly StateHookList HookUseAnimationMultiplier =
     AddHook<Func<Item, float>>(s => s.UseAnimationMultiplier);
 
-  public static readonly HookList HookUseSpeedMultiplier =
+  public readonly StateHookList HookUseSpeedMultiplier =
     AddHook<Func<Item, float>>(s => s.UseSpeedMultiplier);
 
   private delegate void DelegateGetHealLife(Item item, bool quickHeal, ref int healValue);
 
-  public static readonly HookList HookGetHealLife =
+  public readonly StateHookList HookGetHealLife =
     AddHook<DelegateGetHealLife>(s => s.GetHealLife);
 
   private delegate void DelegateGetHealMana(Item item, bool quickHeal, ref int healValue);
 
-  public static readonly HookList HookGetHealMana =
+  public readonly StateHookList HookGetHealMana =
     AddHook<DelegateGetHealMana>(s => s.GetHealMana);
 
   private delegate void DelegateModifyManaCost(Item item, ref float reduce, ref float mult);
 
-  public static readonly HookList HookModifyManaCost =
+  public readonly StateHookList HookModifyManaCost =
     AddHook<DelegateModifyManaCost>(s => s.ModifyManaCost);
 
-  public static readonly HookList HookOnMissingMana =
+  public readonly StateHookList HookOnMissingMana =
     AddHook<Action<Item, int>>(s => s.OnMissingMana);
 
-  public static readonly HookList HookOnConsumeMana =
+  public readonly StateHookList HookOnConsumeMana =
     AddHook<Action<Item, int>>(s => s.OnConsumeMana);
 
   private delegate void DelegateModifyWeaponDamage(Item item, ref StatModifier damage);
 
-  public static readonly HookList HookModifyWeaponDamage =
+  public readonly StateHookList HookModifyWeaponDamage =
     AddHook<DelegateModifyWeaponDamage>(s => s.ModifyWeaponDamage);
 
-  public static readonly HookList HookProcessTriggers =
+  public readonly StateHookList HookProcessTriggers =
     AddHook<Action<TriggersSet>>(s => s.ProcessTriggers);
 
   private delegate void DelegateModifyWeaponKnockback(Item item, ref StatModifier knockback);
 
-  public static readonly HookList HookModifyWeaponKnockback =
+  public readonly StateHookList HookModifyWeaponKnockback =
     AddHook<DelegateModifyWeaponKnockback>(s => s.ModifyWeaponKnockback);
 
   private delegate void DelegateModifyWeaponCrit(Item item, ref float crit);
 
-  public static readonly HookList HookModifyWeaponCrit =
+  public readonly StateHookList HookModifyWeaponCrit =
     AddHook<DelegateModifyWeaponCrit>(s => s.ModifyWeaponCrit);
 
-  public static readonly HookList HookCanConsumeAmmo =
+  public readonly StateHookList HookCanConsumeAmmo =
     AddHook<Func<Item, Item, bool>>(s => s.CanConsumeAmmo);
 
-  public static readonly HookList HookOnConsumeAmmo =
+  public readonly StateHookList HookOnConsumeAmmo =
     AddHook<Action<Item, Item>>(s => s.OnConsumeAmmo);
 
-  public static readonly HookList HookCanShoot =
+  public readonly StateHookList HookCanShoot =
     AddHook<Func<Item, bool>>(s => s.CanShoot);
 
   private delegate void DelegateModifyShootStats(Item item, ref Vector2 position, ref Vector2 velocity, ref int type,
     ref int damage, ref float knockback);
 
-  public static readonly HookList HookModifyShootStats =
+  public readonly StateHookList HookModifyShootStats =
     AddHook<DelegateModifyShootStats>(s => s.ModifyShootStats);
 
-  public static readonly HookList HookShoot =
+  public readonly StateHookList HookShoot =
     AddHook<Func<Item, EntitySource_ItemUse_WithAmmo, Vector2, Vector2, int, int, float, bool>>(s => s.Shoot);
 
-  public static readonly HookList HookMeleeEffects =
+  public readonly StateHookList HookMeleeEffects =
     AddHook<Action<Item, Rectangle>>(s => s.MeleeEffects);
 
-  public static readonly HookList HookEmitEnchantmentVisualsAt =
+  public readonly StateHookList HookEmitEnchantmentVisualsAt =
     AddHook<Action<Projectile, Vector2, int, int>>(s => s.EmitEnchantmentVisualsAt);
 
-  public static readonly HookList HookCanCatchNPC =
+  public readonly StateHookList HookCanCatchNPC =
     AddHook<Func<NPC, Item, bool?>>(s => s.CanCatchNPC);
 
-  public static readonly HookList HookOnCatchNPC =
+  public readonly StateHookList HookOnCatchNPC =
     AddHook<Action<NPC, Item, bool>>(s => s.OnCatchNPC);
 
   private delegate void DelegateModifyItemScale(Item item, ref float scale);
 
-  public static readonly HookList HookModifyItemScale =
+  public readonly StateHookList HookModifyItemScale =
     AddHook<DelegateModifyItemScale>(s => s.ModifyItemScale);
 
-  public static readonly HookList HookOnHitAnything =
+  public readonly StateHookList HookOnHitAnything =
     AddHook<Action<float, float, Entity>>(s => s.OnHitAnything);
 
-  public static readonly HookList HookCanHitNPC =
+  public readonly StateHookList HookCanHitNPC =
     AddHook<Func<NPC, bool>>(s => s.CanHitNPC);
 
-  public static readonly HookList HookCanMeleeAttackCollideWithNPC =
+  public readonly StateHookList HookCanMeleeAttackCollideWithNPC =
     AddHook<Func<Item, Rectangle, NPC, bool?>>(s => s.CanMeleeAttackCollideWithNPC);
 
   private delegate void DelegateModifyHitNPC(NPC target, ref NPC.HitModifiers modifiers);
 
-  public static readonly HookList HookModifyHitNPC =
+  public readonly StateHookList HookModifyHitNPC =
     AddHook<DelegateModifyHitNPC>(s => s.ModifyHitNPC);
 
-  public static readonly HookList HookOnHitNPC =
+  public readonly StateHookList HookOnHitNPC =
     AddHook<Action<NPC, NPC.HitInfo, int>>(s => s.OnHitNPC);
 
-  public static readonly HookList HookCanHitNPCWithItem =
+  public readonly StateHookList HookCanHitNPCWithItem =
     AddHook<Func<Item, NPC, bool?>>(s => s.CanHitNPCWithItem);
 
   private delegate void DelegateModifyHitNPCWithItem(Item item, NPC target, ref NPC.HitModifiers modifiers);
 
-  public static readonly HookList HookModifyHitNPCWithItem =
+  public readonly StateHookList HookModifyHitNPCWithItem =
     AddHook<DelegateModifyHitNPCWithItem>(s => s.ModifyHitNPCWithItem);
 
-  public static readonly HookList HookOnHitNPCWithItem =
+  public readonly StateHookList HookOnHitNPCWithItem =
     AddHook<Action<Item, NPC, NPC.HitInfo, int>>(s => s.OnHitNPCWithItem);
 
-  public static readonly HookList HookCanHitNPCWithProj =
+  public readonly StateHookList HookCanHitNPCWithProj =
     AddHook<Func<Projectile, NPC, bool?>>(s => s.CanHitNPCWithProj);
 
   private delegate void DelegateModifyHitNPCWithProj(Projectile proj, NPC target, ref NPC.HitModifiers modifiers);
 
-  public static readonly HookList HookModifyHitNPCWithProj =
+  public readonly StateHookList HookModifyHitNPCWithProj =
     AddHook<DelegateModifyHitNPCWithProj>(s => s.ModifyHitNPCWithProj);
 
-  public static readonly HookList HookOnHitNPCWithProj =
+  public readonly StateHookList HookOnHitNPCWithProj =
     AddHook<Action<Projectile, NPC, NPC.HitInfo, int>>(s => s.OnHitNPCWithProj);
 
-  public static readonly HookList HookCanHitPvp =
+  public readonly StateHookList HookCanHitPvp =
     AddHook<Func<Item, Player, bool>>(s => s.CanHitPvp);
 
-  public static readonly HookList HookCanHitPvpWithProj =
+  public readonly StateHookList HookCanHitPvpWithProj =
     AddHook<Func<Projectile, Player, bool>>(s => s.CanHitPvpWithProj);
 
   private delegate bool DelegateCanBeHitByNPC(NPC npc, ref int cooldownSlot);
 
-  public static readonly HookList HookCanBeHitByNPC =
+  public readonly StateHookList HookCanBeHitByNPC =
     AddHook<DelegateCanBeHitByNPC>(s => s.CanBeHitByNPC);
 
   private delegate void DelegateModifyHitByNPC(NPC npc, ref Player.HurtModifiers modifiers);
 
-  public static readonly HookList HookModifyHitByNPC =
+  public readonly StateHookList HookModifyHitByNPC =
     AddHook<DelegateModifyHitByNPC>(s => s.ModifyHitByNPC);
 
-  public static readonly HookList HookOnHitByNPC =
+  public readonly StateHookList HookOnHitByNPC =
     AddHook<Action<NPC, Player.HurtInfo>>(s => s.OnHitByNPC);
 
-  public static readonly HookList HookCanBeHitByProjectile =
+  public readonly StateHookList HookCanBeHitByProjectile =
     AddHook<Func<Projectile, bool>>(s => s.CanBeHitByProjectile);
 
   private delegate void DelegateModifyHitByProjectile(Projectile proj, ref Player.HurtModifiers modifiers);
 
-  public static readonly HookList HookModifyHitByProjectile =
+  public readonly StateHookList HookModifyHitByProjectile =
     AddHook<DelegateModifyHitByProjectile>(s => s.ModifyHitByProjectile);
 
-  public static readonly HookList HookOnHitByProjectile =
+  public readonly StateHookList HookOnHitByProjectile =
     AddHook<Action<Projectile, Player.HurtInfo>>(s => s.OnHitByProjectile);
 
   private delegate void DelegateModifyFishingAttempt(ref FishingAttempt attempt);
 
-  public static readonly HookList HookModifyFishingAttempt =
+  public readonly StateHookList HookModifyFishingAttempt =
     AddHook<DelegateModifyFishingAttempt>(s => s.ModifyFishingAttempt);
 
   private delegate void DelegateCatchFish(FishingAttempt attempt, ref int itemDrop, ref int enemySpawn,
     ref AdvancedPopupRequest sonar, ref Vector2 sonarPosition);
 
-  public static readonly HookList HookCatchFish =
+  public readonly StateHookList HookCatchFish =
     AddHook<DelegateCatchFish>(s => s.CatchFish);
 
   private delegate void DelegateModifyCaughtFish(Item fish);
 
-  public static readonly HookList HookModifyCaughtFish =
+  public readonly StateHookList HookModifyCaughtFish =
     AddHook<DelegateModifyCaughtFish>(s => s.ModifyCaughtFish);
 
   private delegate bool? DelegateCanConsumeBait(Item bait);
 
-  public static readonly HookList HookCanConsumeBait =
+  public readonly StateHookList HookCanConsumeBait =
     AddHook<DelegateCanConsumeBait>(s => s.CanConsumeBait);
 
   private delegate void DelegateGetFishingLevel(Item fishingRod, Item bait, ref float fishingLevel);
 
-  public static readonly HookList HookGetFishingLevel =
+  public readonly StateHookList HookGetFishingLevel =
     AddHook<DelegateGetFishingLevel>(s => s.GetFishingLevel);
 
-  public static readonly HookList HookAnglerQuestReward =
+  public readonly StateHookList HookAnglerQuestReward =
     AddHook<Action<float, List<Item>>>(s => s.AnglerQuestReward);
 
-  public static readonly HookList HookGetDyeTraderReward =
+  public readonly StateHookList HookGetDyeTraderReward =
     AddHook<Action<List<int>>>(s => s.GetDyeTraderReward);
 
   private delegate void DelegateDrawEffects(PlayerDrawSet drawInfo, ref float r, ref float g, ref float b, ref float a,
     ref bool fullBright);
 
-  public static readonly HookList HookDrawEffects =
+  public readonly StateHookList HookDrawEffects =
     AddHook<DelegateDrawEffects>(s => s.DrawEffects);
 
   private delegate void DelegateModifyDrawInfo(ref PlayerDrawSet drawInfo);
 
-  public static readonly HookList HookModifyDrawInfo =
+  public readonly StateHookList HookModifyDrawInfo =
     AddHook<DelegateModifyDrawInfo>(s => s.ModifyDrawInfo);
 
-  public static readonly HookList HookModifyDrawLayers =
+  public readonly StateHookList HookModifyDrawLayers =
     AddHook<Action<PlayerDrawSet>>(s => s.HideDrawLayers);
 
-  public static readonly HookList HookModifyScreenPosition =
+  public readonly StateHookList HookModifyScreenPosition =
     AddHook<Action>(s => s.ModifyScreenPosition);
 
   private delegate void DelegateModifyZoom(ref float zoom);
 
-  public static readonly HookList HookModifyZoom =
+  public readonly StateHookList HookModifyZoom =
     AddHook<DelegateModifyZoom>(s => s.ModifyZoom);
 
-  public static readonly HookList HookPlayerConnect =
+  public readonly StateHookList HookPlayerConnect =
     AddHook<Action>(s => s.PlayerConnect);
 
-  public static readonly HookList HookPlayerDisconnect =
+  public readonly StateHookList HookPlayerDisconnect =
     AddHook<Action>(s => s.PlayerDisconnect);
 
-  public static readonly HookList HookOnEnterWorld =
+  public readonly StateHookList HookOnEnterWorld =
     AddHook<Action>(s => s.OnEnterWorld);
 
-  public static readonly HookList HookOnRespawn =
+  public readonly StateHookList HookOnRespawn =
     AddHook<Action>(s => s.OnRespawn);
 
-  public static readonly HookList HookShiftClickSlot =
+  public readonly StateHookList HookShiftClickSlot =
     AddHook<Func<Item[], int, int, bool>>(s => s.ShiftClickSlot);
 
-  public static readonly HookList HookHoverSlot =
+  public readonly StateHookList HookHoverSlot =
     AddHook<Func<Item[], int, int, bool>>(s => s.HoverSlot);
 
-  public static readonly HookList HookPostSellItem =
+  public readonly StateHookList HookPostSellItem =
     AddHook<Action<NPC, Item[], Item>>(s => s.PostSellItem);
 
-  public static readonly HookList HookCanSellItem =
+  public readonly StateHookList HookCanSellItem =
     AddHook<Func<NPC, Item[], Item, bool>>(s => s.CanSellItem);
 
-  public static readonly HookList HookPostBuyItem =
+  public readonly StateHookList HookPostBuyItem =
     AddHook<Action<NPC, Item[], Item>>(s => s.PostBuyItem);
 
-  public static readonly HookList HookCanBuyItem =
+  public readonly StateHookList HookCanBuyItem =
     AddHook<Func<NPC, Item[], Item, bool>>(s => s.CanBuyItem);
 
-  public static readonly HookList HookCanUseItem =
+  public readonly StateHookList HookCanUseItem =
     AddHook<Func<Item, bool>>(s => s.CanUseItem);
 
-  public static readonly HookList HookCanAutoReuseItem =
+  public readonly StateHookList HookCanAutoReuseItem =
     AddHook<Func<Item, bool?>>(s => s.CanAutoReuseItem);
 
   private delegate bool DelegateModifyNurseHeal(NPC npc, ref int health, ref bool removeDebuffs, ref string chatText);
 
-  public static readonly HookList HookModifyNurseHeal =
+  public readonly StateHookList HookModifyNurseHeal =
     AddHook<DelegateModifyNurseHeal>(s => s.ModifyNurseHeal);
 
   private delegate void DelegateModifyNursePrice(NPC npc, int health, bool removeDebuffs, ref int price);
 
-  public static readonly HookList HookModifyNursePrice =
+  public readonly StateHookList HookModifyNursePrice =
     AddHook<DelegateModifyNursePrice>(s => s.ModifyNursePrice);
 
-  public static readonly HookList HookPostNurseHeal =
+  public readonly StateHookList HookPostNurseHeal =
     AddHook<Action<NPC, int, bool, int>>(s => s.PostNurseHeal);
 
-  public static readonly HookList HookOnPickup =
+  public readonly StateHookList HookOnPickup =
     AddHook<Func<Item, bool>>(s => s.OnPickup);
 
-  public static readonly HookList HookArmorSetBonusActivated =
+  public readonly StateHookList HookArmorSetBonusActivated =
     AddHook<Action>(s => s.ArmorSetBonusActivated);
 
-  public static readonly HookList HookArmorSetBonusHeld =
+  public readonly StateHookList HookArmorSetBonusHeld =
     AddHook<Action<int>>(s => s.ArmorSetBonusHeld);
 }

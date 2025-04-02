@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using JetBrains.Annotations;
 using Terraria.DataStructures;
 using Terraria.GameInput;
@@ -25,45 +25,21 @@ internal sealed class StateHooksPlayer : ModPlayer {
   [field: AllowNull, MaybeNull]
   private State[] States => field ??= Player.GetStates();
 
-  /// <summary>
-  /// Updates all states which have hooks.
-  /// <para /> Used primarily for one-time hooks, net-syncing,
-  /// <see cref="State.PreUpdate"/> and <see cref="State.PostUpdate"/>, and saving.
-  /// </summary>
-  private ConditionalEnumerator<State> EnumerateAll(HookList<State> list) {
-    return States.Length > 0
-      ? new ConditionalEnumerator<State>(list.Enumerate(States))
-      : ConditionalEnumerator<State>.Empty;
+
+  [field: AllowNull, MaybeNull]
+  private static StateLoader StateLoader {
+    get => field ??= ModContent.GetInstance<StateLoader>();
+    set;
   }
 
-  /// <summary>
-  /// Common enumerator for states that should hook update.
-  /// <br /> Updates when the character is active, and the state is not an ability which is locked.
-  /// <para /> Used for nearly all hooks.
-  /// </summary>
-  private ConditionalEnumerator<State> EnumerateActiveCharacterStates(HookList<State> list) {
-    return States.Length > 0
-      ? new ConditionalEnumerator<State>(list.Enumerate(States), ShouldHookUpdate)
-      : ConditionalEnumerator<State>.Empty;
+  public override void Unload() {
+    StateLoader = null!;
   }
 
-  private static bool ShouldHookUpdate(State state) {
-    return state switch {
-      AnimCharacterCollection => true,
-      AnimCharacter => state.Active,
-      AbilityState { Unlocked: false } => false,
-      _ => state.Character?.Active ?? false
-    };
-  }
-
-  /// <summary>
-  /// Restrictive enumerator, requires the state to be active.
-  /// <para /> Used primarily on hooks which update every frame.
-  /// </summary>
-  private ConditionalEnumerator<State> EnumerateActiveStates(HookList<State> list) {
+  private StateEnumerator Enumerate(StateHookList list) {
     return States.Length > 0
-      ? new ConditionalEnumerator<State>(list.Enumerate(States), state => state.Active)
-      : ConditionalEnumerator<State>.Empty;
+      ? new StateEnumerator(list.HookList.Enumerate(States), list.StateHookConditions)
+      : StateEnumerator.Empty;
   }
 
   private bool TryGetActiveCharacter([NotNullWhen(true)] out AnimCharacter? character) {
@@ -76,96 +52,98 @@ internal sealed class StateHooksPlayer : ModPlayer {
   #region Hooks
 
   public override void Initialize() {
-    foreach (State state in EnumerateAll(StateLoader.HookInitialize)) {
+    foreach (State state in Enumerate(StateLoader.HookInitialize)) {
       state.Initialize();
     }
 
-    foreach (State state in EnumerateAll(StateLoader.HookPostInitialize)) {
+    foreach (State state in Enumerate(StateLoader.HookPostInitialize)) {
       state.PostInitialize();
     }
   }
 
   public override void ResetEffects() {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookResetEffects)) {
+    foreach (State state in Enumerate(StateLoader.HookResetEffects)) {
       state.ResetEffects();
     }
   }
 
   public override void ResetInfoAccessories() {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookResetInfoAccessories)) {
+    foreach (State state in Enumerate(StateLoader.HookResetInfoAccessories)) {
       state.ResetInfoAccessories();
     }
   }
 
   public override void RefreshInfoAccessoriesFromTeamPlayers(Player player) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookRefreshInfoAccessoriesFromTeamPlayers)) {
+    foreach (State state in Enumerate(StateLoader.HookRefreshInfoAccessoriesFromTeamPlayers)) {
       state.RefreshInfoAccessoriesFromTeamPlayers(player);
     }
   }
 
   public override void ModifyMaxStats(out StatModifier health, out StatModifier mana) {
     base.ModifyMaxStats(out health, out mana);
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookModifyMaxStats)) {
-      state.ModifyMaxStats(out health, out mana);
+    foreach (State state in Enumerate(StateLoader.HookModifyMaxStats)) {
+      state.ModifyMaxStats(out StatModifier stateHealth, out StatModifier stateMana);
+      health.CombineWith(stateHealth);
+      mana.CombineWith(stateMana);
     }
   }
 
   public override void UpdateDead() {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookUpdateDead)) {
+    foreach (State state in Enumerate(StateLoader.HookUpdateDead)) {
       state.UpdateDead();
     }
   }
 
   public override void PreSavePlayer() {
-    foreach (State state in EnumerateAll(StateLoader.HookPreSavePlayer)) {
+    foreach (State state in Enumerate(StateLoader.HookPreSavePlayer)) {
       state.PreSavePlayer();
     }
   }
 
   public override void PostSavePlayer() {
-    foreach (State state in EnumerateAll(StateLoader.HookPostSavePlayer)) {
+    foreach (State state in Enumerate(StateLoader.HookPostSavePlayer)) {
       state.PostSavePlayer();
     }
   }
 
   public override void CopyClientState(ModPlayer clientPlayer) {
-    foreach (State state in EnumerateAll(StateLoader.HookCopyClientState)) {
+    foreach (State state in Enumerate(StateLoader.HookCopyClientState)) {
       state.CopyClientState(clientPlayer);
     }
   }
 
   public override void SyncPlayer(int toWho, int fromWho, bool newPlayer) {
-    foreach (State state in EnumerateAll(StateLoader.HookSyncPlayer)) {
+    foreach (State state in Enumerate(StateLoader.HookSyncPlayer)) {
       state.SyncPlayer(toWho, fromWho, newPlayer);
     }
   }
 
   public override void SendClientChanges(ModPlayer clientPlayer) {
-    foreach (State state in EnumerateAll(StateLoader.HookSendClientChanges)) {
+    foreach (State state in Enumerate(StateLoader.HookSendClientChanges)) {
       state.SendClientChanges(clientPlayer);
     }
   }
 
   public override void UpdateBadLifeRegen() {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookUpdateBadLifeRegen)) {
+    foreach (State state in Enumerate(StateLoader.HookUpdateBadLifeRegen)) {
       state.UpdateBadLifeRegen();
     }
   }
 
   public override void UpdateLifeRegen() {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookUpdateLifeRegen)) {
+    foreach (State state in Enumerate(StateLoader.HookUpdateLifeRegen)) {
       state.UpdateLifeRegen();
     }
   }
 
   public override void NaturalLifeRegen(ref float regen) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookNaturalLifeRegen)) {
+    foreach (State state in Enumerate(StateLoader.HookNaturalLifeRegen)) {
       state.NaturalLifeRegen(ref regen);
     }
   }
 
   public override void UpdateAutopause() {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookUpdateAutopause)) {
+    foreach (State state in Enumerate(StateLoader.HookUpdateAutopause)) {
       state.UpdateAutoPause();
     }
   }
@@ -188,13 +166,13 @@ internal sealed class StateHooksPlayer : ModPlayer {
       }
     }
 
-    foreach (State state in EnumerateAll(StateLoader.HookPreUpdate)) {
+    foreach (State state in Enumerate(StateLoader.HookPreUpdate)) {
       state.PreUpdate();
     }
   }
 
   public override void ProcessTriggers(TriggersSet triggersSet) {
-    foreach (State state in EnumerateAll(StateLoader.HookProcessTriggers)) {
+    foreach (State state in Enumerate(StateLoader.HookProcessTriggers)) {
       state.ProcessTriggers(triggersSet);
     }
 
@@ -210,43 +188,43 @@ internal sealed class StateHooksPlayer : ModPlayer {
   }
 
   public override void ArmorSetBonusActivated() {
-    foreach (State state in EnumerateAll(StateLoader.HookArmorSetBonusActivated)) {
+    foreach (State state in Enumerate(StateLoader.HookArmorSetBonusActivated)) {
       state.ArmorSetBonusActivated();
     }
   }
 
   public override void ArmorSetBonusHeld(int type) {
-    foreach (State state in EnumerateAll(StateLoader.HookArmorSetBonusHeld)) {
+    foreach (State state in Enumerate(StateLoader.HookArmorSetBonusHeld)) {
       state.ArmorSetBonusHeld(type);
     }
   }
 
   public override void SetControls() {
-    foreach (State state in EnumerateActiveStates(StateLoader.HookSetControls)) {
+    foreach (State state in Enumerate(StateLoader.HookSetControls)) {
       state.SetControls();
     }
   }
 
   public override void PreUpdateBuffs() {
-    foreach (State state in EnumerateActiveStates(StateLoader.HookPreUpdateBuffs)) {
+    foreach (State state in Enumerate(StateLoader.HookPreUpdateBuffs)) {
       state.PreUpdateBuffs();
     }
   }
 
   public override void PostUpdateBuffs() {
-    foreach (State state in EnumerateActiveStates(StateLoader.HookPostUpdateBuffs)) {
+    foreach (State state in Enumerate(StateLoader.HookPostUpdateBuffs)) {
       state.PostUpdateBuffs();
     }
   }
 
   public override void UpdateEquips() {
-    foreach (State state in EnumerateActiveStates(StateLoader.HookUpdateEquips)) {
+    foreach (State state in Enumerate(StateLoader.HookUpdateEquips)) {
       state.UpdateEquips();
     }
   }
 
   public override void PostUpdateEquips() {
-    foreach (State state in EnumerateActiveStates(StateLoader.HookPostUpdateEquips)) {
+    foreach (State state in Enumerate(StateLoader.HookPostUpdateEquips)) {
       if (state.Active) {
         state.PostUpdateEquips();
       }
@@ -254,37 +232,37 @@ internal sealed class StateHooksPlayer : ModPlayer {
   }
 
   public override void UpdateVisibleAccessories() {
-    foreach (State state in EnumerateActiveStates(StateLoader.HookUpdateVisibleAccessories)) {
+    foreach (State state in Enumerate(StateLoader.HookUpdateVisibleAccessories)) {
       state.UpdateVisibleAccessories();
     }
   }
 
   public override void UpdateVisibleVanityAccessories() {
-    foreach (State state in EnumerateActiveStates(StateLoader.HookUpdateVisibleVanityAccessories)) {
+    foreach (State state in Enumerate(StateLoader.HookUpdateVisibleVanityAccessories)) {
       state.UpdateVisibleVanityAccessories();
     }
   }
 
   public override void UpdateDyes() {
-    foreach (State state in EnumerateActiveStates(StateLoader.HookUpdateDyes)) {
+    foreach (State state in Enumerate(StateLoader.HookUpdateDyes)) {
       state.UpdateDyes();
     }
   }
 
   public override void PostUpdateMiscEffects() {
-    foreach (State state in EnumerateActiveStates(StateLoader.HookPostUpdateMiscEffects)) {
+    foreach (State state in Enumerate(StateLoader.HookPostUpdateMiscEffects)) {
       state.PostUpdateMiscEffects();
     }
   }
 
   public override void PostUpdateRunSpeeds() {
-    foreach (State state in EnumerateActiveStates(StateLoader.HookPostUpdateRunSpeeds)) {
+    foreach (State state in Enumerate(StateLoader.HookPostUpdateRunSpeeds)) {
       state.PostUpdateRunSpeeds();
     }
   }
 
   public override void PreUpdateMovement() {
-    foreach (State state in EnumerateActiveStates(StateLoader.HookPreUpdateMovement)) {
+    foreach (State state in Enumerate(StateLoader.HookPreUpdateMovement)) {
       state.PreUpdateMovement();
     }
   }
@@ -296,19 +274,19 @@ internal sealed class StateHooksPlayer : ModPlayer {
       }
     }
 
-    foreach (State state in EnumerateAll(StateLoader.HookPostUpdate)) {
+    foreach (State state in Enumerate(StateLoader.HookPostUpdate)) {
       state.PostUpdate();
     }
   }
 
   public override void ModifyExtraJumpDurationMultiplier(ExtraJump jump, ref float duration) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookModifyExtraJumpDurationMultiplier)) {
+    foreach (State state in Enumerate(StateLoader.HookModifyExtraJumpDurationMultiplier)) {
       state.ModifyExtraJumpDurationMultiplier(jump, ref duration);
     }
   }
 
   public override bool CanStartExtraJump(ExtraJump jump) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookCanStartExtraJump)) {
+    foreach (State state in Enumerate(StateLoader.HookCanStartExtraJump)) {
       if (!state.CanStartExtraJump(jump)) {
         return false;
       }
@@ -318,31 +296,31 @@ internal sealed class StateHooksPlayer : ModPlayer {
   }
 
   public override void OnExtraJumpStarted(ExtraJump jump, ref bool playSound) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookExtraJumpStarted)) {
+    foreach (State state in Enumerate(StateLoader.HookExtraJumpStarted)) {
       state.OnExtraJumpStarted(jump, ref playSound);
     }
   }
 
   public override void OnExtraJumpEnded(ExtraJump jump) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookOnExtraJumpEnded)) {
+    foreach (State state in Enumerate(StateLoader.HookOnExtraJumpEnded)) {
       state.OnExtraJumpEnded(jump);
     }
   }
 
   public override void OnExtraJumpRefreshed(ExtraJump jump) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookOnExtraJumpRefreshed)) {
+    foreach (State state in Enumerate(StateLoader.HookOnExtraJumpRefreshed)) {
       state.OnExtraJumpRefreshed(jump);
     }
   }
 
   public override void ExtraJumpVisuals(ExtraJump jump) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookExtraJumpVisuals)) {
+    foreach (State state in Enumerate(StateLoader.HookExtraJumpVisuals)) {
       state.ExtraJumpVisuals(jump);
     }
   }
 
   public override bool CanShowExtraJumpVisuals(ExtraJump jump) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookCanShowExtraJumpVisuals)) {
+    foreach (State state in Enumerate(StateLoader.HookCanShowExtraJumpVisuals)) {
       if (!state.CanShowExtraJumpVisuals(jump)) {
         return false;
       }
@@ -352,19 +330,19 @@ internal sealed class StateHooksPlayer : ModPlayer {
   }
 
   public override void OnExtraJumpCleared(ExtraJump jump) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookOnExtraJumpCleared)) {
+    foreach (State state in Enumerate(StateLoader.HookOnExtraJumpCleared)) {
       state.OnExtraJumpCleared(jump);
     }
   }
 
   public override void FrameEffects() {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookFrameEffects)) {
+    foreach (State state in Enumerate(StateLoader.HookFrameEffects)) {
       state.FrameEffects();
     }
   }
 
   public override bool ImmuneTo(PlayerDeathReason damageSource, int cooldownSlot, bool pvp) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookImmuneTo)) {
+    foreach (State state in Enumerate(StateLoader.HookImmuneTo)) {
       if (state.ImmuneTo(damageSource, cooldownSlot, pvp)) {
         return true;
       }
@@ -374,7 +352,7 @@ internal sealed class StateHooksPlayer : ModPlayer {
   }
 
   public override bool FreeDodge(Player.HurtInfo info) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookFreeDodge)) {
+    foreach (State state in Enumerate(StateLoader.HookFreeDodge)) {
       if (state.FreeDodge(info)) {
         return true;
       }
@@ -384,7 +362,7 @@ internal sealed class StateHooksPlayer : ModPlayer {
   }
 
   public override bool ConsumableDodge(Player.HurtInfo info) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookConsumableDodge)) {
+    foreach (State state in Enumerate(StateLoader.HookConsumableDodge)) {
       if (state.ConsumableDodge(info)) {
         return true;
       }
@@ -394,26 +372,26 @@ internal sealed class StateHooksPlayer : ModPlayer {
   }
 
   public override void ModifyHurt(ref Player.HurtModifiers modifiers) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookModifyHurt)) {
+    foreach (State state in Enumerate(StateLoader.HookModifyHurt)) {
       state.ModifyHurt(ref modifiers);
     }
   }
 
   public override void OnHurt(Player.HurtInfo info) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookOnHurt)) {
+    foreach (State state in Enumerate(StateLoader.HookOnHurt)) {
       state.OnHurt(info);
     }
   }
 
   public override void PostHurt(Player.HurtInfo info) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookPostHurt)) {
+    foreach (State state in Enumerate(StateLoader.HookPostHurt)) {
       state.PostHurt(info);
     }
   }
 
   public override bool PreKill(double damage, int hitDirection, bool pvp, ref bool playSound, ref bool genGore,
     ref PlayerDeathReason damageSource) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookPreKill)) {
+    foreach (State state in Enumerate(StateLoader.HookPreKill)) {
       if (!state.PreKill(damage, hitDirection, pvp, ref playSound, ref genGore, ref damageSource)) {
         return false;
       }
@@ -423,14 +401,14 @@ internal sealed class StateHooksPlayer : ModPlayer {
   }
 
   public override void Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookKill)) {
+    foreach (State state in Enumerate(StateLoader.HookKill)) {
       state.Kill(damage, hitDirection, pvp, damageSource);
     }
   }
 
   public override bool PreModifyLuck(ref float luck) {
     bool result = true;
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookPreModifyLuck)) {
+    foreach (State state in Enumerate(StateLoader.HookPreModifyLuck)) {
       result &= state.PreModifyLuck(ref luck);
     }
 
@@ -438,13 +416,13 @@ internal sealed class StateHooksPlayer : ModPlayer {
   }
 
   public override void ModifyLuck(ref float luck) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookModifyLuck)) {
+    foreach (State state in Enumerate(StateLoader.HookModifyLuck)) {
       state.ModifyLuck(ref luck);
     }
   }
 
   public override bool PreItemCheck() {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookPreItemCheck)) {
+    foreach (State state in Enumerate(StateLoader.HookPreItemCheck)) {
       if (!state.PreItemCheck()) {
         return false;
       }
@@ -454,14 +432,14 @@ internal sealed class StateHooksPlayer : ModPlayer {
   }
 
   public override void PostItemCheck() {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookPostItemCheck)) {
+    foreach (State state in Enumerate(StateLoader.HookPostItemCheck)) {
       state.PostItemCheck();
     }
   }
 
   public override float UseTimeMultiplier(Item item) {
     float result = base.UseTimeMultiplier(item);
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookUseTimeMultiplier)) {
+    foreach (State state in Enumerate(StateLoader.HookUseTimeMultiplier)) {
       result *= state.UseTimeMultiplier(item);
     }
 
@@ -470,7 +448,7 @@ internal sealed class StateHooksPlayer : ModPlayer {
 
   public override float UseAnimationMultiplier(Item item) {
     float result = base.UseAnimationMultiplier(item);
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookUseAnimationMultiplier)) {
+    foreach (State state in Enumerate(StateLoader.HookUseAnimationMultiplier)) {
       result *= state.UseAnimationMultiplier(item);
     }
 
@@ -479,7 +457,7 @@ internal sealed class StateHooksPlayer : ModPlayer {
 
   public override float UseSpeedMultiplier(Item item) {
     float result = base.UseSpeedMultiplier(item);
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookUseSpeedMultiplier)) {
+    foreach (State state in Enumerate(StateLoader.HookUseSpeedMultiplier)) {
       result *= state.UseSpeedMultiplier(item);
     }
 
@@ -487,55 +465,55 @@ internal sealed class StateHooksPlayer : ModPlayer {
   }
 
   public override void GetHealLife(Item item, bool quickHeal, ref int healValue) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookGetHealLife)) {
+    foreach (State state in Enumerate(StateLoader.HookGetHealLife)) {
       state.GetHealLife(item, quickHeal, ref healValue);
     }
   }
 
   public override void GetHealMana(Item item, bool quickHeal, ref int healValue) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookGetHealMana)) {
+    foreach (State state in Enumerate(StateLoader.HookGetHealMana)) {
       state.GetHealMana(item, quickHeal, ref healValue);
     }
   }
 
   public override void ModifyManaCost(Item item, ref float reduce, ref float mult) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookModifyManaCost)) {
+    foreach (State state in Enumerate(StateLoader.HookModifyManaCost)) {
       state.ModifyManaCost(item, ref reduce, ref mult);
     }
   }
 
   public override void OnMissingMana(Item item, int neededMana) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookOnMissingMana)) {
+    foreach (State state in Enumerate(StateLoader.HookOnMissingMana)) {
       state.OnMissingMana(item, neededMana);
     }
   }
 
   public override void OnConsumeMana(Item item, int manaConsumed) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookOnConsumeMana)) {
+    foreach (State state in Enumerate(StateLoader.HookOnConsumeMana)) {
       state.OnConsumeMana(item, manaConsumed);
     }
   }
 
   public override void ModifyWeaponDamage(Item item, ref StatModifier damage) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookModifyWeaponDamage)) {
+    foreach (State state in Enumerate(StateLoader.HookModifyWeaponDamage)) {
       state.ModifyWeaponDamage(item, ref damage);
     }
   }
 
   public override void ModifyWeaponKnockback(Item item, ref StatModifier knockback) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookModifyWeaponKnockback)) {
+    foreach (State state in Enumerate(StateLoader.HookModifyWeaponKnockback)) {
       state.ModifyWeaponKnockback(item, ref knockback);
     }
   }
 
   public override void ModifyWeaponCrit(Item item, ref float crit) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookModifyWeaponCrit)) {
+    foreach (State state in Enumerate(StateLoader.HookModifyWeaponCrit)) {
       state.ModifyWeaponCrit(item, ref crit);
     }
   }
 
   public override bool CanConsumeAmmo(Item weapon, Item ammo) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookCanConsumeAmmo)) {
+    foreach (State state in Enumerate(StateLoader.HookCanConsumeAmmo)) {
       if (!state.CanConsumeAmmo(weapon, ammo)) {
         return false;
       }
@@ -545,13 +523,13 @@ internal sealed class StateHooksPlayer : ModPlayer {
   }
 
   public override void OnConsumeAmmo(Item weapon, Item ammo) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookOnConsumeAmmo)) {
+    foreach (State state in Enumerate(StateLoader.HookOnConsumeAmmo)) {
       state.OnConsumeAmmo(weapon, ammo);
     }
   }
 
   public override bool CanShoot(Item item) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookCanShoot)) {
+    foreach (State state in Enumerate(StateLoader.HookCanShoot)) {
       if (!state.CanShoot(item)) {
         return false;
       }
@@ -562,7 +540,7 @@ internal sealed class StateHooksPlayer : ModPlayer {
 
   public override void ModifyShootStats(Item item, ref Vector2 position, ref Vector2 velocity, ref int type,
     ref int damage, ref float knockback) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookModifyShootStats)) {
+    foreach (State state in Enumerate(StateLoader.HookModifyShootStats)) {
       state.ModifyShootStats(item, ref position, ref velocity, ref type, ref damage, ref knockback);
     }
   }
@@ -570,7 +548,7 @@ internal sealed class StateHooksPlayer : ModPlayer {
   public override bool Shoot(Item item, EntitySource_ItemUse_WithAmmo source, Vector2 position, Vector2 velocity,
     int type, int damage, float knockback) {
     bool result = true;
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookShoot)) {
+    foreach (State state in Enumerate(StateLoader.HookShoot)) {
       result &= state.Shoot(item, source, position, velocity, type, damage, knockback);
     }
 
@@ -578,20 +556,20 @@ internal sealed class StateHooksPlayer : ModPlayer {
   }
 
   public override void MeleeEffects(Item item, Rectangle hitbox) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookMeleeEffects)) {
+    foreach (State state in Enumerate(StateLoader.HookMeleeEffects)) {
       state.MeleeEffects(item, hitbox);
     }
   }
 
   public override void EmitEnchantmentVisualsAt(Projectile projectile, Vector2 position, int width, int height) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookEmitEnchantmentVisualsAt)) {
+    foreach (State state in Enumerate(StateLoader.HookEmitEnchantmentVisualsAt)) {
       state.EmitEnchantmentVisualsAt(projectile, position, width, height);
     }
   }
 
   public override bool? CanCatchNPC(NPC npc, Item item) {
     bool? result = null;
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookCanCatchNPC)) {
+    foreach (State state in Enumerate(StateLoader.HookCanCatchNPC)) {
       if (state.CanCatchNPC(npc, item) is not { } value) {
         continue;
       }
@@ -607,25 +585,25 @@ internal sealed class StateHooksPlayer : ModPlayer {
   }
 
   public override void OnCatchNPC(NPC npc, Item item, bool caught) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookOnCatchNPC)) {
+    foreach (State state in Enumerate(StateLoader.HookOnCatchNPC)) {
       state.OnCatchNPC(npc, item, caught);
     }
   }
 
   public override void ModifyItemScale(Item item, ref float scale) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookModifyItemScale)) {
+    foreach (State state in Enumerate(StateLoader.HookModifyItemScale)) {
       state.ModifyItemScale(item, ref scale);
     }
   }
 
   public override void OnHitAnything(float x, float y, Entity victim) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookOnHitAnything)) {
+    foreach (State state in Enumerate(StateLoader.HookOnHitAnything)) {
       state.OnHitAnything(x, y, victim);
     }
   }
 
   public override bool CanHitNPC(NPC target) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookCanHitNPC)) {
+    foreach (State state in Enumerate(StateLoader.HookCanHitNPC)) {
       if (!state.CanHitNPC(target)) {
         return false;
       }
@@ -636,7 +614,7 @@ internal sealed class StateHooksPlayer : ModPlayer {
 
   public override bool? CanMeleeAttackCollideWithNPC(Item item, Rectangle hitbox, NPC target) {
     bool? result = null;
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookCanMeleeAttackCollideWithNPC)) {
+    foreach (State state in Enumerate(StateLoader.HookCanMeleeAttackCollideWithNPC)) {
       if (state.CanMeleeAttackCollideWithNPC(item, hitbox, target) is not { } value) {
         continue;
       }
@@ -652,20 +630,20 @@ internal sealed class StateHooksPlayer : ModPlayer {
   }
 
   public override void ModifyHitNPC(NPC target, ref NPC.HitModifiers modifiers) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookModifyHitNPC)) {
+    foreach (State state in Enumerate(StateLoader.HookModifyHitNPC)) {
       state.ModifyHitNPC(target, ref modifiers);
     }
   }
 
   public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookOnHitNPC)) {
+    foreach (State state in Enumerate(StateLoader.HookOnHitNPC)) {
       state.OnHitNPC(target, hit, damageDone);
     }
   }
 
   public override bool? CanHitNPCWithItem(Item item, NPC target) {
     bool? result = null;
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookCanHitNPCWithItem)) {
+    foreach (State state in Enumerate(StateLoader.HookCanHitNPCWithItem)) {
       if (state.CanHitNPCWithItem(item, target) is not { } value) {
         continue;
       }
@@ -681,20 +659,20 @@ internal sealed class StateHooksPlayer : ModPlayer {
   }
 
   public override void ModifyHitNPCWithItem(Item item, NPC target, ref NPC.HitModifiers modifiers) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookModifyHitNPCWithItem)) {
+    foreach (State state in Enumerate(StateLoader.HookModifyHitNPCWithItem)) {
       state.ModifyHitNPCWithItem(item, target, ref modifiers);
     }
   }
 
   public override void OnHitNPCWithItem(Item item, NPC target, NPC.HitInfo hit, int damageDone) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookOnHitNPCWithItem)) {
+    foreach (State state in Enumerate(StateLoader.HookOnHitNPCWithItem)) {
       state.OnHitNPCWithItem(item, target, hit, damageDone);
     }
   }
 
   public override bool? CanHitNPCWithProj(Projectile proj, NPC target) {
     bool? result = null;
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookCanHitNPCWithProj)) {
+    foreach (State state in Enumerate(StateLoader.HookCanHitNPCWithProj)) {
       if (state.CanHitNPCWithProj(proj, target) is not { } value) {
         continue;
       }
@@ -710,19 +688,19 @@ internal sealed class StateHooksPlayer : ModPlayer {
   }
 
   public override void ModifyHitNPCWithProj(Projectile proj, NPC target, ref NPC.HitModifiers modifiers) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookModifyHitNPCWithProj)) {
+    foreach (State state in Enumerate(StateLoader.HookModifyHitNPCWithProj)) {
       state.ModifyHitNPCWithProj(proj, target, ref modifiers);
     }
   }
 
   public override void OnHitNPCWithProj(Projectile proj, NPC target, NPC.HitInfo hit, int damageDone) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookOnHitNPCWithProj)) {
+    foreach (State state in Enumerate(StateLoader.HookOnHitNPCWithProj)) {
       state.OnHitNPCWithProj(proj, target, hit, damageDone);
     }
   }
 
   public override bool CanHitPvp(Item item, Player target) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookCanHitPvp)) {
+    foreach (State state in Enumerate(StateLoader.HookCanHitPvp)) {
       if (!state.CanHitPvp(item, target)) {
         return false;
       }
@@ -732,7 +710,7 @@ internal sealed class StateHooksPlayer : ModPlayer {
   }
 
   public override bool CanHitPvpWithProj(Projectile proj, Player target) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookCanHitPvpWithProj)) {
+    foreach (State state in Enumerate(StateLoader.HookCanHitPvpWithProj)) {
       if (!state.CanHitPvpWithProj(proj, target)) {
         return false;
       }
@@ -742,7 +720,7 @@ internal sealed class StateHooksPlayer : ModPlayer {
   }
 
   public override bool CanBeHitByNPC(NPC npc, ref int cooldownSlot) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookCanBeHitByNPC)) {
+    foreach (State state in Enumerate(StateLoader.HookCanBeHitByNPC)) {
       if (!state.CanBeHitByNPC(npc, ref cooldownSlot)) {
         return false;
       }
@@ -752,19 +730,19 @@ internal sealed class StateHooksPlayer : ModPlayer {
   }
 
   public override void ModifyHitByNPC(NPC npc, ref Player.HurtModifiers modifiers) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookModifyHitByNPC)) {
+    foreach (State state in Enumerate(StateLoader.HookModifyHitByNPC)) {
       state.ModifyHitByNPC(npc, ref modifiers);
     }
   }
 
   public override void OnHitByNPC(NPC npc, Player.HurtInfo info) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookOnHitByNPC)) {
+    foreach (State state in Enumerate(StateLoader.HookOnHitByNPC)) {
       state.OnHitByNPC(npc, info);
     }
   }
 
   public override bool CanBeHitByProjectile(Projectile proj) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookCanBeHitByProjectile)) {
+    foreach (State state in Enumerate(StateLoader.HookCanBeHitByProjectile)) {
       if (!state.CanBeHitByProjectile(proj)) {
         return false;
       }
@@ -774,39 +752,39 @@ internal sealed class StateHooksPlayer : ModPlayer {
   }
 
   public override void ModifyHitByProjectile(Projectile proj, ref Player.HurtModifiers modifiers) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookModifyHitByProjectile)) {
+    foreach (State state in Enumerate(StateLoader.HookModifyHitByProjectile)) {
       state.ModifyHitByProjectile(proj, ref modifiers);
     }
   }
 
   public override void OnHitByProjectile(Projectile proj, Player.HurtInfo info) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookOnHitByProjectile)) {
+    foreach (State state in Enumerate(StateLoader.HookOnHitByProjectile)) {
       state.OnHitByProjectile(proj, info);
     }
   }
 
   public override void ModifyFishingAttempt(ref FishingAttempt attempt) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookModifyFishingAttempt)) {
+    foreach (State state in Enumerate(StateLoader.HookModifyFishingAttempt)) {
       state.ModifyFishingAttempt(ref attempt);
     }
   }
 
   public override void CatchFish(FishingAttempt attempt, ref int itemDrop, ref int enemySpawn,
     ref AdvancedPopupRequest sonar, ref Vector2 sonarPosition) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookCatchFish)) {
+    foreach (State state in Enumerate(StateLoader.HookCatchFish)) {
       state.CatchFish(attempt, ref itemDrop, ref enemySpawn, ref sonar, ref sonarPosition);
     }
   }
 
   public override void ModifyCaughtFish(Item fish) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookModifyCaughtFish)) {
+    foreach (State state in Enumerate(StateLoader.HookModifyCaughtFish)) {
       state.ModifyCaughtFish(fish);
     }
   }
 
   public override bool? CanConsumeBait(Item bait) {
     bool? result = null;
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookCanConsumeBait)) {
+    foreach (State state in Enumerate(StateLoader.HookCanConsumeBait)) {
       if (state.CanConsumeBait(bait) is { } value) {
         result = (result ?? true) && value;
       }
@@ -816,80 +794,80 @@ internal sealed class StateHooksPlayer : ModPlayer {
   }
 
   public override void GetFishingLevel(Item fishingRod, Item bait, ref float fishingLevel) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookGetFishingLevel)) {
+    foreach (State state in Enumerate(StateLoader.HookGetFishingLevel)) {
       state.GetFishingLevel(fishingRod, bait, ref fishingLevel);
     }
   }
 
   public override void AnglerQuestReward(float rarityMultiplier, List<Item> rewardItems) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookAnglerQuestReward)) {
+    foreach (State state in Enumerate(StateLoader.HookAnglerQuestReward)) {
       state.AnglerQuestReward(rarityMultiplier, rewardItems);
     }
   }
 
   public override void GetDyeTraderReward(List<int> rewardPool) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookGetDyeTraderReward)) {
+    foreach (State state in Enumerate(StateLoader.HookGetDyeTraderReward)) {
       state.GetDyeTraderReward(rewardPool);
     }
   }
 
   public override void DrawEffects(PlayerDrawSet drawInfo, ref float r, ref float g, ref float b, ref float a,
     ref bool fullBright) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookDrawEffects)) {
+    foreach (State state in Enumerate(StateLoader.HookDrawEffects)) {
       state.DrawEffects(drawInfo, ref r, ref g, ref b, ref a, ref fullBright);
     }
   }
 
   public override void ModifyDrawInfo(ref PlayerDrawSet drawInfo) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookModifyDrawInfo)) {
+    foreach (State state in Enumerate(StateLoader.HookModifyDrawInfo)) {
       state.ModifyDrawInfo(ref drawInfo);
     }
   }
 
   public override void HideDrawLayers(PlayerDrawSet drawInfo) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookModifyDrawLayers)) {
+    foreach (State state in Enumerate(StateLoader.HookModifyDrawLayers)) {
       state.HideDrawLayers(drawInfo);
     }
   }
 
   public override void ModifyScreenPosition() {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookModifyScreenPosition)) {
+    foreach (State state in Enumerate(StateLoader.HookModifyScreenPosition)) {
       state.ModifyScreenPosition();
     }
   }
 
   public override void ModifyZoom(ref float zoom) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookModifyZoom)) {
+    foreach (State state in Enumerate(StateLoader.HookModifyZoom)) {
       state.ModifyZoom(ref zoom);
     }
   }
 
   public override void PlayerConnect() {
-    foreach (State state in EnumerateAll(StateLoader.HookPlayerConnect)) {
+    foreach (State state in Enumerate(StateLoader.HookPlayerConnect)) {
       state.PlayerConnect();
     }
   }
 
   public override void PlayerDisconnect() {
-    foreach (State state in EnumerateAll(StateLoader.HookPlayerDisconnect)) {
+    foreach (State state in Enumerate(StateLoader.HookPlayerDisconnect)) {
       state.PlayerDisconnect();
     }
   }
 
   public override void OnEnterWorld() {
-    foreach (State state in EnumerateAll(StateLoader.HookOnEnterWorld)) {
+    foreach (State state in Enumerate(StateLoader.HookOnEnterWorld)) {
       state.OnEnterWorld();
     }
   }
 
   public override void OnRespawn() {
-    foreach (State state in EnumerateAll(StateLoader.HookOnRespawn)) {
+    foreach (State state in Enumerate(StateLoader.HookOnRespawn)) {
       state.OnRespawn();
     }
   }
 
   public override bool ShiftClickSlot(Item[] inventory, int context, int slot) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookShiftClickSlot)) {
+    foreach (State state in Enumerate(StateLoader.HookShiftClickSlot)) {
       if (!state.ShiftClickSlot(inventory, context, slot)) {
         return false;
       }
@@ -899,7 +877,7 @@ internal sealed class StateHooksPlayer : ModPlayer {
   }
 
   public override bool HoverSlot(Item[] inventory, int context, int slot) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookHoverSlot)) {
+    foreach (State state in Enumerate(StateLoader.HookHoverSlot)) {
       if (!state.HoverSlot(inventory, context, slot)) {
         return false;
       }
@@ -909,13 +887,13 @@ internal sealed class StateHooksPlayer : ModPlayer {
   }
 
   public override void PostSellItem(NPC npc, Item[] shopInventory, Item item) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookPostSellItem)) {
+    foreach (State state in Enumerate(StateLoader.HookPostSellItem)) {
       state.PostSellItem(npc, shopInventory, item);
     }
   }
 
   public override bool CanSellItem(NPC npc, Item[] shopInventory, Item item) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookCanSellItem)) {
+    foreach (State state in Enumerate(StateLoader.HookCanSellItem)) {
       if (!state.CanSellItem(npc, shopInventory, item)) {
         return false;
       }
@@ -925,13 +903,13 @@ internal sealed class StateHooksPlayer : ModPlayer {
   }
 
   public override void PostBuyItem(NPC npc, Item[] shopInventory, Item item) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookPostBuyItem)) {
+    foreach (State state in Enumerate(StateLoader.HookPostBuyItem)) {
       state.PostBuyItem(npc, shopInventory, item);
     }
   }
 
   public override bool CanBuyItem(NPC npc, Item[] shopInventory, Item item) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookCanBuyItem)) {
+    foreach (State state in Enumerate(StateLoader.HookCanBuyItem)) {
       if (!state.CanBuyItem(npc, shopInventory, item)) {
         return false;
       }
@@ -941,7 +919,7 @@ internal sealed class StateHooksPlayer : ModPlayer {
   }
 
   public override bool CanUseItem(Item item) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookCanUseItem)) {
+    foreach (State state in Enumerate(StateLoader.HookCanUseItem)) {
       if (!state.CanUseItem(item)) {
         return false;
       }
@@ -952,7 +930,7 @@ internal sealed class StateHooksPlayer : ModPlayer {
 
   public override bool? CanAutoReuseItem(Item item) {
     bool? result = null;
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookCanAutoReuseItem)) {
+    foreach (State state in Enumerate(StateLoader.HookCanAutoReuseItem)) {
       if (state.CanAutoReuseItem(item) is not { } value) {
         continue;
       }
@@ -968,7 +946,7 @@ internal sealed class StateHooksPlayer : ModPlayer {
   }
 
   public override bool ModifyNurseHeal(NPC npc, ref int health, ref bool removeDebuffs, ref string chatText) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookModifyNurseHeal)) {
+    foreach (State state in Enumerate(StateLoader.HookModifyNurseHeal)) {
       if (!state.ModifyNurseHeal(npc, ref health, ref removeDebuffs, ref chatText)) {
         return false;
       }
@@ -978,13 +956,13 @@ internal sealed class StateHooksPlayer : ModPlayer {
   }
 
   public override void ModifyNursePrice(NPC npc, int health, bool removeDebuffs, ref int price) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookModifyNursePrice)) {
+    foreach (State state in Enumerate(StateLoader.HookModifyNursePrice)) {
       state.ModifyNursePrice(npc, health, removeDebuffs, ref price);
     }
   }
 
   public override void PostNurseHeal(NPC npc, int health, bool removeDebuffs, int price) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookPostNurseHeal)) {
+    foreach (State state in Enumerate(StateLoader.HookPostNurseHeal)) {
       state.PostNurseHeal(npc, health, removeDebuffs, price);
     }
   }
@@ -1009,7 +987,7 @@ internal sealed class StateHooksPlayer : ModPlayer {
   }
 
   public override bool OnPickup(Item item) {
-    foreach (State state in EnumerateActiveCharacterStates(StateLoader.HookOnPickup)) {
+    foreach (State state in Enumerate(StateLoader.HookOnPickup)) {
       if (!state.OnPickup(item)) {
         return false;
       }
@@ -1024,27 +1002,34 @@ internal sealed class StateHooksPlayer : ModPlayer {
   /// Struct iterator which wraps around <see cref="FilteredArrayEnumerator{T}"/> and applies a condition.
   /// </summary>
   /// <param name="enumerator">The hook list enumerator to wrap around.</param>
-  /// <param name="condition">The condition to apply for each element to be yielded.</param>
-  /// <typeparam name="T">The type of the elements in the array.</typeparam>
-  private ref struct ConditionalEnumerator<T>(FilteredArrayEnumerator<T> enumerator, Func<T, bool>? condition = null)
-    where T : class {
-    private FilteredArrayEnumerator<T> _enumerator = enumerator;
+  /// <param name="conditions">The condition to apply for each element to be yielded.</param>
+  private ref struct StateEnumerator(FilteredArrayEnumerator<State> enumerator, ReadOnlySpan<HookConditionAttribute?> conditions) {
+    private FilteredArrayEnumerator<State> _enumerator = enumerator;
+    private readonly ReadOnlySpan<HookConditionAttribute?> _conditions = conditions;
 
-    public T Current { get; private set; } = null!;
+    public State Current { get; private set; } = null!;
+
+    private int _index = -1;
 
     public bool MoveNext() {
       while (_enumerator.MoveNext()) {
-        if (condition is null || condition(_enumerator.Current)) {
-          Current = _enumerator.Current;
-          return true;
+        _index++;
+        HookConditionAttribute? condition = _conditions[_index];
+        State next = _enumerator.Current;
+
+        if (condition is not null && !condition.Evaluate(next)) {
+          continue;
         }
+
+        Current = next;
+        return true;
       }
 
       return false;
     }
 
-    public ConditionalEnumerator<T> GetEnumerator() => this;
+    public StateEnumerator GetEnumerator() => this;
 
-    public static ConditionalEnumerator<T> Empty => new(new FilteredArrayEnumerator<T>([], []));
+    public static StateEnumerator Empty => new(new FilteredArrayEnumerator<State>([], []), []);
   }
 }
