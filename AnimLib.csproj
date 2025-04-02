@@ -17,5 +17,8 @@
     <Reference Include="AsepriteDotNet">
       <HintPath>lib\AsepriteDotNet.dll</HintPath>
     </Reference>
+    <Reference Include="MrPlagueRaces">
+      <HintPath>..\ModAssemblies\MrPlagueRaces_v0.3.8.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>
