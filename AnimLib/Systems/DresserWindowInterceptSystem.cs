@@ -1,14 +1,13 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using JetBrains.Annotations;
 using Terraria.GameContent;
 
 namespace AnimLib.Systems;
 
 /// <summary>
-/// Interception class to inform <see cref="AnimCharacterCollection"/>
-/// when the dresser window is being drawn.
-/// <br /> This class additionally draws custom textures over the dresser window icons,
-/// based on the active character.
+/// This ModSystem performs two roles:
+/// <br/> - Draw over the dresser window icons with custom textures, representing the active character's appearance.
+/// <br/> - Inform <see cref="AnimCharacterCollection"/> when the dresser window is being drawn.
 /// </summary>
 [UsedImplicitly]
 public sealed class DresserWindowInterceptSystem : ModSystem {
@@ -33,7 +32,7 @@ public sealed class DresserWindowInterceptSystem : ModSystem {
     dummyCollection.Enable(dummyCollection.GetState(localCollection.ActiveCharacter));
     Main.clothesWindow = true;
 
-    // category value  here is based on UICharacterCreation.CategoryId value
+    // category value here is based on UICharacterCreation.CategoryId value
     int category = Main.selClothes switch {
       0 => 6, // shirtColor,
       1 => 7, // underShirtColor,
@@ -44,12 +43,18 @@ public sealed class DresserWindowInterceptSystem : ModSystem {
       _ => throw new UnreachableException("Main.selClothes was not in range [0, 5]")
     };
 
-    UICharacterIntercept.WrapHook(dummyCollection, hook, categoryIndex: category);
+    using (dummyCollection.UiInfo.Store()) {
+      dummyCollection.UiInfo.CategoryIndex = category;
+      orig(self);
+    }
 
     // Draw our textures
 
     Player p = Main.LocalPlayer;
-    AnimCharacterStyle s = localCollection.ActiveCharacter.Style;
+    AnimCharacterStyle.UISettings? s = localCollection.ActiveCharacter.Style.UiSettings;
+    if (s is null) {
+      return;
+    }
 
     const int invBgW = 462;
     int invX = Main.screenWidth / 2 - invBgW / 2;

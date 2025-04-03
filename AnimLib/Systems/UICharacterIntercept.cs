@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using JetBrains.Annotations;
 using Terraria.GameContent.UI.Elements;
 
@@ -42,12 +42,13 @@ public class UICharacterIntercept : ModSystem {
         CategoryStartTimers.Add(new WeakReference<UICharacter>(self), animationCounter);
       }
 
-      int categoryIndex = collection.UICategoryIndex;
+      AnimUiInfo uiInfo = collection.UiInfo;
+      int categoryIndex = uiInfo.CategoryIndex;
       if (categoryIndex != -1) {
-        if (collection.UICategoryIndexLastFrame != categoryIndex) {
-          collection.UILastCategoryIndex = collection.UICategoryIndexLastFrame;
-          collection.UICategoryIndexLastFrame = categoryIndex;
-          foreach (var weakRef in CategoryStartTimers.Keys) {
+        if (uiInfo.CategoryIndexLastFrame != categoryIndex) {
+          uiInfo.LastCategoryIndex = uiInfo.CategoryIndexLastFrame;
+          uiInfo.CategoryIndexLastFrame = categoryIndex;
+          foreach (var weakRef in _categoryStartTimers.Keys) {
             if (weakRef.TryGetTarget(out UICharacter? uiCharacter)) {
               CategoryStartTimers[weakRef] = GetAnimationCounter(uiCharacter);
             }
@@ -58,58 +59,29 @@ public class UICharacterIntercept : ModSystem {
       // Set AnimCharacter category start time to the time we have stored
       foreach ((var weakRef, int categoryStartTimer) in CategoryStartTimers) {
         if (weakRef.TryGetTarget(out UICharacter? uiCharacter) && ReferenceEquals(self, uiCharacter)) {
-          collection.UICategoryCounterStart = categoryStartTimer;
+          uiInfo.CategoryCounterStart = categoryStartTimer;
           break;
         }
       }
 
-      WrapHook(collection, () => orig(self, spritebatch), null, self.IsAnimated, animationCounter);
-    };
-
-    On_UIHairStyleButton.DrawSelf += On_UIHairStyleButtonOnDrawSelf;
+      using AnimUiInfo.StoredInfo _ = uiInfo.Store();
+      uiInfo.IsDrawingInUI = true;
+      uiInfo.Animated = self.IsAnimated;
+      uiInfo.AnimationCounter = animationCounter;
+      orig(self, spritebatch);
   }
 
   private static void On_UIHairStyleButtonOnDrawSelf(On_UIHairStyleButton.orig_DrawSelf orig, UIHairStyleButton self, SpriteBatch spritebatch) {
     AnimCharacterCollection collection = GetPlayer(self).GetState<AnimCharacterCollection>();
-    using var t1 = new TempValue<bool>(ref collection.IsDrawingInUI, true);
-    using var t2 = new TempValue<bool>(ref collection.UIAnimated, false);
-    using var t3 = new TempValue<int>(ref collection.UIAnimationCounter, 0);
-    using var t4 = new TempValue<int>(ref collection.UICategoryIndex, 2);
+    AnimUiInfo uiInfo = collection.UiInfo;
+    using AnimUiInfo.StoredInfo _ = uiInfo.Store();
+
+    uiInfo.IsDrawingInUI = true;
+    uiInfo.Animated = false;
+    uiInfo.AnimationCounter = 0;
+    uiInfo.CategoryIndex = 2; // HairStyleButton is category 2
+
     orig(self, spritebatch);
-  }
-
-  internal static void WrapHook(AnimCharacterCollection collection, Action hook,
-    int? categoryIndex = null,
-    bool? isAnimated = null,
-    int animationCounter = 0) {
-    using var t1 = new TempValue<bool>(ref collection.IsDrawingInUI, true);
-    using var t2 = new TempValue<bool>(ref collection.UIAnimated, isAnimated ?? false);
-    using var t3 = new TempValue<int>(ref collection.UIAnimationCounter, animationCounter);
-    using var t4 = new TempValue<int>(ref collection.UICategoryIndex, categoryIndex ?? collection.UICategoryIndex);
-    hook();
-  }
-
-  private readonly ref struct TempValue<T> {
-    private readonly T _oldValue;
-    private readonly ref T _value;
-    private readonly bool _changed;
-
-    public TempValue(ref T value, T? newValue) {
-      _oldValue = value;
-      _value = ref value;
-      if (newValue is null) {
-        return;
-      }
-
-      _value = newValue;
-      _changed = true;
-    }
-
-    public void Dispose() {
-      if (_changed) {
-        _value = _oldValue;
-      }
-    }
   }
 
   private static FieldInfo Field<T>(string field) =>

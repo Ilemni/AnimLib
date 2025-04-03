@@ -20,26 +20,7 @@ public sealed partial class AnimCharacterCollection : StateMachine {
   /// </summary>
   private readonly AnimCharacterStyle _vanillaStyle = new();
 
-  /// <inheritdoc cref="AnimCharacter.IsDrawingInUI"/>
-  internal bool IsDrawingInUI;
-
-  /// <inheritdoc cref="AnimCharacter.UIAnimated"/>
-  internal bool UIAnimated;
-
-  /// <inheritdoc cref="AnimCharacter.UIAnimationCounter"/>
-  internal int UIAnimationCounter = -1;
-
-  /// <inheritdoc cref="AnimCharacter.UICategoryIndex"/>
-  internal int UICategoryIndex = -1;
-
-  /// Used to detect category changes
-  internal int UICategoryIndexLastFrame = -1;
-
-  internal int UILastCategoryIndex = -1;
-
-  internal int UICategoryCounterStart = 0;
-
-  internal int UICategoryAnimationCounter => UIAnimationCounter - UICategoryCounterStart;
+  public readonly AnimUiInfo UiInfo = new();
 
   protected override bool SetActiveChildOnEnter => false;
 
@@ -108,7 +89,7 @@ public sealed partial class AnimCharacterCollection : StateMachine {
 
   [HookCondition(HookConditionFlags.Always)]
   public override void FrameEffects() {
-    if (IsDrawingInUI) {
+    if (UiInfo.IsDrawingInUI) {
       return;
     }
 

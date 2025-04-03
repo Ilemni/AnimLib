@@ -51,50 +51,7 @@ public abstract partial class AnimCharacter : State {
   /// </summary>
   public virtual int ClothingCount { get; }
 
-  /// <summary>
-  /// Whether the character is currently being drawn
-  /// as part of a <see cref="Terraria.GameContent.UI.Elements.UICharacter"/>.
-  /// <para />
-  /// Used for custom drawing behaviour, such as in the character creation screen.
-  /// </summary>
-  public bool IsDrawingInUI => Characters.IsDrawingInUI;
-
-  /// <summary>
-  /// When <see cref="IsDrawingInUI"/> is <see langword="true"/>,
-  /// this is whether the character is currently animated in the UI.
-  /// </summary>
-  public bool UIAnimated => Characters.UIAnimated;
-
-  /// <summary>
-  /// When <see cref="IsDrawingInUI"/> is <see langword="true"/>,
-  /// this is the current counter for the character's animation in the UI.
-  /// </summary>
-  public int UIAnimationCounter => Characters.UIAnimationCounter;
-
-  /// <summary>
-  /// When <see cref="IsDrawingInUI"/> is <see langword="true"/>,
-  /// this is the index of the category for character color picker
-  /// Used to determine which animation to play in the character UI.
-  /// <para />
-  /// This value is based on the <see cref="UICharacterCreation.CategoryId"/> value.
-  /// </summary>
-  public int UICategoryIndex => Characters.UICategoryIndex;
-
-  /// <summary>
-  /// When <see cref="IsDrawingInUI"/> is <see langword="true"/>,
-  /// this is the index of the category that was previously selected, before <see cref="UICategoryIndex"/>.
-  /// Used to determine which animation to play in the character UI.
-  /// <para />
-  /// This value is based on the <see cref="UICharacterCreation.CategoryId"/> value.
-  /// </summary>
-  public int UILastCategoryIndex => Characters.UILastCategoryIndex;
-
-  /// <summary>
-  /// When <see cref="IsDrawingInUI"/> is <see langword="true"/>,
-  /// this is the current counter for the character's animation in the UI,
-  /// since the last category change.
-  /// </summary>
-  public int UICategoryAnimationCounter => Characters.UICategoryAnimationCounter;
+  public AnimUiInfo UiInfo => Characters.UiInfo;
 
   public AnimCharacterCollection Characters => (AnimCharacterCollection)Parent!;
 
