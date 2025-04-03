@@ -11,6 +11,9 @@ public sealed class AnimLibConfig : ModConfig {
 
   public bool DebugModeOnStart { get; set; }
 
+  [ReloadRequired]
+  public bool DisablePlayerCreationMenuChanges { get; set; }
+
   [JsonIgnore, ShowDespiteJsonIgnore]
   public bool DebugModeEnabled {
     get => AnimLibMod.DebugEnabled;

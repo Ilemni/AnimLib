@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Reflection;
+using AnimLib.Configs;
 using AnimLib.States;
 using AnimLib.UI.Elements;
 using AnimLib.Utilities;
@@ -51,6 +52,11 @@ public sealed class UICharacterCreationAnimCharacterSystem : ModSystem {
 
     static MethodInfo Method(string name) =>
       typeof(UICharacterCreation).GetMethod(name, BindingFlags.NonPublic | BindingFlags.Instance)!;
+  }
+
+  public override bool IsLoadingEnabled(Mod mod) {
+    AnimLibConfig config = (AnimLibConfig)mod.GetConfig(nameof(AnimLibConfig));
+    return !config.DisablePlayerCreationMenuChanges;
   }
 
   // ReSharper disable InconsistentNaming - Actions/Funcs

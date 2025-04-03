@@ -11,5 +11,10 @@ Configs: {
 			Label: Debug Mode Enabled
 			Tooltip: Enable debug mode. Displays debug information about current character and animations.
 		}
+
+		DisablePlayerCreationMenuChanges: {
+			Label: Disable Player Creation Menu Changes
+			Tooltip: Whether AnimLib should avoid making changes to the player creation menu.
+		}
 	}
 }
