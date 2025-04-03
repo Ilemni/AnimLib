@@ -1,6 +1,8 @@
 using System.Linq;
 using System.Reflection;
 using AnimLib.Configs;
+using AnimLib.Menus;
+using AnimLib.Skins;
 using AnimLib.States;
 using AnimLib.UI.Elements;
 using AnimLib.Utilities;
@@ -96,8 +98,10 @@ public sealed class UICharacterCreationAnimCharacterSystem : ModSystem {
   private Player _player = null!;
   private AnimCharacterCollection _characters = null!;
   private UIElement _characterSelectContainer = null!;
+  private UIElement _skinSelectContainer = null!;
   private UIElement _categoryContainer = null!;
   private UIElement _vanillaHairStylesListElement = null!;
+  private SkinSlotSelectMenu _skinSlotSelectMenu = null!;
 
   private ColoredButtonTextures? _vanillaCharInfo;
   private ColoredButtonTextures? _vanillaClothing;
@@ -145,6 +149,9 @@ public sealed class UICharacterCreationAnimCharacterSystem : ModSystem {
     On_UICharacterCreation.MakeClothStylesMenu += (orig, self, middleInnerPanel) => {
       orig.Invoke(self, middleInnerPanel);
       MakeAnimCharacterSelectMenu(middleInnerPanel);
+      if (SkinLoader.HasSelectableSkins) {
+        MakeSkinSelectMenu(middleInnerPanel);
+      }
     };
 
     On_UICharacterCreation.CreateColorPicker += (orig, self, id, texturePath, xPositionStart, xPositionPerId) => {
@@ -193,7 +200,9 @@ public sealed class UICharacterCreationAnimCharacterSystem : ModSystem {
     _self = null!;
     _player = null!;
     _characterSelectContainer = null!;
+    _skinSelectContainer = null!;
     _categoryContainer = null!;
+    _skinSlotSelectMenu = null!;
     _orderedCategories.Clear();
 
     // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
@@ -234,6 +243,10 @@ public sealed class UICharacterCreationAnimCharacterSystem : ModSystem {
 
   private void AddCustomCategories() {
     AddCategoryButton(2, 10, "AnimLib/AnimLib/UI/CategorySelect", _characterSelectContainer);
+    // TODO: Make this SkinSelect texture path
+    if (SkinLoader.HasSelectableSkins) {
+      AddCategoryButton(3, 11, "AnimLib/AnimLib/UI/CategorySelect", _skinSelectContainer);
+    }
   }
 
   private void AddCategoryButton(int pos, int id, string texturePath, UIElement categoryPanel) {
@@ -462,6 +475,31 @@ public sealed class UICharacterCreationAnimCharacterSystem : ModSystem {
 
   #endregion
 
+  #region Skin Select methods
+
+  private void MakeSkinSelectMenu(UIElement middleInnerPanel) {
+    UIElement skinSelectContainer = new() {
+      Width = StyleDimension.FromPixelsAndPercent(-20f, 1f),
+      Height = StyleDimension.Fill,
+      HAlign = 0.5f,
+      VAlign = 0.5f
+    };
+    _skinSelectContainer = skinSelectContainer;
+    middleInnerPanel.Append(skinSelectContainer);
+    skinSelectContainer.SetPadding(0);
+
+    _skinSlotSelectMenu = new SkinSlotSelectMenu(_player) {
+      Width = StyleDimension.Fill,
+      Height = StyleDimension.Fill,
+      HAlign = 0.5f,
+      VAlign = 0.5f
+    };
+
+    skinSelectContainer.Append(_skinSlotSelectMenu);
+  }
+
+  #endregion
+
   /// Method appended to On_UICharacterCreation.UnselectAllCategories to also unselect the AnimCharacter category
   private void UnselectAnimCharacterCategory() {
     foreach (UIColoredImageButton button in _orderedCategories) {
@@ -469,6 +507,7 @@ public sealed class UICharacterCreationAnimCharacterSystem : ModSystem {
     }
 
     _characterSelectContainer.Remove();
+    _skinSelectContainer.Remove();
   }
 
   /// Repositions the category buttons after initial modifications by this system

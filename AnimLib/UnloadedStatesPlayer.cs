@@ -6,38 +6,60 @@ namespace AnimLib;
 
 [UsedImplicitly]
 public sealed class UnloadedStatesPlayer : ModPlayer {
-  private const string UnloadedStatesKey = "unloadedStates";
-  private const string ModNameKey = "mod";
-  private const string StateNameKey = "state";
-  private const string DataKey = "data";
-  public readonly IList<TagCompound> UnloadedStates = [];
+  private const string UnloadedStates = "unloadedStates";
+  private const string ModName = "mod";
+  private const string UnloadedSkins = "unloadedSkins";
+  private const string CharacterName = "character";
+  private const string SkinKey = "skin";
+  private const string SkinListKey = "skins";
+
+  private readonly IList<TagCompound> _unloadedStates = [];
+  private readonly IList<TagCompound> _unloadedSkins = [];
 
   public override void SaveData(TagCompound tag) {
-    tag[UnloadedStatesKey] = UnloadedStates;
+    if (_unloadedStates.Count > 0) {
+      tag[UnloadedStates] = _unloadedStates;
+    }
+
+    if (_unloadedSkins.Count > 0) {
+      tag[UnloadedSkins] = _unloadedSkins;
+    }
   }
 
   public override void LoadData(TagCompound tag) {
-    LoadStates(tag.GetList<TagCompound>(UnloadedStatesKey));
+    if (tag.TryGet(UnloadedStates, out IList<TagCompound> states)) {
+      StateIO.LoadStateData(Player, states);
+    }
+
+    if (tag.TryGet(UnloadedSkins, out IList<TagCompound> skins)) {
+      StateIO.LoadSkinData(Player, skins);
+    }
   }
 
-  private void LoadStates(IList<TagCompound> states) {
-    AnimPlayer animPlayer = Player.GetModPlayer<AnimPlayer>();
-    foreach (TagCompound stateTag in states) {
-      string modName = stateTag.GetString(ModNameKey);
-      string stateName = stateTag.GetString(StateNameKey);
-      if (!ModContent.TryFind(modName, stateName, out State templateState)) {
-        UnloadedStates.Add(stateTag);
-        continue;
-      }
+  public void AddUnloadedState(TagCompound tag) => _unloadedStates.Add(tag);
 
-      State state = animPlayer.GetState(templateState);
+  public void AddUnloadedSkin(string mod, string character, TagCompound skinTag) {
+    var characterTag = GetUnloadedSkinCharacterTag(mod, character);
+    characterTag.Add(skinTag);
+  }
 
-      try {
-        state.LoadData(stateTag.GetCompound(DataKey));
-      }
-      catch (Exception e) {
-        Log.Error($"Failed to load state {stateName} from mod {modName}.", e);
+  private List<TagCompound> GetUnloadedSkinCharacterTag(string mod, string character) {
+    List<TagCompound> skinTags;
+    foreach (TagCompound tag in _unloadedSkins) {
+      if (tag.GetString(ModName) == mod &&
+          tag.GetString(CharacterName) == character &&
+          tag.TryGet(SkinKey, out skinTags)) {
+        return skinTags;
       }
     }
+
+    skinTags = [];
+    _unloadedSkins.Add(new TagCompound {
+      [ModName] = mod,
+      [CharacterName] = character,
+      [SkinListKey] = skinTags
+    });
+
+    return skinTags;
   }
 }

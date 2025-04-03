@@ -1,7 +1,8 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Linq;
 using System.Text;
 using AnimLib.Animations;
+using AnimLib.Skins;
 using AnimLib.States;
 using AnimLib.UI.Debug;
 using AnimLib.UI.Elements;
@@ -12,7 +13,7 @@ using Terraria.UI;
 namespace AnimLib.Menus.Debug;
 
 /// <summary>
-/// Debug UI that displays info about all <see cref="AnimatedStateMachine"/>s in an <see cref="AnimCharacter"/>.
+/// Debug UI that displays info about all <see cref="SkinAnimation"/>s in an <see cref="AnimCharacter"/>.
 /// </summary>
 public sealed class UIAnimatedStatesList : DebugUIElement<AnimCharacter> {
   protected override string HeaderHoverText => "Displays info about all animated states on the selected character.";
@@ -46,16 +47,15 @@ public sealed class UIAnimatedStatesList : DebugUIElement<AnimCharacter> {
     BodyContainer.Append(scrollbar);
 
     foreach (AnimCharacter character in StateLoader.TemplateStates.OfType<AnimCharacter>()) {
-      if (!character.Hierarchy.AllChildrenIds.Any(id => StateLoader.TemplateStates[id] is AnimatedStateMachine)) {
+      var slots = SkinLoader.GetSortedSlots(character);
+      if (slots.Count == 0) {
         continue;
       }
 
       var list = new List<UIAnimatedStateListItem>();
       _stateItems[character.Index] = list;
-      foreach (AnimatedStateMachine asm in character.Hierarchy.AllChildrenIds
-                 .Select(id => character.GetState(id))
-                 .OfType<AnimatedStateMachine>()) {
-        UIAnimatedStateListItem item = new(asm, this);
+      foreach (SkinSlot slot in slots) {
+        UIAnimatedStateListItem item = new(character, slot, this);
         item.Activate();
         list.Add(item);
       }
@@ -77,10 +77,13 @@ public sealed class UIAnimatedStatesList : DebugUIElement<AnimCharacter> {
     }
   }
 
-  private class UIAnimatedStateListItem : UIPanel, IStateUIElement<AnimatedStateMachine> {
+  private sealed class UIAnimatedStateListItem : UIPanel, IStateUIElement<AnimCharacter> {
     private readonly int _stateIndex;
+    private readonly SkinSlot _slot;
     private readonly UIAnimatedStatesList _parent;
 
+    private UIText _slotNameValue = null!;
+    private UIText _skinNameValue = null!;
     private UIText _fileNameValue = null!;
     private UIText _tagNameValue = null!;
     private UIAnimTagProgressBar _tagProgressValue = null!;
@@ -91,42 +94,48 @@ public sealed class UIAnimatedStatesList : DebugUIElement<AnimCharacter> {
 
     private readonly Dictionary<int, string> _hoverText = [];
 
-    public AnimatedStateMachine? State => _parent.State?.GetState(_stateIndex) as AnimatedStateMachine;
+    public AnimCharacter? State => _parent.State?.GetState(_stateIndex) as AnimCharacter;
     State? IStateUIElement.State => State;
 
-    public UIAnimatedStateListItem(AnimatedStateMachine asm, UIAnimatedStatesList parent) {
-      _stateIndex = asm.Index;
+    public SkinAnimation? Anim => State?.Skins.Animations[_slot.Index];
+    public Skin? Skin => State?.Skins.GetSkin(_slot);
+
+    public UIAnimatedStateListItem(AnimCharacter character, SkinSlot slot, UIAnimatedStatesList parent) {
+      _stateIndex = character.Index;
+      _slot = slot;
       _parent = parent;
       Width = StyleDimension.Fill;
-      Height = StyleDimension.FromPixels(164);
+      Height = StyleDimension.FromPixels(204);
       SetPadding(6);
     }
 
     public override void OnInitialize() {
       base.OnInitialize();
 
-      AddLabelValueElements("Aseprite File:", 0, out _fileNameValue);
-      AddLabelValueElements("Current Tag:", 1, out _tagNameValue);
+      AddLabelValueElements("Skin Slot:", 0, out _slotNameValue);
+      AddLabelValueElements("Skin Name:", 1, out _skinNameValue);
+      AddLabelValueElements("Aseprite File:", 2, out _fileNameValue);
+      AddLabelValueElements("Current Tag:", 3, out _tagNameValue);
 
       UIText tagProgressLabel = new("Tag Progress:", 0.9f) {
         HAlign = 0,
         Height = StyleDimension.FromPixels(16),
-        Top = StyleDimension.FromPixels(44),
+        Top = StyleDimension.FromPixels(4 + 20 * 4),
         Left = StyleDimension.FromPixels(4),
       };
       Append(tagProgressLabel);
       _tagProgressValue = new UIAnimTagProgressBar {
         Width = StyleDimension.FromPixelsAndPercent(-(4 + tagProgressLabel.MinWidth.Pixels + 20), 1),
         Height = StyleDimension.FromPixels(12),
-        Top = StyleDimension.FromPixels(46),
+        Top = StyleDimension.FromPixels(6 + 20 * 4),
         Left = StyleDimension.FromPixels(4 + tagProgressLabel.MinWidth.Pixels + 6),
       };
       Append(_tagProgressValue);
 
-      AddLabelValueElements("Times Looped:", 3, out _timesLoopedValue);
-      AddLabelValueElements("Rotation:", 4, out _rotationValue);
-      AddLabelValueElements("Direction:", 5, out _reversedValue);
-      AddLabelValueElements("Sprite Effects:", 6, out _spriteEffectsValue);
+      AddLabelValueElements("Times Looped:", 5, out _timesLoopedValue);
+      AddLabelValueElements("Rotation:", 6, out _rotationValue);
+      AddLabelValueElements("Direction:", 7, out _reversedValue);
+      AddLabelValueElements("Sprite Effects:", 8, out _spriteEffectsValue);
 
       return;
 
@@ -151,33 +160,36 @@ public sealed class UIAnimatedStatesList : DebugUIElement<AnimCharacter> {
 
     protected override void DrawSelf(SpriteBatch spriteBatch) {
       base.DrawSelf(spriteBatch);
-      AnimatedStateMachine? state = State;
-      if (state is null) {
+      if (Anim is not { } anim || Skin is not { } skin) {
         return;
       }
 
-      _fileNameValue.SetText(state.SpriteSheetAsset.Name);
+      _slotNameValue.SetText(_slot.DisplayName);
+      _slotNameValue.Recalculate();
+      _skinNameValue.SetText(skin.DisplayName);
+      _skinNameValue.Recalculate();
+      _fileNameValue.SetText(skin.SpriteSheetAsset.Name);
       _fileNameValue.Recalculate();
-      _tagNameValue.SetText(state.CurrentTag.Name);
+      _tagNameValue.SetText(anim.CurrentTag.Name);
       _tagNameValue.Recalculate();
-      _timesLoopedValue.SetText(state.TimesLooped.ToString());
+      _timesLoopedValue.SetText(anim.TimesLooped.ToString());
       _timesLoopedValue.Recalculate();
-      _rotationValue.SetText(state.SpriteRotation.ToString("F", CultureInfo.CurrentCulture));
+      _rotationValue.SetText(anim.SpriteRotation.ToString("F", CultureInfo.CurrentCulture));
       _rotationValue.Recalculate();
-      _reversedValue.SetText(state.Reversed ? "Reverse" : "Forward");
+      _reversedValue.SetText(anim.Reversed ? "Reverse" : "Forward");
       _reversedValue.Recalculate();
-      _spriteEffectsValue.SetText(state.Effects.ToString());
+      _spriteEffectsValue.SetText(anim.Effects?.ToString() ?? "Based on Player Direction");
       _spriteEffectsValue.Recalculate();
 
-      int frameIndex = state.FrameIndex;
-      float progressA = frameIndex / (float)state.CurrentTag.Frames.Length;
-      float progressB = Math.Min(state.FrameTime / state.CurrentFrame.Duration, 1) / state.CurrentTag.Frames.Length;
+      int frameIndex = anim.FrameIndex;
+      float progressA = frameIndex / (float)anim.CurrentTag.Frames.Length;
+      float progressB = Math.Min(anim.FrameTime / anim.CurrentFrame.Duration, 1) / anim.CurrentTag.Frames.Length;
       _tagProgressValue.SetProgress(progressA, progressB);
 
       if (_tagProgressValue.ContainsPoint(Main.MouseScreen)) {
-        int atlasIndex = state.CurrentFrame.AtlasFrameIndex;
+        int atlasIndex = anim.CurrentFrame.AtlasFrameIndex;
         if (!_hoverText.TryGetValue(atlasIndex, out string? hoverText)) {
-          hoverText = SetupHoverText(atlasIndex, frameIndex, state.CurrentTag, state.CurrentFrame);
+          hoverText = SetupHoverText(atlasIndex, frameIndex, anim.CurrentTag, anim.CurrentFrame);
           _hoverText[atlasIndex] = hoverText;
         }
 

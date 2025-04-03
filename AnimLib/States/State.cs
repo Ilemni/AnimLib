@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Linq;
 using AnimLib.Animations;
 using AnimLib.Menus.Debug;
@@ -348,6 +348,11 @@ public abstract partial class State {
     return true;
   }
 
+  public virtual T GetAnimation<T>() where T : SkinAnimation {
+    return Character?.Skins.GetAnimation<T>() ??
+      throw new InvalidOperationException($"State {Name} does not belong to a character");
+  }
+
   /// <summary>
   /// Determines the frame of animation to play for the current character state.
   /// <br/> By default, returns <see langword="null"/>.
@@ -361,6 +366,17 @@ public abstract partial class State {
   /// protected override AnimationOptions? GetAnimationOptions() => new("MyAnimationName");
   /// </code>
   /// More complex animations may modify the various properties of <see cref="AnimationOptions"/>.
+  /// <para/> For supporting multiple <see cref="AnimSpriteSheet"/>s, where some tags might be missing,
+  /// calls to <see cref="AnimSpriteSheet.HasTag"/> should be used.
+  /// <code>
+  /// protected override AnimationOptions? GetAnimationOptions() {
+  ///   var sheet = GetAnimation&lt;MyAnimation&gt;().SpriteSheet;
+  ///   if (IsWalking &amp;&amp; sheet.HasTag("Walking")) {
+  ///     return new AnimationOptions("Walking");
+  ///   }
+  ///   return new AnimationOptions("Running");
+  /// }
+  /// </code>
   /// </remarks>
   public virtual AnimationOptions? GetAnimationOptions() => null;
 

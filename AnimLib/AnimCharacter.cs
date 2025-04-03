@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using System.Linq;
-using AnimLib.Animations;
+using AnimLib.Skins;
 using AnimLib.States;
 using JetBrains.Annotations;
 
@@ -26,6 +26,9 @@ public abstract partial class AnimCharacter : State {
   /// Whether this character can be selected at the Character Creation menu during Player Creation.
   /// </summary>
   public virtual bool Selectable => true;
+
+  [field: AllowNull, MaybeNull]
+  public EquippedSkins Skins => field ??= SkinLoader.CreateEquippedSkins(this);
 
   /// <summary>
   /// The colors and styles to apply to the <see cref="Player"/>.
@@ -84,25 +87,52 @@ public abstract partial class AnimCharacter : State {
 
   public abstract AnimCharacterStyle GetDefaultStyle();
 
+  public override T GetAnimation<T>() => Skins.GetAnimation<T>();
+
   internal void UpdateAnimations(float delta) {
     if (!AnimationUpdEnabledCompat || Main.dedServ) {
       return;
     }
 
-    foreach (AnimatedStateMachine animatedState in ActiveChildren.OfType<AnimatedStateMachine>()) {
-      AnimationOptions? options = null;
+    foreach (SkinAnimation anim in Skins.Animations) {
+      anim.PreUpdateAnimation();
       try {
-        options = animatedState.GetAnimationOptionsInternal();
+        if (anim.UpdateAnimation() is { } options) {
+          anim.UpdateAnimationInternal(options, delta);
+        }
       }
-      catch (Exception ex) {
-        Log.Error($"[{Name}.UpdateAnimations] -> [{animatedState.Name}]: Caught exception.", ex);
+      catch (MissingTagException ex) {
+        string animName = anim.GetType().Name;
+        Log.Error($"[{Name}.UpdateAnimations] -> [{animName}]: Missing tag \"{ex.Tag}\".", ex);
         Main.NewText(
-          $"AnimLib -> [{Name}.UpdateAnimations] -> {animatedState.Name}: Caught exception.\nSee client.log for more information.",
+          $"{Name} -> {animName}: Missing tag \"{ex.Tag}\".\nSee client.log for more information.",
           Color.Red);
       }
+      catch (Exception ex) {
+        string animName = anim.GetType().Name;
+        Log.Error($"[{Name}.UpdateAnimations] -> [{animName}]: Caught exception.", ex);
+        Main.NewText(
+          $"{Mod.Name}:{Name}:{animName}: Caught exception.\nSee client.log for more information.",
+          Color.Red);
+      }
+    }
+  }
 
-      if (options is not null) {
-        animatedState.UpdateAnimation(options.Value, delta);
+  internal void UpdateUIAnimation(AnimUiInfo uiInfo) {
+    if (!AnimationUpdEnabledCompat || Main.dedServ) {
+      return;
+    }
+
+    foreach (SkinAnimation anim in Skins.Animations) {
+      try {
+        anim.UpdateUIAnimation(uiInfo);
+      }
+      catch (Exception ex) {
+        string animName = anim.GetType().Name;
+        Log.Error($"[{Name}.UpdateUIAnimation] -> [{animName}]: Caught exception.", ex);
+        Main.NewText(
+          $"{Mod.Name}:{Name}:{animName}: Caught exception.\nSee client.log for more information.",
+          Color.Red);
       }
     }
   }

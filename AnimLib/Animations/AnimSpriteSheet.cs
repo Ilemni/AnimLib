@@ -114,6 +114,8 @@ public sealed class AnimSpriteSheet : IDisposable {
   /// </summary>
   public readonly Vector2 Align;
 
+  internal bool HasSetFallbacks { get; private set; }
+
   public DrawData GetDrawData(ref readonly PlayerDrawSet drawInfo, string layer, AnimFrame frame,
     SpriteEffects? effects = null) {
     TextureAtlas atlas = GetAtlas(layer);
@@ -322,6 +324,38 @@ public sealed class AnimSpriteSheet : IDisposable {
   /// </returns>
   public bool IgnoreColor(string layer, AnimFrame frame) {
     return CelHasFlag(layer, frame, "ignoreColor");
+  }
+
+  internal void SetFallbackTags(IReadOnlyCollection<(string optional, string fallback)> fallbacks) {
+    if (HasSetFallbacks) {
+      return;
+    }
+
+    HasSetFallbacks = true;
+    // A specified fallback tag may itself be an optional tag that needs a fallback
+    // Iterate until no changes are made or none missing
+    while (true) {
+      int changes = 0;
+      int missingChanges = 0;
+      foreach ((string optional, string fallback) in fallbacks) {
+        if (_tagDictionary.ContainsKey(optional)) {
+          continue;
+        }
+
+        if (_tagDictionary.TryGetValue(fallback, out AnimTag? fallbackTag)) {
+          _tagDictionary[optional] = fallbackTag;
+          changes++;
+        }
+        else {
+          // It's possible that the fallback tag is optional and has a fallback later in the list
+          missingChanges++;
+        }
+      }
+
+      if (changes == 0 || missingChanges == 0) {
+        break;
+      }
+    }
   }
 
   void IDisposable.Dispose() {

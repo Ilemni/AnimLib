@@ -13,6 +13,7 @@ namespace AnimLib;
 [UsedImplicitly]
 public sealed class AnimPlayer : ModPlayer {
   private const string StateDataKey = "stateData";
+  private const string SkinDataKey = "skinData";
 
   internal State[] States = null!; // NewInstance() -> StateLoader.NewInstance
 
@@ -59,11 +60,19 @@ public sealed class AnimPlayer : ModPlayer {
     if (StateIO.SaveStateData(Player) is { Count: > 0 } stateData) {
       tag[StateDataKey] = stateData;
     }
+
+    if (StateIO.SaveSkinData(Player) is { Count: > 0 } skinData) {
+      tag[SkinDataKey] = skinData;
+    }
   }
 
   public override void LoadData(TagCompound tag) {
     if (tag.TryGet(StateDataKey, out IList<TagCompound> stateData)) {
       StateIO.LoadStateData(Player, stateData);
+    }
+
+    if (tag.TryGet(SkinDataKey, out IList<TagCompound> skinData)) {
+      StateIO.LoadSkinData(Player, skinData);
     }
   }
 }

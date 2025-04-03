@@ -1,4 +1,5 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
+using AnimLib.Skins;
 using JetBrains.Annotations;
 using Terraria.GameContent;
 
@@ -30,6 +31,10 @@ public sealed class DresserWindowInterceptSystem : ModSystem {
     }
 
     dummyCollection.Enable(dummyCollection.GetState(localCollection.ActiveCharacter));
+    foreach (EquippedSkinSlot slot in localCollection.ActiveCharacter.Skins.Slots) {
+      dummyCollection.ActiveCharacter!.Skins.SetSkin(slot.Slot, slot.Skin);
+    }
+
     Main.clothesWindow = true;
 
     // category value here is based on UICharacterCreation.CategoryId value

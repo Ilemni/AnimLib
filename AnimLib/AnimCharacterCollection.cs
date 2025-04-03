@@ -2,6 +2,8 @@ using System.Diagnostics;
 using System.Linq;
 using AnimLib.States;
 using AnimLib.Systems;
+using Terraria.DataStructures;
+using Terraria.ID;
 using Terraria.ModLoader.IO;
 
 namespace AnimLib;
@@ -101,6 +103,22 @@ public sealed partial class AnimCharacterCollection : StateMachine {
     }
     else {
       Enable(character);
+    }
+  }
+
+
+  [HookCondition(HookConditionFlags.Always)]
+  public override void PreUpdate() {
+    foreach (AnimCharacter character in Characters) {
+      foreach (SkinAnimation anim in character.Skins.Animations) {
+        anim.PreUpdateInternal();
+      }
+    }
+  }
+
+  public override void ModifyDrawInfo(ref PlayerDrawSet drawInfo) {
+    if (UiInfo.IsDrawingInUI) {
+      ActiveCharacter?.UpdateUIAnimation(UiInfo);
     }
   }
 

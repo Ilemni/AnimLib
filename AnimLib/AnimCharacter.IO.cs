@@ -1,4 +1,4 @@
-using AnimLib.Networking;
+﻿using AnimLib.Networking;
 using AnimLib.States;
 using Terraria.ModLoader.IO;
 
@@ -24,6 +24,7 @@ public abstract partial class AnimCharacter {
     }
 
     Style.NetSync(sync);
+    Skins.NetSync(sync);
 
     base.NetSyncInternal(sync);
   }

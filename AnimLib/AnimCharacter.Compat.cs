@@ -1,4 +1,5 @@
-using AnimLib.Compat;
+﻿using AnimLib.Compat;
+using AnimLib.States;
 
 namespace AnimLib;
 
@@ -27,8 +28,8 @@ public abstract partial class AnimCharacter {
 
   /// <summary>
   /// State of AnimationsUpdateDisable conditions since previous update's evaluation.
-  /// If <see langword="false"/>, <see cref="States.AnimatedStateMachine"/> will not receive
-  /// <see cref="States.AnimatedStateMachine.UpdateAnimation"/> calls.
+  /// If <see langword="false"/>, <see cref="SkinAnimation"/> will not receive
+  /// <see cref="SkinAnimation.UpdateAnimation"/> calls.
   /// </summary>
   public bool AnimationUpdEnabledCompat { get; private set; } = true;
 
