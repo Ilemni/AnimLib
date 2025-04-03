@@ -6,7 +6,14 @@ AnimLib is a library mod, which serves as a framework for other mods to create c
 
 ## For Modders
 
-This mod supports animating with the use of Aseprite files. This also supports Abilities, such as what OriMod uses.
+This mod requires the usage of Aseprite files for character animations.
+Since this mod depends on Aseprite's animation tags, layers, and userdata, PNG files are not supported.
+
+## This readme is out of date, and requires a full rewrite.
+
+Some of the classes references below no longer exist, and have been replaced by more versatile systems.
+
+Outdated information below:
 
 ---
 
