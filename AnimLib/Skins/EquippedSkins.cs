@@ -42,24 +42,28 @@ public sealed class EquippedSkins {
     return equippedSlot;
   }
 
-  public Skin GetSkin(SkinSlot slot) {
-    return GetSlot(slot).Skin;
-  }
-
-  public void SetSkin(SkinSlot slot, Skin skin) {
-    GetSlot(slot).SetSkin(skin);
-  }
-
   public EquippedSkinSlot GetSlot<T>() where T : SkinSlot {
     return GetSlot(ModContent.GetInstance<T>());
+  }
+
+  public Skin GetSkin(SkinSlot slot) {
+    return GetSlot(slot).Skin;
   }
 
   public Skin GetSkin<T>() where T : SkinSlot {
     return GetSkin(ModContent.GetInstance<T>());
   }
 
+  public void SetSkin(SkinSlot slot, Skin skin) {
+    GetSlot(slot).SetSkin(skin);
+  }
+
   public void SetSkin<T>(Skin skin) where T : SkinSlot {
     SetSkin(ModContent.GetInstance<T>(), skin);
+  }
+
+  public void SetSkin<TSlot, TSkin>() where TSlot : SkinSlot where TSkin : Skin {
+    SetSkin(ModContent.GetInstance<TSlot>(), ModContent.GetInstance<TSkin>());
   }
 
   public T GetAnimation<T>() where T : SkinAnimation {
