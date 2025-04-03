@@ -9,26 +9,33 @@ namespace AnimLib.Aseprite.Processors;
 /// <summary>
 /// Basic processor to process an <see cref="AsepriteFile"/> into a <see cref="Texture2D"/>.
 /// </summary>
-public class TextureProcessor : IAsepriteProcessor<Texture2D> {
+public sealed class TextureProcessor : IAsepriteProcessor<Texture2D> {
   public Texture2D Process(AsepriteFile file, AnimProcessorOptions options) {
-    ProcessorOptions aseOptions = options.ToAseprite();
-    AsepriteDotNet.TextureAtlas atlas = TextureAtlasProcessor.Process(file, aseOptions);
+    // AsepriteDotNet processor
+    AsepriteDotNet.TextureAtlas atlas = TextureAtlasProcessor.Process(file,
+      options.OnlyVisibleLayers,
+      options.IncludeBackgroundLayer,
+      options.IncludeTilemapLayers,
+      options.MergeDuplicateFrames);
+
     Texture texture = atlas.Texture;
+    int width = texture.Size.Width;
+    int height = texture.Size.Height;
     if (!options.Upscale) {
-      return AseReader.CreateTexture2DAsset(texture, AssetRequestMode.ImmediateLoad).Value;
+      return AseReader.CreateTexture2DAsset(texture.Name, width, height, texture.Pixels).Value;
     }
 
-    Size size = texture.Size;
-    int width = size.Width * 2;
-    int height = size.Height * 2;
+    width *= 2;
+    height *= 2;
     var array = ArrayPool<Rgba32>.Shared.Rent(width * height);
     try {
-      Span<Rgba32> upscaledPixels = new(array, 0, width * height);
+      var upscaledPixels = array.AsSpan(0, width * height);
       WriteScaledPixels(texture.Pixels, upscaledPixels, width);
-      // Upscale(texture.Pixels, size.Width, upscaledPixels);
-      return AseReader.CreateTexture2DAsset(texture.Name, width, height, upscaledPixels, AssetRequestMode.ImmediateLoad).Value;
-    } finally {
-      ArrayPool<Rgba32>.Shared.Return(array);
+
+      return AseReader.CreateTexture2DAsset(texture.Name, width, height, upscaledPixels).Value;
+    }
+    finally {
+      ArrayPool<Rgba32>.Shared.Return(array, true);
     }
   }
 

@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Linq;
+using AsepriteDotNet.Aseprite;
+using AsepriteDotNet.Aseprite.Types;
 
 namespace AnimLib.Animations;
 
@@ -7,8 +9,8 @@ namespace AnimLib.Animations;
 /// <summary>
 /// Represents on animation tag as defined in the Aseprite file.
 /// </summary>
-[DebuggerDisplay("Name = {Name}, FrameCount = {Frames.Length}")]
-public record AnimTag {
+[DebuggerDisplay("Name = {Name}, FrameCount = {Frames.Length}, UserData = ({UserData})")]
+public class AnimTag {
   public ReadOnlySpan<AnimFrame> Frames => _frames;
   private readonly AnimFrame[] _frames;
 
@@ -37,24 +39,32 @@ public record AnimTag {
   /// </summary>
   public readonly float TotalDuration;
 
-  private AnimTag(AnimFrame[] frames, string name, int loopCount, bool isReversed, bool isPingPong) {
+  public readonly AnimUserData UserData;
+
+  private AnimTag(AnimFrame[] frames, string name, int loopCount, bool isReversed, bool isPingPong, AnimUserData data) {
     _frames = frames;
     Name = name;
     LoopCount = loopCount;
     IsReversed = isReversed;
     IsPingPong = isPingPong;
     TotalDuration = frames.Sum(frame => frame.Duration);
+    UserData = data;
   }
 
-  internal static AnimTag FromAse(AsepriteDotNet.AnimationTag aseTag) {
-    var aseFrames = aseTag.Frames;
-    int frameCount = aseFrames.Length;
-
+  internal static AnimTag FromAse(AsepriteTag aseTag, ReadOnlySpan<AsepriteFrame> aseFrames, ReadOnlySpan<AnimUserData> frameDatas) {
+    int frameCount = aseTag.To - aseTag.From + 1;
     var frames = new AnimFrame[frameCount];
+    bool hasUserData = frameDatas.Length > 0;
+
     for (int i = 0; i < frameCount; i++) {
-      frames[i] = AnimFrame.FromAse(aseFrames[i]);
+      AnimUserData frameData = hasUserData ? frameDatas[i] : AnimUserData.Empty;
+      frames[i] = new AnimFrame(aseTag.From + i, aseFrames[i].Duration, frameData);
     }
 
-    return new AnimTag(frames, aseTag.Name, aseTag.LoopCount, aseTag.IsReversed, aseTag.IsPingPong);
+    int loopCount = aseTag.Repeat;
+    bool isReversed = aseTag.LoopDirection is AsepriteLoopDirection.Reverse or AsepriteLoopDirection.PingPongReverse;
+    bool isPingPong = aseTag.LoopDirection is AsepriteLoopDirection.PingPong or AsepriteLoopDirection.PingPongReverse;
+
+    return new AnimTag(frames, aseTag.Name, loopCount, isReversed, isPingPong, aseTag.UserData);
   }
 }

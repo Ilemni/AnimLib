@@ -15,8 +15,7 @@ namespace AnimLib;
 public sealed class LayeredTexture2D : Dictionary<string, TextureEntry>, IDisposable {
   public LayeredTexture2D(Dictionary<string, TextureAtlas> atlases) {
     foreach ((string key, TextureAtlas atlas) in atlases) {
-      int index = atlas.GetIndex(key);
-      Add(key, new TextureEntry(atlas.TextureAsset, atlas.SpriteRects[index], atlas.SourceRects[index]));
+      Add(key, new TextureEntry(atlas.TextureAsset, atlas.SpriteRects[0], atlas.SourceRects[0]));
     }
   }
 

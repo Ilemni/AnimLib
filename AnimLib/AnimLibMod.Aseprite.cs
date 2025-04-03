@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Reflection;
 using AnimLib.Aseprite;
 using ReLogic.Content.Readers;
@@ -8,6 +8,8 @@ using ReLogic.Utilities;
 namespace AnimLib;
 
 public sealed partial class AnimLibMod {
+  public AseReader AseReader { get; private set; } = null!; // CreateDefaultContentSource
+
   /// <summary>
   /// Add the Aseprite reader <see cref="AseReader"/>.
   /// <br/> This will allow mods using AnimLib to request Aseprite files from Assets.
@@ -21,8 +23,9 @@ public sealed partial class AnimLibMod {
       return base.CreateDefaultContentSource();
     }
 
+    AseReader = new AseReader();
     AseReader.AddDefaultProcessors();
-    GetAssetReaderCollection().RegisterReader(new AseReader(), ".ase", ".aseprite");
+    GetAssetReaderCollection().RegisterReader(AseReader, ".ase", ".aseprite");
     return base.CreateDefaultContentSource();
   }
 

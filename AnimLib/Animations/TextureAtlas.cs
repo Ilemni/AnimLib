@@ -3,21 +3,23 @@
 namespace AnimLib.Animations;
 
 /// <summary>
-/// Data class that contains a <see cref="Texture2D"/>, and
-/// <see cref="Rectangle"/>s representing the source rect of
-/// each frame of animation on this <see cref="Texture"/>.
+/// Data class that contains a <see cref="Texture2D"/> that represents one or more layers,
+/// <see cref="Rectangle"/>s representing the source and sprite rect of
+/// each frame of animation on this <see cref="Texture2D"/>,
+/// and a <see cref="AnimUserData"/> for each frame.
+/// <para/>A source rect is the rectangle on the generated texture,
+/// and the sprite rect is the rectangle on the original sprite canvas.
 /// </summary>
 [PublicAPI]
-public record TextureAtlas {
-  public TextureAtlas(Rectangle[] regions, Asset<Texture2D> textureAsset) {
-    ArgumentNullException.ThrowIfNull(regions);
-    ArgumentNullException.ThrowIfNull(textureAsset);
-
-    _regions = regions;
-    TextureAsset = textureAsset;
+public sealed class TextureAtlas : IDisposable {
+  internal TextureAtlas(Asset<Texture2D> textureAsset, Rectangle[] sourceRects, Rectangle[] spriteRects,
+    AnimUserData[] celUserData) {
+    (TextureAsset, _sourceRects, _spriteRects, _celUserData) = (textureAsset, sourceRects, spriteRects, celUserData);
   }
 
-  private readonly Rectangle[] _regions;
+  private readonly Rectangle[] _sourceRects;
+  private readonly Rectangle[] _spriteRects;
+  private readonly AnimUserData[] _celUserData;
 
   public readonly Asset<Texture2D> TextureAsset;
 
@@ -27,18 +29,25 @@ public record TextureAtlas {
   /// <remarks>
   /// In the case of duplicate or empty frames during import,
   /// some <see cref="Rectangle"/> may map to the same part
-  /// of the <see cref="Texture"/>.
+  /// of the <see cref="Microsoft.Xna.Framework.Graphics.Texture"/>.
   /// </remarks>
-  public ReadOnlySpan<Rectangle> Regions => _regions;
+  public ReadOnlySpan<Rectangle> SourceRects => _sourceRects;
+
+  public ReadOnlySpan<Rectangle> SpriteRects => _spriteRects;
+
+  public ReadOnlySpan<AnimUserData> CelUserData => _celUserData;
 
   /// <summary>
   /// The <see cref="Texture2D"/> of this Texture Atlas.
   /// </summary>
-  public Texture2D GetTexture() {
-    if (!TextureAsset.IsLoaded) {
-      TextureAsset.Wait();
+  public Texture2D Texture {
+    get {
+      if (!TextureAsset.IsLoaded) {
+        TextureAsset.Wait();
+      }
+
+      return TextureAsset.Value;
     }
-    return TextureAsset.Value;
   }
 
   /// <summary>
@@ -52,33 +61,27 @@ public record TextureAtlas {
   /// <remarks>
   /// In the case of duplicate or empty frames during import,
   /// some <see cref="Rectangle"/> may map to the same part
-  /// of the <see cref="Texture"/>.
+  /// of the <see cref="Microsoft.Xna.Framework.Graphics.Texture"/>.
   /// </remarks>
-  public Rectangle GetRect(int index) {
+  public Rectangle GetSourceRect(int index) {
     ArgumentOutOfRangeException.ThrowIfNegative(index);
-    ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, _regions.Length);
-
-    return _regions[index];
+    ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, _sourceRects.Length);
+    return _sourceRects[index];
   }
 
-  /// <summary>
-  /// Gets a span of <see cref="Rectangle"/>s representing all the frames this <see cref="AnimTag"/> represents.
-  /// </summary>
-  /// <param name="tag">The animation tag.</param>
-  public ReadOnlySpan<Rectangle> GetAnimationRects(AnimTag tag) {
-    ArgumentNullException.ThrowIfNull(tag);
+  public Rectangle GetSpriteRect(int index) {
+    ArgumentOutOfRangeException.ThrowIfNegative(index);
+    ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, _sourceRects.Length);
+    return _spriteRects[index];
+  }
 
-    var frames = tag.Frames;
-    int start = frames[0].AtlasFrameIndex;
+  public AnimUserData GetCelUserData(int index) {
+    ArgumentOutOfRangeException.ThrowIfNegative(index);
+    ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, _sourceRects.Length);
+    return _celUserData[index];
+  }
 
-    if (start < 0) {
-      throw new ArgumentOutOfRangeException(nameof(tag), "The start of the tag is negative.");
-    }
-
-    if (start + frames.Length > _regions.Length) {
-      throw new ArgumentOutOfRangeException(nameof(tag), "The end of the tag exceeded this Atlas's region count.");
-    }
-
-    return new ReadOnlySpan<Rectangle>(_regions, start, frames.Length);
+  public void Dispose() {
+    TextureAsset.Dispose();
   }
 }
