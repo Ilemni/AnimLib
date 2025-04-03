@@ -21,8 +21,7 @@ public sealed class StateLoader : ModSystem {
   internal static readonly List<State> TemplateStates = [];
   internal static readonly List<AnimCharacter> SelectableCharacters = [];
 
-  // Lazy load, OnModLoad is too early, PostSetupContent is too late, ResizeArrays overrides are internal to tML
-  internal static StateHierarchy[] TemplateHierarchy { get; private set; } = null!;
+  internal static StateHierarchy[] TemplateHierarchy { get; private set; } = null!; // ResizeArrays
 
   internal static void Add(State state) {
     state.Index = (ushort)TemplateStates.Count;
@@ -38,7 +37,9 @@ public sealed class StateLoader : ModSystem {
     return hookList;
   }
 
-  public override void PostSetupContent() {
+  public override void ResizeArrays() {
+    TemplateHierarchy = StateHierarchy.ResizeArrays(CollectionsMarshal.AsSpan(TemplateStates));
+
     foreach (StateHookList hookList in HookLists) {
       hookList.Update(TemplateStates);
     }
@@ -58,11 +59,6 @@ public sealed class StateLoader : ModSystem {
 
   internal static void NewInstance(AnimPlayer animPlayer) {
     var templateStates = CollectionsMarshal.AsSpan(TemplateStates);
-    // ReSharper disable once NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
-    // No good place to initialize besides lazy load
-    // TODO: When ResizeArrays is open to modders, place this there
-    TemplateHierarchy ??= StateHierarchy.ResizeArrays(templateStates);
-
     var states = new State[templateStates.Length];
     animPlayer.States = states;
 
