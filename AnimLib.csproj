@@ -11,6 +11,7 @@
 	<Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="AsepriteDotNet" Version="1.9.0" />
     <PackageReference Include="JetBrains.Annotations" Version="2021.1.0" />
   </ItemGroup>
   <ItemGroup>
