@@ -1,5 +1,8 @@
+using System.Collections.Concurrent;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using AnimLib.Menus.Debug;
 using JetBrains.Annotations;
 using Terraria.DataStructures;
 using Terraria.GameInput;
@@ -45,6 +48,12 @@ public sealed class StateLoader : ModSystem {
     HookLists.Clear();
     TemplateStates.Clear();
     TemplateHierarchy = null!;
+
+    // tML does not clear the cache for MethodOverrideQuery, so we have to do it ourselves
+    Type type = typeof(LoaderUtils.MethodOverrideQuery<State>);
+    FieldInfo? cacheField = type.GetField("_cache", BindingFlags.Static | BindingFlags.NonPublic);
+    var cache = (ConcurrentDictionary<MethodInfo, LoaderUtils.MethodOverrideQuery<State>>)cacheField!.GetValue(null)!;
+    cache.Clear();
   }
 
   internal static void NewInstance(AnimPlayer animPlayer) {
@@ -64,15 +73,22 @@ public sealed class StateLoader : ModSystem {
       states[templateState.Index] = newState;
     }
 
+    // Assign State.Parent, and .Character
     foreach (State state in states) {
       int parentId = state.Hierarchy.ParentId;
       if (parentId != -1) {
         state.Parent = states[parentId];
       }
 
+      // Assign State.Character to self
+      if (state is AnimCharacter animCharacter) {
+        animCharacter.Character = animCharacter;
+        continue;
+      }
+
+      // Assign State.Character to the Character in parents
       ushort[] parentIds = state.Hierarchy.ParentIds;
       for (int i = parentIds.Length - 1; i >= 0; i--) {
-        // Assign State.Character
         if (state.GetState(parentIds[i]) is AnimCharacter character) {
           state.Character = character;
           break;

@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using AnimLib.States;
 using AnimLib.UI.Debug;
 using AnimLib.UI.Elements;

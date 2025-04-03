@@ -59,7 +59,10 @@ public sealed partial class AnimCharacterCollection : StateMachine {
 
     character.Style.AssignToPlayer(Player);
 
-    ModContent.GetInstance<DebugUISystem>().TrySetActiveCharacter(this);
+    if (Main.netMode != NetmodeID.Server) {
+      ModContent.GetInstance<DebugUISystem>().TrySetActiveCharacter(this);
+    }
+
     if (MrPlagueRacesModExists) {
       Disable_PlagueRace();
     }
@@ -81,9 +84,23 @@ public sealed partial class AnimCharacterCollection : StateMachine {
     ClearActiveChild();
     _vanillaStyle.AssignToPlayer(Player);
 
-    ModContent.GetInstance<DebugUISystem>().TrySetActiveCharacter(this);
+    if (Main.netMode != NetmodeID.Server) {
+      ModContent.GetInstance<DebugUISystem>().TrySetActiveCharacter(this);
+    }
+
     if (MrPlagueRacesModExists) {
       Enable_PlagueRace();
+    }
+  }
+
+  internal void SetCharacter(AnimCharacter? character) {
+    if (character is null) {
+      if (ActiveCharacter is not null) {
+        Disable(ActiveCharacter);
+      }
+    }
+    else {
+      Enable(character);
     }
   }
 
