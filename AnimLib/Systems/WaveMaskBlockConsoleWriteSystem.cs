@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using AnimLib.Utilities;
 using JetBrains.Annotations;
 using Terraria.GameContent.Liquid;
 
@@ -10,24 +10,27 @@ namespace AnimLib.Systems;
 /// <see cref="LiquidRenderer.SetWaveMaskData"/>.
 /// </summary>
 [UsedImplicitly]
-public class WaveMaskBlockConsoleWriteSystem : ModSystem {
-  private static readonly FieldInfo DrawAreaField =
-    typeof(LiquidRenderer).GetField("_drawArea", BindingFlags.NonPublic | BindingFlags.Instance)!;
+public sealed class WaveMaskBlockConsoleWriteSystem : ModSystem {
+  // ReSharper disable InconsistentNaming - Funcs
+  private readonly Func<LiquidRenderer, Rectangle> GetDrawArea =
+    ClassHacking.CreateGetter<LiquidRenderer, Rectangle>("_drawArea");
 
-  private static readonly FieldInfo WaveMaskField =
-    typeof(LiquidRenderer).GetField("_waveMask", BindingFlags.NonPublic | BindingFlags.Instance)!;
+  private readonly Func<LiquidRenderer, Color[]> GetWaveMask =
+    ClassHacking.CreateGetter<LiquidRenderer, Color[]>("_waveMask");
+  // ReSharper restore InconsistentNaming
 
-#if DEBUG
+  public override bool IsLoadingEnabled(Mod mod) => !string.IsNullOrWhiteSpace(mod.SourceFolder);
+
   public override void Load() {
-    Log.Debug("Adding hook to LiquidRenderer.SetWaveMaskData, to block \"WaveMaskData texture recreated\" console spam");
+    Log.Debug(
+      "Adding hook to LiquidRenderer.SetWaveMaskData, to block \"WaveMaskData texture recreated\" console spam");
     On_LiquidRenderer.SetWaveMaskData += On_LiquidRendererOnSetWaveMaskData;
   }
-#endif
 
-  private static void On_LiquidRendererOnSetWaveMaskData(On_LiquidRenderer.orig_SetWaveMaskData orig,
-    LiquidRenderer self, ref Texture2D? texture) {
-    Rectangle drawArea = (Rectangle)DrawAreaField.GetValue(self)!;
-    var waveMask = (Color[])WaveMaskField.GetValue(self)!;
+  private void On_LiquidRendererOnSetWaveMaskData(On_LiquidRenderer.orig_SetWaveMaskData orig, LiquidRenderer self,
+    ref Texture2D? texture) {
+    Rectangle drawArea = GetDrawArea(self);
+    var waveMask = GetWaveMask(self);
     try {
       if (texture is null || texture.Width < drawArea.Height || texture.Height < drawArea.Width) {
         // Console.WriteLine("WaveMaskData texture recreated. {0}x{1}", drawArea.Height, drawArea.Width);

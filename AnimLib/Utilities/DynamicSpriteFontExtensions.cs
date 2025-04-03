@@ -1,4 +1,3 @@
-using System.Reflection;
 using ReLogic.Graphics;
 using SpriteCharacterData = ReLogic.Graphics.DynamicSpriteFont.SpriteCharacterData;
 
@@ -10,6 +9,16 @@ namespace AnimLib.Utilities;
 /// without allocating strings, by allowing usage of a <see cref="ReadOnlySpan{T}"/> of chars.
 /// </summary>
 public static class DynamicSpriteFontExtensions {
+  static DynamicSpriteFontExtensions() {
+    GetSpriteCharacters =
+      ClassHacking.CreateGetter<DynamicSpriteFont, Dictionary<char, SpriteCharacterData>>("_spriteCharacters");
+    GetDefaultCharacterData =
+      ClassHacking.CreateGetter<DynamicSpriteFont, SpriteCharacterData>("_defaultCharacterData");
+  }
+
+  private static readonly Func<DynamicSpriteFont, Dictionary<char, SpriteCharacterData>> GetSpriteCharacters;
+  private static readonly Func<DynamicSpriteFont, SpriteCharacterData> GetDefaultCharacterData;
+
   /// <summary>
   /// Draws text to the screen, where the text is represented by a <see cref="ReadOnlySpan{T}"/> of <see cref="char"/>s.
   /// </summary>
@@ -148,22 +157,7 @@ public static class DynamicSpriteFontExtensions {
   }
 
   private static SpriteCharacterData GetCharacterData(DynamicSpriteFont font, char character) {
-    var dict = font.GetSpriteCharacters();
-    return dict.TryGetValue(character, out SpriteCharacterData value) ? value : font.GetDefaultCharacterData();
+    var dict = GetSpriteCharacters(font);
+    return dict.TryGetValue(character, out SpriteCharacterData value) ? value : GetDefaultCharacterData(font);
   }
-
-  private static Dictionary<char, SpriteCharacterData> GetSpriteCharacters(this DynamicSpriteFont font) {
-    return (Dictionary<char, SpriteCharacterData>)SpriteCharactersField.GetValue(font)!;
-  }
-
-  private static SpriteCharacterData GetDefaultCharacterData(this DynamicSpriteFont font) {
-    return (SpriteCharacterData)DefaultCharacterDataField.GetValue(font)!;
-  }
-
-  private static readonly FieldInfo SpriteCharactersField = Field("_spriteCharacters");
-
-  private static readonly FieldInfo DefaultCharacterDataField = Field("_defaultCharacterData");
-
-  private static FieldInfo Field(string field) =>
-    typeof(DynamicSpriteFont).GetField(field, BindingFlags.NonPublic | BindingFlags.Instance)!;
 }

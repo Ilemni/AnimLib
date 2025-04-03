@@ -13,10 +13,10 @@ namespace AnimLib.Systems;
 public sealed class DresserWindowInterceptSystem : ModSystem {
   public override void Load() {
     Log.Debug("Adding hooks to Main.DrawClothesWindow, for updating AnimCharacter UI fields");
-    On_Main.DrawClothesWindow += (orig, self) => OnDrawClothesWindow(() => orig(self));
+    On_Main.DrawClothesWindow += OnDrawClothesWindow;
   }
 
-  private static void OnDrawClothesWindow(Action hook) {
+  private static void OnDrawClothesWindow(On_Main.orig_DrawClothesWindow orig, Main self) {
     AnimCharacterCollection dummyCollection = Main.dresserInterfaceDummy.GetState<AnimCharacterCollection>();
     AnimCharacterCollection localCollection = Main.LocalPlayer.GetState<AnimCharacterCollection>();
     if (localCollection.ActiveCharacter is null) {
@@ -25,7 +25,7 @@ public sealed class DresserWindowInterceptSystem : ModSystem {
       // Enabling or disabling characters normally closes the window
       // Force it to stay open
       Main.clothesWindow = true;
-      hook();
+      orig(self);
       return;
     }
 
