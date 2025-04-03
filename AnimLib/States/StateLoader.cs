@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -48,6 +48,7 @@ public sealed class StateLoader : ModSystem {
   public override void Unload() {
     HookLists.Clear();
     TemplateStates.Clear();
+    SelectableCharacters.Clear();
     TemplateHierarchy = null!;
 
     // tML does not clear the cache for MethodOverrideQuery, so we have to do it ourselves
