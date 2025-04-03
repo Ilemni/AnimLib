@@ -1,5 +1,4 @@
 ﻿using AnimLib.Utilities;
-using System.Reflection;
 using Terraria.Graphics.Shaders;
 
 namespace AnimLib.Extensions;
@@ -12,17 +11,15 @@ public static class ArmorShaderDataGetSet {
   private static readonly Func<ArmorShaderData, Vector2> UTargetPosition;
 
   static ArmorShaderDataGetSet() {
-    Type type = typeof(ArmorShaderData);
-    UColor = GenerateGetter<Vector3>(type,"_uColor");
-    USecondaryColor = GenerateGetter<Vector3>(type,"_uSecondaryColor");
-    USaturation = GenerateGetter<float>(type,"_uSaturation");
-    UOpacity = GenerateGetter<float>(type,"_uOpacity");
-    UTargetPosition = GenerateGetter<Vector2>(type,"_uTargetPosition");
+    UColor = GenerateGetter<Vector3>("_uColor");
+    USecondaryColor = GenerateGetter<Vector3>("_uSecondaryColor");
+    USaturation = GenerateGetter<float>("_uSaturation");
+    UOpacity = GenerateGetter<float>("_uOpacity");
+    UTargetPosition = GenerateGetter<Vector2>("_uTargetPosition");
     return;
 
-    Func<ArmorShaderData, TOut> GenerateGetter<TOut>(Type t, string fieldName) {
-      const BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.NonPublic;
-      return ClassHacking.GenerateGetter<ArmorShaderData, TOut>(t.GetField(fieldName, bindingFlags)!);
+    Func<ArmorShaderData, TOut> GenerateGetter<TOut>(string fieldName) {
+      return ClassHacking.CreateGetter<ArmorShaderData, TOut>(fieldName);
     }
   }
 

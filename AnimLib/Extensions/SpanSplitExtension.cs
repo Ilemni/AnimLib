@@ -16,9 +16,9 @@ internal static class SpanSplitExtension {
     private int _endCurrent = 0;
     private int _startNext = 0;
 
-    public SpanSplitEnumerator<T> GetEnumerator() => this;
+    public readonly SpanSplitEnumerator<T> GetEnumerator() => this;
 
-    public Range Current => new(_startCurrent, _endCurrent);
+    public readonly ReadOnlySpan<T> Current => _span[_startCurrent.._endCurrent];
 
     internal SpanSplitEnumerator(ReadOnlySpan<T> span, T separator) {
       _span = span;

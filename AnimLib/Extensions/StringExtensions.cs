@@ -1,11 +1,10 @@
-﻿using System.Globalization;
-using System.Runtime.CompilerServices;
+﻿using AnimLib.Animations;
 using AsepriteDotNet.Aseprite.Types;
 
 namespace AnimLib.Extensions;
 
 /// <summary>
-/// This class
+/// This class's extensions are used to parse the <see cref="AnimUserData"/>'s <see cref="AnimUserData.Text"/> property.
 /// </summary>
 public static class StringExtensions {
   public static bool TryGetArg<T>(this string? str, ReadOnlySpan<char> key, [NotNullWhen(true)] out T? value)
@@ -22,12 +21,12 @@ public static class StringExtensions {
     foreach (var entry in str.AsSpan().Split(',')) {
       bool hasValue = entry.SplitKvp(':', out var entryKey, out var entryVal);
 
-      if (!entryKey.Equals(key, StringComparison.InvariantCulture)) {
+      if (!entryKey.Equals(key, StringComparison.Ordinal)) {
         continue;
       }
 
       if (hasValue) {
-        return T.TryParse(entryVal, CultureInfo.InvariantCulture, out value);
+        return T.TryParse(entryVal, null, out value);
       }
 
       // Treat empty values as though the key is a flag, so value is true
