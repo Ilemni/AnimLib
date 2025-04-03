@@ -111,7 +111,7 @@ public sealed class StateHierarchy : IComparable<StateHierarchy> {
   /// This calls <see cref="State.RegisterChildren"/> on each state in <paramref name="templateStates"/>
   /// </summary>
   /// <param name="templateStates"></param>
-  public static StateHierarchy[] ResizeArrays(IList<State> templateStates) {
+  public static StateHierarchy[] ResizeArrays(ReadOnlySpan<State> templateStates) {
     var templateStatesArray = templateStates.ToArray();
     var hierarchies = new StateHierarchy[templateStatesArray.Length];
 

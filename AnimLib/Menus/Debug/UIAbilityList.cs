@@ -57,7 +57,7 @@ public sealed class UIAbilityList : DebugUIElement<AnimCharacter> {
     BodyContainer.Append(scrollbar);
 
     foreach (AnimCharacter character in StateLoader.TemplateStates.OfType<AnimCharacter>()) {
-      if (!character.AbilityStates.Any()) {
+      if (character.AbilityStates.Count == 0) {
         continue;
       }
 

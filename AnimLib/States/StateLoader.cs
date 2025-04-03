@@ -47,14 +47,12 @@ public sealed class StateLoader : ModSystem {
     TemplateHierarchy = null!;
   }
 
-  internal static void NewInstance(AnimPlayer animPlayer) =>
-    NewInstance(animPlayer, CollectionsMarshal.AsSpan(TemplateStates));
-
-  private static void NewInstance(AnimPlayer animPlayer, ReadOnlySpan<State> templateStates) {
+  internal static void NewInstance(AnimPlayer animPlayer) {
+    var templateStates = CollectionsMarshal.AsSpan(TemplateStates);
     // ReSharper disable once NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
     // No good place to initialize besides lazy load
     // TODO: When ResizeArrays is open to modders, place this there
-    TemplateHierarchy ??= StateHierarchy.ResizeArrays(TemplateStates);
+    TemplateHierarchy ??= StateHierarchy.ResizeArrays(templateStates);
 
     var states = new State[templateStates.Length];
     animPlayer.States = states;
@@ -82,6 +80,9 @@ public sealed class StateLoader : ModSystem {
       }
     }
   }
+
+  public readonly StateHookList DebugText =
+    AddHook<Action<UIStateInfo>>(s => s.DebugText);
 
   public readonly StateHookList HookInitialize =
     AddHook<Action>(s => s.Initialize);

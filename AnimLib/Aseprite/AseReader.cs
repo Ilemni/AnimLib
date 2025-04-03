@@ -1,6 +1,4 @@
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using AnimLib.Animations;
@@ -179,7 +177,7 @@ public sealed class AseReader : IAssetReader {
     EntryReadStreamType.GetField("file", BindingFlags.NonPublic | BindingFlags.Instance) ??
     throw new InvalidOperationException($"Field \"{EntryReadStreamTypeName}.file\"" + NotFound);
 
-  private static readonly Func<DeflateStream, Stream> InnerStream =
+  private static readonly Func<DeflateStream, Stream> GetInnerStream =
     ClassHacking.CreateGetter<DeflateStream, Stream>("_innerStream");
 
 
@@ -190,7 +188,7 @@ public sealed class AseReader : IAssetReader {
 
     return stream switch {
       FileStream fileStream => NameFromFileStream(fileStream.Name.Replace('\\', '/')),
-      DeflateStream deflateStream => TryNameFromEntryReadStream(InnerStream(deflateStream), out name) ? name : "",
+      DeflateStream deflateStream => TryNameFromEntryReadStream(GetInnerStream(deflateStream), out name) ? name : "",
       _ => ""
     };
   }

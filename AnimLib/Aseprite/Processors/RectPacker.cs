@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using AsepriteDotNet.Common;
 using AsepriteDotNet.IO;

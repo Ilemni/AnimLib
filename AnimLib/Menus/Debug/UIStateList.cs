@@ -109,7 +109,7 @@ public sealed class UIStateList : DebugUIElement<AnimCharacter> {
       };
       Append(_name);
 
-      if (ContentInstance<StateLoader>.Instance.DebugText.HasOverride(State)) {
+      if (StateLoader.Instance.DebugText.HasOverride(State)) {
         _button = new UIImageButton(
           Main.Assets.Request<Texture2D>("Images/UI/ButtonPlay", AssetRequestMode.ImmediateLoad)) {
           HAlign = 1f,

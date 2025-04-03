@@ -16,7 +16,7 @@ public sealed class AnimPlayer : ModPlayer {
 
   internal State[] States = null!; // NewInstance() -> StateLoader.NewInstance
 
-  public T GetState<T>() where T : State => (T)GetState(ModContent.GetInstance<T>().Index);
+  public T GetState<T>() where T : State, new() => (T)GetState(ModContent.GetInstance<T>().Index);
 
   public T GetState<T>(int index) where T : State {
     State result = GetState(index);

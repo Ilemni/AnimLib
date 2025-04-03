@@ -3,7 +3,6 @@ using System.Linq;
 using AnimLib.Animations;
 using AnimLib.States;
 using JetBrains.Annotations;
-using Terraria.GameContent.UI.States;
 
 namespace AnimLib;
 
