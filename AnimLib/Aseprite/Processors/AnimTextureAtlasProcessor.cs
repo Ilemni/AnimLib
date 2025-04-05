@@ -1,5 +1,4 @@
-using System.Buffers;
-using System.Linq;
+﻿using System.Buffers;
 using System.Runtime.InteropServices;
 using AnimLib.Animations;
 using AsepriteDotNet.Aseprite;
@@ -50,22 +49,25 @@ public static class AnimTextureAtlasProcessor {
     var targetLayers = GetTargetLayers(file.Layers, file.Frames, options, out string[] names);
 
     int frameCount = file.FrameCount;
-    var allLayersFrames = new LayerEntry[targetLayers.Length];
-    for (int i = 0; i < allLayersFrames.Length; i++) {
-      var celUserDatas = new AnimUserData[frameCount];
+    int layerCount = targetLayers.Length;
+    var allLayersFrames = new LayerEntry[layerCount];
+
+    for (int i = 0; i < layerCount; i++) {
+      // Not all layers may have cel userdata, so we only allocate an array for those that do
+      AnimUserData[]? celUserDatas = null;
 
       for (int j = 0; j < frameCount; j++) {
         foreach (AsepriteCel cel in file.Frames[j].Cels) {
           if (ReferenceEquals(cel.Layer, targetLayers[i])) {
+            if (celUserDatas is null) {
+              celUserDatas = new AnimUserData[frameCount];
+              Array.Fill(celUserDatas, AnimUserData.Empty);
+            }
+
             celUserDatas[j] = cel.UserData;
             break;
           }
         }
-      }
-
-      for (int j = 0; j < celUserDatas.Length; j++) {
-        // ReSharper disable once NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
-        celUserDatas[j] ??= AnimUserData.Empty;
       }
 
       allLayersFrames[i] = new LayerEntry(names[i], new FrameEntry[frameCount], celUserDatas);
@@ -77,6 +79,21 @@ public static class AnimTextureAtlasProcessor {
       for (int layerIndex = 0; layerIndex < frameDatas.Length; layerIndex++) {
         var frameData = frameDatas[layerIndex];
         allLayersFrames[layerIndex].Frames[frameIndex] = new FrameEntry(frameData, frameIndex, layerIndex);
+      }
+    }
+
+    // Assign to LayerEntry.NumPixels and .Next
+    int scale = options.Upscale ? 2 : 1;
+    for (int i = 0; i < layerCount; i++) {
+      LayerEntry layer = allLayersFrames[i];
+      int sum = 0;
+      foreach (FrameEntry f in layer.Frames) {
+        sum += (f.Bounds.Width * scale + 2) * (f.Bounds.Height * scale + 2);
+      }
+
+      layer.NumPixels = sum;
+      if (i != layerCount - 1) {
+        allLayersFrames[i].Next = allLayersFrames[i + 1];
       }
     }
 
@@ -182,8 +199,7 @@ public static class AnimTextureAtlasProcessor {
         foreach (AsepriteFrame frame in frames) {
           foreach (AsepriteCel cel in frame.Cels) {
             if (ReferenceEquals(cel.Layer, layer)) {
-              // ReSharper disable once GrammarMistakeInComment
-              goto AddLayer; // aka "break break;"
+              goto AddLayer; // aka "break; break;"
             }
           }
         }
@@ -217,15 +233,9 @@ public static class AnimTextureAtlasProcessor {
     int scale = upscale ? 2 : 1;
     int frameCount = file.FrameCount;
 
-    var pixelsPerLayer = layerEntries.Length < 256 ? stackalloc int[layerEntries.Length] : new int[layerEntries.Length];
-    GetNumPixelsPerLayer(layerEntries, scale, pixelsPerLayer);
-
-    Span<Rectangle> tempRects = stackalloc Rectangle[frameCount];
     List<Rectangle> sourceRectsList = new(frameCount);
-    List<Rectangle[]> spriteRectsList = new(frameCount);
-
-    List<string> atlasLayers = [];
-    List<AnimUserData[]> atlasCelDatas = [];
+    List<Rectangle[]> spriteRectsList = [];
+    List<LayerEntry> atlasEntries = [];
     List<Dictionary<int, int>> duplicateMaps = [];
     int pixelsThisAtlas = 0;
 
@@ -233,26 +243,36 @@ public static class AnimTextureAtlasProcessor {
 
     Dictionary<string, TextureAtlas> atlasDict = [];
 
-    for (int layerIndex = 0; layerIndex < layerEntries.Length; layerIndex++) {
-      (string name, var frames, var celDatas) = layerEntries[layerIndex];
-      atlasLayers.Add(name);
-      atlasCelDatas.Add(celDatas);
+    foreach (LayerEntry layer in layerEntries) {
+      pixelsThisAtlas += layer.NumPixels;
+
+      // Get relevant atlas info for this layer
+      var layerFrames = layer.Frames;
+      var layerRects = new Rectangle[frameCount];
+      for (int i = 0; i < layerFrames.Length; i++) {
+        Rectangle r = layerFrames[i].Bounds;
+        layerRects[i] = new Rectangle(r.X * scale, r.Y * scale, r.Width * scale, r.Height * scale);
+      }
+
       if (mergeDuplicates) {
-        duplicateMaps.Add(GetDuplicateMap(frames));
+        var duplicateMap = GetDuplicateMap(layerFrames);
+        duplicateMaps.Add(duplicateMap);
+
+        // For atlas size calcs, reduce count by num duplicate pixels
+        foreach (int key in duplicateMap.Keys) {
+          Rectangle rect = layerRects[key];
+          pixelsThisAtlas -= rect.Width * rect.Height;
+        }
       }
 
-      for (int i = 0; i < frames.Length; i++) {
-        Rectangle r = frames[i].Bounds;
-        tempRects[i] = new Rectangle(r.X * scale, r.Y * scale, r.Width * scale, r.Height * scale);
-      }
+      atlasEntries.Add(layer);
+      spriteRectsList.Add(layerRects);
+      sourceRectsList.AddRange(layerRects); // If this is ever changed to list of arrays, use .ToArray()
 
-      sourceRectsList.AddRange(tempRects[..frames.Length]);
-      spriteRectsList.Add(tempRects[..frames.Length].ToArray());
-      pixelsThisAtlas += pixelsPerLayer[layerIndex];
-
-      bool isLastLayer = layerIndex == layerEntries.Length - 1;
-      int nextPixels = isLastLayer ? 0 : pixelsPerLayer[layerIndex + 1];
-      if (!options.NoPack && !isLastLayer && pixelsThisAtlas + nextPixels < MaxPixelsPerAtlas * 0.85f) {
+      // Check if we can fit more into this atlas
+      LayerEntry? nextLayer = layer.Next;
+      int nextPixels = nextLayer?.NumPixels ?? 0;
+      if (!options.NoPack && nextLayer is not null && pixelsThisAtlas + nextPixels < MaxPixelsPerAtlas * 0.85f) {
         // We can still fit more into this atlas. Continue to next layer
         continue;
       }
@@ -262,7 +282,7 @@ public static class AnimTextureAtlasProcessor {
       ushort width = (ushort)(file.CanvasWidth * scale);
       ushort height = (ushort)(file.CanvasWidth * scale);
       var sourceRects = CollectionsMarshal.AsSpan(sourceRectsList);
-      string texName = GetTextureName(assetName, name, atlasDict.Count, options.NoPack);
+      string texName = GetTextureName(assetName, layer.Name, atlasDict.Count, options.NoPack);
       if (!options.NoPack) {
         GetMaxAtlasSize(pixelsThisAtlas, ref width, ref height);
         RectPacker.Pack(sourceRects, modName, texName, ref width, ref height, frameCount, duplicateMaps);
@@ -273,54 +293,28 @@ public static class AnimTextureAtlasProcessor {
       var atlasPixels = atlasPixelArray.AsSpan(0, width * height);
       atlasPixels.Clear();
 
-      int rectIndex = -1;
-      int atlasLayerIndex = -1;
-      foreach (LayerEntry layerEntry in layerEntries.Where(l => atlasLayers.Contains(l.Name))) {
-        atlasLayerIndex++;
-        var duplicateMap = mergeDuplicates ? duplicateMaps[atlasLayerIndex] : null;
-        var atlasLayerFrames = layerEntry.Frames;
+      WriteAtlasPixels(atlasEntries, atlasPixels, sourceRects, duplicateMaps, frameCount, upscale, width);
 
-        for (int i = 0; i < atlasLayerFrames.Length; i++) {
-          rectIndex++;
-          FrameEntry frame = atlasLayerFrames[i];
-
-          Rectangle rect = sourceRects[rectIndex];
-          if (frame.IsEmpty || mergeDuplicates && duplicateMap!.ContainsKey(i) || rect.Width == 0 || rect.Height == 0) {
-            continue;
-          }
-
-          // Write the color data
-          if (upscale) {
-            WriteScaledPixels(atlasPixels, width, frame.CelData, rect);
-          }
-          else {
-            WritePixels(atlasPixels, width, frame.CelData, rect);
-          }
-        }
-      }
-
+      // Output extra PNGs for debug if this asset is from a locally built mod
       RectPacker.SavePng(atlasPixels, modName, texName, width, height);
       if (!options.NoPack) {
         RectPacker.SavePngBounds(atlasPixels, modName, texName, width, height, frameCount, sourceRects);
       }
 
-      const AssetRequestMode mode = AssetRequestMode.AsyncLoad;
-      var textureAsset = AseReader.CreateTexture2DAsset(texName, width, height, atlasPixels, mode);
+      var textureAsset = AseReader.CreateTexture2DAsset(texName, width, height, atlasPixels);
 
-      for (int i = 0; i < atlasLayers.Count; i++) {
-        int start = i * frameCount;
-        Range range = start..(start + frameCount);
+      for (int i = 0; i < atlasEntries.Count; i++) {
+        LayerEntry layerEntry = atlasEntries[i];
         TextureAtlas atlas = new(textureAsset,
-          sourceRects[range].ToArray(),
+          sourceRects.Slice(i * frameCount, frameCount).ToArray(),
           spriteRectsList[i],
-          atlasCelDatas[i]);
-        atlasDict.Add(atlasLayers[i], atlas);
+          layerEntry.CelDatas);
+        atlasDict.Add(layerEntry.Name, atlas);
       }
 
       sourceRectsList.Clear();
       spriteRectsList.Clear();
-      atlasLayers.Clear();
-      atlasCelDatas.Clear();
+      atlasEntries.Clear();
       duplicateMaps.Clear();
       pixelsThisAtlas = 0;
 
@@ -330,15 +324,32 @@ public static class AnimTextureAtlasProcessor {
     return atlasDict;
   }
 
-  private static void GetNumPixelsPerLayer(LayerEntry[] layerEntries, int scale, Span<int> pixelsPerLayer) {
-    for (int i = 0; i < layerEntries.Length; i++) {
-      var frames = layerEntries[i].Frames;
-      int sum = 0;
-      foreach (FrameEntry f in frames) {
-        sum += (f.Bounds.Width * scale + 2) * (f.Bounds.Height * scale + 2);
-      }
+  private static void WriteAtlasPixels(List<LayerEntry> atlasEntries, Span<Rgba32> atlasPixels,
+    ReadOnlySpan<Rectangle> sourceRects, List<Dictionary<int, int>>? duplicateMaps,
+    int frameCount, bool upscale, ushort width) {
+    bool mergeDuplicates = duplicateMaps is not null;
+    for (int i = 0; i < atlasEntries.Count; i++) {
+      var frames = atlasEntries[i].Frames;
+      var duplicateMap = mergeDuplicates ? duplicateMaps![i] : null;
+      var rects = sourceRects.Slice(i * frameCount, frameCount);
 
-      pixelsPerLayer[i] = sum;
+      for (int j = 0; j < frames.Length; j++) {
+        if (frames[j].CelData is not { Length: > 0 } cel) {
+          continue;
+        }
+
+        if (mergeDuplicates && duplicateMap!.ContainsKey(j)) {
+          continue;
+        }
+
+        // Write the color data
+        if (upscale) {
+          WriteScaledPixels(atlasPixels, width, cel, rects[j]);
+        }
+        else {
+          WritePixels(atlasPixels, width, cel, rects[j]);
+        }
+      }
     }
   }
 
@@ -429,7 +440,7 @@ public static class AnimTextureAtlasProcessor {
     }
 
     area = (int)(area * 1.25f);
-    int sqrt = (int)Math.Ceiling(Math.Sqrt(area));
+    int sqrt = (int)MathF.Ceiling(MathF.Sqrt(area));
     sqrt = Math.Max(sqrt, Math.Max(minWidth, minHeight));
 
     // Power of 2
@@ -448,7 +459,10 @@ public static class AnimTextureAtlasProcessor {
     minWidth = minHeight = result;
   }
 
-  internal record LayerEntry(string Name, FrameEntry[] Frames, AnimUserData[] CelDatas);
+  internal record LayerEntry(string Name, FrameEntry[] Frames, AnimUserData[]? CelDatas) {
+    public int NumPixels { get; internal set; }
+    public LayerEntry? Next { get; internal set; }
+  }
 
   internal readonly record struct FrameEntry(int FrameIndex, int LayerIndex, Rgba32[] CelData, Rectangle Bounds) {
     public bool IsEmpty => CelData.Length == 0;

@@ -13,13 +13,13 @@ namespace AnimLib.Animations;
 [PublicAPI]
 public sealed class TextureAtlas : IDisposable {
   internal TextureAtlas(Asset<Texture2D> textureAsset, Rectangle[] sourceRects, Rectangle[] spriteRects,
-    AnimUserData[] celUserData) {
+    AnimUserData[]? celUserData) {
     (TextureAsset, _sourceRects, _spriteRects, _celUserData) = (textureAsset, sourceRects, spriteRects, celUserData);
   }
 
   private readonly Rectangle[] _sourceRects;
   private readonly Rectangle[] _spriteRects;
-  private readonly AnimUserData[] _celUserData;
+  private readonly AnimUserData[]? _celUserData;
 
   public readonly Asset<Texture2D> TextureAsset;
 
@@ -78,7 +78,7 @@ public sealed class TextureAtlas : IDisposable {
   public AnimUserData GetCelUserData(int index) {
     ArgumentOutOfRangeException.ThrowIfNegative(index);
     ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, _sourceRects.Length);
-    return _celUserData[index];
+    return _celUserData?[index] ?? AnimUserData.Empty;
   }
 
   public void Dispose() {
