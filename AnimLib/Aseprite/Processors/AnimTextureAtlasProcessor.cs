@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.Linq;
 using System.Runtime.InteropServices;
 using AnimLib.Animations;
@@ -459,7 +459,6 @@ public static class AnimTextureAtlasProcessor {
 
     public bool IsDuplicate(FrameEntry other) {
       if (IsEmpty != other.IsEmpty ||
-          FrameIndex != other.FrameIndex ||
           LayerIndex != other.LayerIndex ||
           Bounds.Size() != other.Bounds.Size()) {
         // We allow different Bounds.Location to be equal if cel data is identical
