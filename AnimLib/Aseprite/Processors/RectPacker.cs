@@ -13,7 +13,7 @@ namespace AnimLib.Aseprite.Processors;
 /// <para/> This class additionally saves the packed rectangles to a png file for debugging purposes.
 /// </summary>
 internal static class RectPacker {
-  private static readonly string CachePath = Path.Combine(Program.SavePathShared, "AnimLibCache");
+  private static readonly string CachePath = Path.Combine(Program.SavePathShared, "Cache", "AnimLib");
   private static readonly string SavePath = Path.Combine(CachePath, "RectPacking");
 
   public static void Pack(Span<Rectangle> rects, string mod, string name, ref ushort w, ref ushort h, int frameCount,
@@ -80,12 +80,15 @@ internal static class RectPacker {
       }
     }
 
-    Log.Debug($"[{mod}:{name}] " +
-      $"Packed {numUnique} rects " +
-      (numDuplicate > 0 ? $"(and merged {numDuplicate}) " : "") +
-      $"to {bounds.Width}x{bounds.Height}. " +
-      $"Density: {numPixels / (float)bounds.Area:P2}. " +
-      $"Completed in {sw.ElapsedTicks / 10000f:F}ms.");
+    // Only log if asset is from a mod that is actually developing
+    if (CanSaveFile(mod)) {
+      Log.Debug($"[{mod}:{name}] " +
+        $"Packed {numUnique} rects " +
+        (numDuplicate > 0 ? $"(and merged {numDuplicate}) " : "") +
+        $"to {bounds.Width}x{bounds.Height}. " +
+        $"Density: {numPixels / (float)bounds.Area:P2}. " +
+        $"Completed in {sw.ElapsedTicks / 10000f:F}ms.");
+    }
 
     foreach (PackingRectangle pr in packingRects) {
       rects[pr.Id] = pr.LinkedId != -1 ? packingRects[pr.LinkedId] : pr;
@@ -180,7 +183,7 @@ internal static class RectPacker {
     Task.Run(() => PngWriter.SaveTo(path2, w, h, data));
   }
 
-  /// Saves to "name.png"
+  /// Saves to "name (art).png"
   /// Png is the unmodified atlas, as it is used in game.
   internal static void SavePng(ReadOnlySpan<Rgba32> pixels, string mod, string name, ushort w, ushort h) {
     if (!CanSaveFile(mod)) {
@@ -190,7 +193,7 @@ internal static class RectPacker {
     var data = new Rgba32[w * h];
     pixels.CopyTo(data);
 
-    string path = GetPath(name, mod);
+    string path = GetPath($"{name} (art)", mod);
     Task.Run(() => PngWriter.SaveTo(path, w, h, data));
   }
 
