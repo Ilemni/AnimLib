@@ -1,6 +1,7 @@
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using AnimLib.Animations;
 using AnimLib.Aseprite.Processors;
 using AnimLib.Extensions;
@@ -69,29 +70,29 @@ public sealed class AseReader : IAssetReader {
     _processors.Clear();
   }
 
-  public T FromStream<T>(Stream stream) where T : class {
+  public async ValueTask<T> FromStream<T>(Stream stream, MainThreadCreationContext mainThreadCtx) where T : class {
     if (!TryGetProcessor(out IAsepriteProcessor<T>? processor)) {
       throw AssetLoadException.FromInvalidReader<AseReader, T>();
     }
 
     string name = GetEntryName(stream);
     if (stream.CanSeek) {
-      return ProcessStream(stream, processor, name);
+      return await ProcessStream(stream, processor, name, mainThreadCtx);
     }
 
     // AsepriteFileLoader requires the Seek function.
     // We cannot guarantee that the incoming stream supports Seeking (e.g. DeflateStream for large ase files),
     // So we have to create a new Stream that allows it.
     using MemoryStream newStream = new();
-    stream.CopyTo(newStream);
+    await stream.CopyToAsync(newStream);
     newStream.Position = 0;
-    return ProcessStream(newStream, processor, name);
+    return await ProcessStream(newStream, processor, name, mainThreadCtx);
   }
 
-  private static T ProcessStream<T>(Stream stream, IAsepriteProcessor<T> processor, string name) where T : class {
+  private static async ValueTask<T> ProcessStream<T>(Stream stream, IAsepriteProcessor<T> processor, string name, MainThreadCreationContext mainThreadCtx) where T : class {
     AsepriteFile file = AsepriteFileLoader.FromStream(name, stream);
     AnimProcessorOptions options = ProcessorOptionsFromFile(file);
-    return processor.Process(file, options);
+    return await processor.Process(file, options, mainThreadCtx);
   }
 
   /// <summary>
@@ -147,6 +148,8 @@ public sealed class AseReader : IAssetReader {
 
     // We create a stream that represents a "rawimg" file
     // so that an existing reader can create the Asset<Texture2D> for us.
+    // Although we can create the Asset instance directly via reflection, and instantiate a Texture2D on main thread,
+    // this would require all processors whose asset contains an Asset<Texture2D> to use the AseReader's MainThreadCreationContext
     byte[] bufferArray = new byte[12 + pixels.Length * 4];
     var buffer = bufferArray.AsSpan();
     BitConverter.TryWriteBytes(buffer, 1); // ImageIO.VERSION

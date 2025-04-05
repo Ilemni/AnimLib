@@ -1,7 +1,10 @@
 ﻿using System.Buffers;
+using System.Diagnostics;
+using System.Threading.Tasks;
 using AsepriteDotNet.Aseprite;
 using AsepriteDotNet.Common;
 using AsepriteDotNet.Processors;
+using ReLogic.Utilities;
 using Texture = AsepriteDotNet.Texture;
 
 namespace AnimLib.Aseprite.Processors;
@@ -10,7 +13,12 @@ namespace AnimLib.Aseprite.Processors;
 /// Basic processor to process an <see cref="AsepriteFile"/> into a <see cref="Texture2D"/>.
 /// </summary>
 public sealed class TextureProcessor : IAsepriteProcessor<Texture2D> {
-  public Texture2D Process(AsepriteFile file, AnimProcessorOptions options) {
+  [field: AllowNull, MaybeNull]
+  private GraphicsDevice GraphicsDevice =>
+    field ??= Main.instance.Services.Get<IGraphicsDeviceService>().GraphicsDevice;
+
+  public async ValueTask<Texture2D> Process(AsepriteFile file, AnimProcessorOptions options,
+    MainThreadCreationContext mainThreadCtx) {
     // AsepriteDotNet processor
     AsepriteDotNet.TextureAtlas atlas = TextureAtlasProcessor.Process(file,
       options.OnlyVisibleLayers,
@@ -19,20 +27,26 @@ public sealed class TextureProcessor : IAsepriteProcessor<Texture2D> {
       options.MergeDuplicateFrames);
 
     Texture texture = atlas.Texture;
-    int width = texture.Size.Width;
-    int height = texture.Size.Height;
-    if (!options.Upscale) {
-      return AseReader.CreateTexture2DAsset(texture.Name, width, height, texture.Pixels).Value;
-    }
-
-    width *= 2;
-    height *= 2;
+    int scale = options.Upscale ? 2 : 1;
+    int width = texture.Size.Width * scale;
+    int height = texture.Size.Height * scale;
     var array = ArrayPool<Rgba32>.Shared.Rent(width * height);
-    try {
-      var upscaledPixels = array.AsSpan(0, width * height);
-      WriteScaledPixels(texture.Pixels, upscaledPixels, width);
+    var pixels = array.AsSpan(0, width * height);
 
-      return AseReader.CreateTexture2DAsset(texture.Name, width, height, upscaledPixels).Value;
+    try {
+      if (options.Upscale) {
+        WriteScaledPixels(texture.Pixels, pixels, width);
+      }
+      else {
+        texture.Pixels.CopyTo(pixels);
+      }
+
+      await mainThreadCtx;
+      Debug.Assert(mainThreadCtx.IsCompleted);
+
+      Texture2D tex = new(GraphicsDevice, width, height);
+      tex.SetData(array);
+      return tex;
     }
     finally {
       ArrayPool<Rgba32>.Shared.Return(array, true);
