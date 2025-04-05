@@ -134,13 +134,11 @@ public sealed class AseReader : IAssetReader {
   /// <param name="width">Width of the texture.</param>
   /// <param name="height">Height of the texture.</param>
   /// <param name="pixels">AsepriteDotNet pixels which represent color data for the texture.</param>
-  /// <param name="mode">The mode to request the asset in.</param>
   /// <remarks>
   /// From the <paramref name="pixels"/>, this method creates a stream that represents a "rawimg" so that
   /// <see cref="Terraria.ModLoader.Assets.RawImgReader"/> can create an asset with the <see cref="Texture2D"/> for us.
   /// </remarks>
-  internal static Asset<Texture2D> CreateTexture2DAsset(string name, int width, int height, ReadOnlySpan<Rgba32> pixels,
-    AssetRequestMode mode = AssetRequestMode.ImmediateLoad) {
+  internal static Asset<Texture2D> CreateTexture2DAsset(string name, int width, int height, ReadOnlySpan<Rgba32> pixels) {
     // We default this to ImmediateLoad, since this asset is being created as part of another asset currently loading.
     if (pixels.Length != width * height) {
       throw new ArgumentException("Pixel span length does not match the specified size", nameof(pixels));
@@ -161,7 +159,7 @@ public sealed class AseReader : IAssetReader {
     // Closed in ImageIO.ReadRaw()
     MemoryStream stream = new(bufferArray);
     string filename = name + ".rawimg";
-    return AnimLibMod.Instance.Assets.CreateUntracked<Texture2D>(stream, filename, mode);
+    return AnimLibMod.Instance.Assets.CreateUntracked<Texture2D>(stream, filename, AssetRequestMode.AsyncLoad);
   }
 
   // Reflection to get the filename from the stream
