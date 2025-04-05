@@ -416,18 +416,19 @@ public sealed class UICharacterCreationAnimCharacterSystem : ModSystem {
       return;
     }
 
+    AnimCharacterStyle.UISettings? uiSettings = character.Style.UiSettings ??= character.GetStyleUISettings();
 
-    if (character.Style.UiSettings is { } style) {
-      AddOrRemoveCategory(style.HideHairStyleOption, CategoryId.HairStyle, style.HairStyleIcon);
-      AddOrRemoveCategory(style.HideHairColorOption, CategoryId.HairColor, style.HairColorIcon);
-      AddOrRemoveCategory(style.HideSkinColorOption, CategoryId.Skin, style.SkinColorIcon);
-      AddOrRemoveCategory(style.HideEyeColorOption, CategoryId.Eye, style.EyeColorIcon);
-      AddOrRemoveCategory(style.HideShirtColorOption, CategoryId.Shirt, style.ShirtColorIcon);
-      AddOrRemoveCategory(style.HideUnderShirtColorOption, CategoryId.Undershirt, style.UnderShirtColorIcon);
-      AddOrRemoveCategory(style.HidePantsColorOption, CategoryId.Pants, style.PantsColorIcon);
-      AddOrRemoveCategory(style.HideShoeColorOption, CategoryId.Shoes, style.ShoeColorIcon);
+    if (uiSettings is not null) {
+      AddOrRemoveCategory(uiSettings.HideHairStyleOption, CategoryId.HairStyle, uiSettings.HairStyleIcon);
+      AddOrRemoveCategory(uiSettings.HideHairColorOption, CategoryId.HairColor, uiSettings.HairColorIcon);
+      AddOrRemoveCategory(uiSettings.HideSkinColorOption, CategoryId.Skin, uiSettings.SkinColorIcon);
+      AddOrRemoveCategory(uiSettings.HideEyeColorOption, CategoryId.Eye, uiSettings.EyeColorIcon);
+      AddOrRemoveCategory(uiSettings.HideShirtColorOption, CategoryId.Shirt, uiSettings.ShirtColorIcon);
+      AddOrRemoveCategory(uiSettings.HideUnderShirtColorOption, CategoryId.Undershirt, uiSettings.UnderShirtColorIcon);
+      AddOrRemoveCategory(uiSettings.HidePantsColorOption, CategoryId.Pants, uiSettings.PantsColorIcon);
+      AddOrRemoveCategory(uiSettings.HideShoeColorOption, CategoryId.Shoes, uiSettings.ShoeColorIcon);
 
-      style.InvokeCategoriesBarChanged(categoryButtons, _categoryContainer);
+      uiSettings.InvokeCategoriesBarChanged(categoryButtons, _categoryContainer);
     }
 
     _vanillaHairStylesListElement.Remove();

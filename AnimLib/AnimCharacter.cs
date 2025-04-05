@@ -87,6 +87,8 @@ public abstract partial class AnimCharacter : State {
 
   public abstract AnimCharacterStyle GetDefaultStyle();
 
+  public virtual AnimCharacterStyle.UISettings? GetStyleUISettings() => null;
+
   public override T GetAnimation<T>() => Skins.GetAnimation<T>();
 
   internal void UpdateAnimations(float delta) {
