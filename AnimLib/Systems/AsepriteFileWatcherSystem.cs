@@ -81,10 +81,11 @@ public sealed class AsepriteFileWatcherSystem : ModSystem {
     AseReader reader = AnimLibMod.Instance.AseReader;
 
     foreach ((string fullPath, (Mod mod, var asset)) in _changedAssets) {
-      Task.Run(async () => {
         try {
-          await using FileStream stream = new(fullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-          AnimSpriteSheet result = await reader.FromStream<AnimSpriteSheet>(stream, default);
+          AnimSpriteSheet result = Task.Run(async () => {
+            await using FileStream stream = new(fullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            return await reader.FromStream<AnimSpriteSheet>(stream, default);
+          }).GetAwaiter().GetResult();
           SubmitLoadedContent(asset, result, null!);
           Main.NewText($"Spritesheet updated from ModSources folder: {mod.Name}:{asset.Name}");
         }
@@ -92,7 +93,6 @@ public sealed class AsepriteFileWatcherSystem : ModSystem {
           Main.NewText($"Spritesheet failed to update from ModSources folder: {mod.Name}:{asset.Name}");
           Main.NewText(e.Message);
         }
-      });
     }
 
     _changedAssets.Clear();

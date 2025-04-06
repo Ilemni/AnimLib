@@ -89,7 +89,8 @@ public sealed class AseReader : IAssetReader {
     return await ProcessStream(newStream, processor, name, mainThreadCtx);
   }
 
-  private static async ValueTask<T> ProcessStream<T>(Stream stream, IAsepriteProcessor<T> processor, string name, MainThreadCreationContext mainThreadCtx) where T : class {
+  private static async ValueTask<T> ProcessStream<T>(Stream stream, IAsepriteProcessor<T> processor, string name,
+    MainThreadCreationContext mainThreadCtx) where T : class {
     AsepriteFile file = AsepriteFileLoader.FromStream(name, stream);
     AnimProcessorOptions options = ProcessorOptionsFromFile(file);
     return await processor.Process(file, options, mainThreadCtx);
@@ -159,7 +160,18 @@ public sealed class AseReader : IAssetReader {
     // Closed in ImageIO.ReadRaw()
     MemoryStream stream = new(bufferArray);
     string filename = name + ".rawimg";
-    return AnimLibMod.Instance.Assets.CreateUntracked<Texture2D>(stream, filename, AssetRequestMode.AsyncLoad);
+    var asset = AnimLibMod.Instance.Assets.CreateUntracked<Texture2D>(stream, filename, AssetRequestMode.AsyncLoad);
+
+    // Attempting to use ImmediateLoad above seems to cause deadlock.
+    // However, the asset may not actually get loaded until a mod tries to load it directly.
+    // We'd rather not have a mod that ImmediateLoads an ase asset to also have to Wait() on its texture assets.
+    Main.QueueMainThreadAction(() => {
+      if (!asset.IsLoaded) {
+        asset.Wait();
+      }
+    });
+
+    return asset;
   }
 
   // Reflection to get the filename from the stream
@@ -188,7 +200,7 @@ public sealed class AseReader : IAssetReader {
     }
 
     return stream switch {
-      FileStream fileStream => NameFromFileStream(fileStream.Name.Replace('\\', '/')),
+      FileStream fileStream => NameFromFileStream(fileStream.Name),
       DeflateStream deflateStream => TryNameFromEntryReadStream(GetInnerStream(deflateStream), out name) ? name : "",
       _ => ""
     };
@@ -221,7 +233,7 @@ public sealed class AseReader : IAssetReader {
 
     int pathLen = mod.SourceFolder.Length + 1;
 
-    string path = fullPath[pathLen..];
-    return mod.Name + ':' + path[..path.LastIndexOf('.')];
+    string path = fullPath[pathLen..fullPath.LastIndexOf('.')];
+    return mod.Name + ':' + path;
   }
 }
