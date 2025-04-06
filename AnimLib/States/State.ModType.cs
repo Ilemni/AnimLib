@@ -33,6 +33,9 @@ public abstract partial class State : ModType<Player, State>, IIndexed {
     ModTypeLookup<State>.Register(this);
     if (this is AnimCharacter character) {
       ModTypeLookup<AnimCharacter>.Register(character);
+      character.StyleUISettings = !Main.dedServ
+        ? character.GetStyleUISettings() ?? AnimCharacterStyleUISettings.Default
+        : AnimCharacterStyleUISettings.Default;
     }
 
     StateLoader.Add(this);

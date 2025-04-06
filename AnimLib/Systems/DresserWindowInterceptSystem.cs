@@ -20,7 +20,8 @@ public sealed class DresserWindowInterceptSystem : ModSystem {
   private static void OnDrawClothesWindow(On_Main.orig_DrawClothesWindow orig, Main self) {
     AnimCharacterCollection dummyCollection = Main.dresserInterfaceDummy.GetState<AnimCharacterCollection>();
     AnimCharacterCollection localCollection = Main.LocalPlayer.GetState<AnimCharacterCollection>();
-    if (localCollection.ActiveCharacter is null) {
+    AnimCharacter? localCharacter = localCollection.ActiveCharacter;
+    if (localCharacter is null) {
       dummyCollection.ActiveCharacter?.Disable();
 
       // Enabling or disabling characters normally closes the window
@@ -30,8 +31,8 @@ public sealed class DresserWindowInterceptSystem : ModSystem {
       return;
     }
 
-    dummyCollection.Enable(dummyCollection.GetState(localCollection.ActiveCharacter));
-    foreach (EquippedSkinSlot slot in localCollection.ActiveCharacter.Skins.Slots) {
+    dummyCollection.Enable(dummyCollection.GetState(localCharacter));
+    foreach (EquippedSkinSlot slot in localCharacter.Skins.Slots) {
       dummyCollection.ActiveCharacter!.Skins.SetSkin(slot.Slot, slot.Skin);
     }
 
@@ -56,8 +57,8 @@ public sealed class DresserWindowInterceptSystem : ModSystem {
     // Draw our textures
 
     Player p = Main.LocalPlayer;
-    AnimCharacterStyle.UISettings? s = localCollection.ActiveCharacter.Style.UiSettings;
-    if (s is null) {
+    AnimCharacterStyleUISettings s = localCharacter.StyleUISettings;
+    if (s.IsDefault) {
       return;
     }
 

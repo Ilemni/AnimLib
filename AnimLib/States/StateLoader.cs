@@ -77,9 +77,10 @@ public sealed class StateLoader : ModSystem {
         state.Parent = states[parentId];
       }
 
-      // Assign State.Character to self
+      // Assign State.Character to self, StyleUISettings from template
       if (state is AnimCharacter animCharacter) {
         animCharacter.Character = animCharacter;
+        animCharacter.StyleUISettings = ((AnimCharacter)templateStates[state.Index]).StyleUISettings;
         continue;
       }
 

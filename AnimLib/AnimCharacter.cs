@@ -38,6 +38,8 @@ public abstract partial class AnimCharacter : State {
   /// </summary>
   public readonly AnimCharacterStyle Style;
 
+  public AnimCharacterStyleUISettings StyleUISettings { get; internal set; } = null!; // StateLoader.NewInstance()
+
   /// <summary>
   /// Used to prevent extra saving of default style values.
   /// </summary>
@@ -87,7 +89,7 @@ public abstract partial class AnimCharacter : State {
 
   public abstract AnimCharacterStyle GetDefaultStyle();
 
-  public virtual AnimCharacterStyle.UISettings? GetStyleUISettings() => null;
+  public virtual AnimCharacterStyleUISettings? GetStyleUISettings() => null;
 
   public override T GetAnimation<T>() => Skins.GetAnimation<T>();
 

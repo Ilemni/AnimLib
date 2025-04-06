@@ -416,9 +416,9 @@ public sealed class UICharacterCreationAnimCharacterSystem : ModSystem {
       return;
     }
 
-    AnimCharacterStyle.UISettings? uiSettings = character.Style.UiSettings ??= character.GetStyleUISettings();
+    AnimCharacterStyleUISettings uiSettings = character.StyleUISettings;
 
-    if (uiSettings is not null) {
+    if (!uiSettings.IsDefault) {
       AddOrRemoveCategory(uiSettings.HideHairStyleOption, CategoryId.HairStyle, uiSettings.HairStyleIcon);
       AddOrRemoveCategory(uiSettings.HideHairColorOption, CategoryId.HairColor, uiSettings.HairColorIcon);
       AddOrRemoveCategory(uiSettings.HideSkinColorOption, CategoryId.Skin, uiSettings.SkinColorIcon);
