@@ -367,7 +367,7 @@ public abstract partial class State {
   /// </code>
   /// More complex animations may modify the various properties of <see cref="AnimationOptions"/>.
   /// <para/> For supporting multiple <see cref="AnimSpriteSheet"/>s, where some tags might be missing,
-  /// calls to <see cref="AnimSpriteSheet.HasTag"/> should be used.
+  /// calls to <see cref="SkinAnimation.HasTag"/> should be used.
   /// <code>
   /// protected override AnimationOptions? GetAnimationOptions() {
   ///   var sheet = GetAnimation&lt;MyAnimation&gt;().SpriteSheet;

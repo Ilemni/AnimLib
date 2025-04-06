@@ -185,6 +185,8 @@ public abstract class SkinAnimation : IIndexed {
 
   public Vector2 GetPoint(string layer) => SpriteSheet.GetPoint(layer, CurrentFrame.AtlasFrameIndex);
 
+  public bool HasTag(string tagName) => SpriteSheet.HasTag(tagName);
+
   public void UIAnimation(AnimationOptions options, int counter) {
     options.FrameIndex ??= SpriteSheet.FrameFromTimer(options, counter / 60f);
     UpdateAnimationInternal(options);
@@ -349,7 +351,7 @@ public abstract class SkinAnimation : IIndexed {
     FrameChangedThisTick = false;
   }
 
-  public void OnSkinChanged(Skin newSkin) {
+  internal void OnSkinChanged(Skin newSkin) {
     AnimSpriteSheet newSpriteSheet = newSkin.SpriteSheet;
     AnimTag tag = newSpriteSheet.TryGetTag(_currentTagName, out AnimTag? newTag)
       ? newTag
