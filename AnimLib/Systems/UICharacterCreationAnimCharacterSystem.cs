@@ -98,10 +98,10 @@ public sealed class UICharacterCreationAnimCharacterSystem : ModSystem {
   private Player _player = null!;
   private AnimCharacterCollection _characters = null!;
   private UIElement _characterSelectContainer = null!;
-  private UIElement _skinSelectContainer = null!;
+  private UIElement? _skinSelectContainer;
   private UIElement _categoryContainer = null!;
   private UIElement _vanillaHairStylesListElement = null!;
-  private SkinSlotSelectMenu _skinSlotSelectMenu = null!;
+  private SkinSlotSelectMenu? _skinSlotSelectMenu;
 
   private ColoredButtonTextures? _vanillaCharInfo;
   private ColoredButtonTextures? _vanillaClothing;
@@ -178,8 +178,8 @@ public sealed class UICharacterCreationAnimCharacterSystem : ModSystem {
       AnimUiInfo uiInfo = _characters.UiInfo;
       using AnimUiInfo.StoredInfo _ = uiInfo.Store();
       uiInfo.IsDrawingInUI = true;
-      uiInfo.CurrentSlot = _skinSlotSelectMenu.CurrentSlot;
-      uiInfo.SlotCounter = _skinSlotSelectMenu.SlotCounter;
+      uiInfo.CurrentSlot = _skinSlotSelectMenu?.CurrentSlot;
+      uiInfo.SlotCounter = _skinSlotSelectMenu?.SlotCounter ?? 0;
       orig.Invoke(self, spriteBatch);
     };
   }
@@ -245,7 +245,7 @@ public sealed class UICharacterCreationAnimCharacterSystem : ModSystem {
     AddCategoryButton(2, 10, "AnimLib/AnimLib/UI/CategorySelect", _characterSelectContainer);
     // TODO: Make this SkinSelect texture path
     if (SkinLoader.HasSelectableSkins) {
-      AddCategoryButton(3, 11, "AnimLib/AnimLib/UI/CategorySelect", _skinSelectContainer);
+      AddCategoryButton(3, 11, "AnimLib/AnimLib/UI/CategorySelect", _skinSelectContainer!);
     }
   }
 
@@ -508,7 +508,7 @@ public sealed class UICharacterCreationAnimCharacterSystem : ModSystem {
     }
 
     _characterSelectContainer.Remove();
-    _skinSelectContainer.Remove();
+    _skinSelectContainer?.Remove();
   }
 
   /// Repositions the category buttons after initial modifications by this system
