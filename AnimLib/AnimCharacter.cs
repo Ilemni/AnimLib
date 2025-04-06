@@ -107,17 +107,12 @@ public abstract partial class AnimCharacter : State {
       }
       catch (MissingTagException ex) {
         string animName = anim.GetType().Name;
-        Log.Error($"[{Name}.UpdateAnimations] -> [{animName}]: Missing tag \"{ex.Tag}\".", ex);
-        Main.NewText(
-          $"{Name} -> {animName}: Missing tag \"{ex.Tag}\".\nSee client.log for more information.",
-          Color.Red);
+        Main.NewText($"{Name} -> {animName}: Missing tag \"{ex.Tag}\"", Color.Red);
       }
       catch (Exception ex) {
         string animName = anim.GetType().Name;
-        Log.Error($"[{Name}.UpdateAnimations] -> [{animName}]: Caught exception.", ex);
-        Main.NewText(
-          $"{Mod.Name}:{Name}:{animName}: Caught exception.\nSee client.log for more information.",
-          Color.Red);
+        Log.Error($"[{Name}.UpdateAnimations] -> {animName}]: Caught exception.", ex);
+        Main.NewText($"{Mod.Name}:{Name}:{animName}: Caught exception.", Color.Red);
       }
     }
   }
@@ -134,9 +129,7 @@ public abstract partial class AnimCharacter : State {
       catch (Exception ex) {
         string animName = anim.GetType().Name;
         Log.Error($"[{Name}.UpdateUIAnimation] -> [{animName}]: Caught exception.", ex);
-        Main.NewText(
-          $"{Mod.Name}:{Name}:{animName}: Caught exception.\nSee client.log for more information.",
-          Color.Red);
+        Main.NewText($"{Mod.Name}:{Name}:{animName}: Caught exception.\nSee client.log for more information.", Color.Red);
       }
     }
   }

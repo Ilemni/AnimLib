@@ -99,6 +99,7 @@ public abstract class Skin : ModType, ILocalizedModType, IIndexed, IComparable<S
 /// Type of <see cref="AnimCharacter"/> this slot is associated with.
 /// Used to override <see cref="TemplateCharacter"/>.
 /// </typeparam>
+[UsedImplicitly(ImplicitUseTargetFlags.WithInheritors)]
 public abstract class Skin<T> : Skin where T : AnimCharacter {
   [field: AllowNull, MaybeNull]
   protected internal override T TemplateCharacter => field ??= ModContent.GetInstance<T>();
