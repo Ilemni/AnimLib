@@ -67,12 +67,21 @@ public abstract class SkinAnimation : IIndexed {
   /// <summary>
   /// Current time of the <see cref="AnimFrame"/> being played, in seconds.
   /// </summary>
-  public float FrameTime { get; private set; }
+  public float FrameTime => CurrentFrame.Duration - FrameTimeRemaining;
+
+  /// <summary>
+  /// Remaining time of the current <see cref="AnimFrame"/> being played, in seconds.
+  /// </summary>
+  public float FrameTimeRemaining { get; private set; }
+
+  public int LoopCount { get; private set; }
 
   /// <summary>
   /// The amount of times which this Animation has looped.
   /// </summary>
-  public int TimesLooped { get; private set; }
+  public int TimesLooped => LoopCount - LoopsRemaining;
+
+  public int LoopsRemaining { get; private set; }
 
   /// <summary>
   /// Current rotation the sprite is set to.
@@ -83,6 +92,14 @@ public abstract class SkinAnimation : IIndexed {
   /// Whether the animation is currently being played in reverse.
   /// </summary>
   public bool Reversed { get; private set; }
+
+  public bool IsPingPong { get; private set; }
+
+  public int Direction => Reversed ? -1 : 1;
+
+  public int StartFrame => Reversed ? CurrentTag.Frames.Length - 1 : 0;
+
+  public int LastFrame => Reversed ? 0 : CurrentTag.Frames.Length - 1;
 
   /// <summary>
   /// <see cref="SpriteEffects"/> that will determine the flip directions of the sprite.
@@ -247,10 +264,9 @@ public abstract class SkinAnimation : IIndexed {
     ArgumentNullException.ThrowIfNull(tagName);
     AnimTag tag = SpriteSheet.GetTag(tagName);
 
-    if (options.FrameIndex.HasValue) {
-      int index = options.FrameIndex.Value;
-      ArgumentOutOfRangeException.ThrowIfNegative(index);
-      ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, tag.Frames.Length);
+    if (options.FrameIndex is { } frameIndex) {
+      ArgumentOutOfRangeException.ThrowIfNegative(frameIndex);
+      ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(frameIndex, tag.Frames.Length);
     }
 
     ArgumentOutOfRangeException.ThrowIfNegative(options.Speed);
@@ -267,12 +283,15 @@ public abstract class SkinAnimation : IIndexed {
 
     if (options.FrameIndex.HasValue) {
       FrameIndex = options.FrameIndex.Value;
-      FrameTime = 0;
+      FrameTimeRemaining = CurrentFrame.Duration;
       return;
     }
 
-    // Loop logic
-    Play(options, delta);
+    FrameTimeRemaining -= delta * options.Speed;
+    if (FrameTimeRemaining <= 0) {
+      // We have to increment by at least one frame
+      Play();
+    }
   }
 
   /// <summary>
@@ -283,66 +302,47 @@ public abstract class SkinAnimation : IIndexed {
   /// <see cref="AnimationOptions.IsPingPong">AnimationOptions.IsPingPong</see> or
   /// <see cref="AnimTag.IsPingPong">AnimTag.IsPingPong</see> is <see langword="true"/>.
   /// </summary>
-  /// <param name="options"></param>
-  /// <param name="delta"></param>
-  private void Play(AnimationOptions options, float delta) {
-    float duration = CurrentFrame.Duration;
-    float newFrameTime = FrameTime + options.Speed * delta;
+  private void Play() {
+    while (FrameTimeRemaining <= 0) {
+      FrameIndex += Direction;
 
-    // Do nothing if not enough time has passed to advance to the next frame
-    if (newFrameTime < duration || duration <= 0) {
-      FrameTime = newFrameTime;
-      return;
-    }
-
-    AnimTag currentTag = CurrentTag;
-    var frames = currentTag.Frames;
-    int loopCount = options.LoopCount ?? currentTag.LoopCount;
-    bool isReversed = options.IsReversed ?? currentTag.IsReversed;
-    bool isPingPong = options.IsPingPong ?? currentTag.IsPingPong;
-
-    int lastFrameIndex = Reversed ? 0 : frames.Length - 1;
-
-    int newFrameIndex = FrameIndex;
-    while (newFrameTime >= duration) {
       // Determine next frame
-      bool endOfFrame = newFrameIndex == lastFrameIndex;
-      if (endOfFrame) {
-        if (loopCount > 0 && TimesLooped + 1 >= loopCount || frames.Length == 1) {
+      if (FrameIndex < 0 || FrameIndex >= LastFrame) {
+        if (LoopCount > 0 && LoopsRemaining == 1) {
           // Do not change frame
+          FrameIndex -= Direction;
           break;
         }
 
-        TimesLooped++;
+        LoopsRemaining = Math.Max(0, LoopsRemaining - 1);
 
-        // Ping-pong: flip state, otherwise set to argument or default state
-        Reversed = isPingPong ? !Reversed : isReversed;
-        newFrameIndex = Reversed ? frames.Length - 1 : 0;
-        if (isPingPong) {
-          // Skip first ping-pong frame, as it's same as last frame
-          newFrameIndex += Reversed ? -1 : 1;
+        // Ping-pong: flip state
+        if (IsPingPong) {
+          Reversed ^= true;
         }
 
-        lastFrameIndex = Reversed ? 0 : frames.Length - 1;
-      }
-      else {
-        newFrameIndex += !Reversed ? 1 : -1;
+        FrameIndex = StartFrame;
+        if (IsPingPong) {
+          // Skip first ping-pong frame, as it's same as previous frame
+          FrameIndex += Direction;
+        }
       }
 
-      newFrameTime -= duration;
-      duration = currentTag.Frames[newFrameIndex].Duration;
+      FrameTimeRemaining += CurrentFrame.Duration;
     }
-
-    FrameIndex = newFrameIndex;
-    FrameTime = newFrameTime;
   }
 
-  private void SetTag(AnimTag tag, bool? isReversed = null) {
-    CurrentTag = tag;
-    FrameTime = 0;
+  private void SetTag(AnimTag tag, bool? isReversed = null, bool? isPingPong = null) {
     Reversed = isReversed ?? tag.IsReversed;
-    FrameIndex = Reversed ? tag.Frames.Length - 1 : 0;
-    TimesLooped = 0;
+    IsPingPong = isPingPong ?? tag.IsPingPong;
+
+    // Order is important here, each prop depends on the previous one
+    CurrentTag = tag;
+    FrameIndex = StartFrame;
+    FrameTimeRemaining = CurrentFrame.Duration;
+
+    LoopCount = tag.LoopCount;
+    LoopsRemaining = tag.LoopCount;
   }
 
   internal void PreUpdateInternal() {
