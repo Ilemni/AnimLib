@@ -1,4 +1,3 @@
-﻿using System.Linq;
 using AnimLib.Animations;
 using AnimLib.Skins;
 using Terraria.DataStructures;
@@ -33,8 +32,7 @@ public abstract class SkinAnimation : IIndexed {
         return tag;
       }
 
-      // TODO: make default tag configurable?
-      tag = SpriteSheet.TagDictionary.Values.First();
+      tag = SpriteSheet.DefaultTag;
       _currentTagName = tag.Name;
       return tag;
     }
@@ -353,10 +351,7 @@ public abstract class SkinAnimation : IIndexed {
 
   internal void OnSkinChanged(Skin newSkin) {
     AnimSpriteSheet newSpriteSheet = newSkin.SpriteSheet;
-    AnimTag tag = newSpriteSheet.TryGetTag(_currentTagName, out AnimTag? newTag)
-      ? newTag
-      // TODO: make default tag configurable?
-      : newSpriteSheet.TagDictionary.Values.First();
+    AnimTag tag = newSpriteSheet.TryGetTag(_currentTagName, out AnimTag? newTag) ? newTag : newSpriteSheet.DefaultTag;
     SetTag(tag);
   }
 }

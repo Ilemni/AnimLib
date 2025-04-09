@@ -40,6 +40,9 @@ public sealed class AnimSpriteSheet : IDisposable {
     if (Pivot.Y != 0) {
       Pivot.Y *= -1; // we want positive values in userdata to move the pivot upwards
     }
+
+    // TODO: make default tag configurable?
+    DefaultTag = tags[0];
   }
 
   /// <summary>
@@ -113,6 +116,8 @@ public sealed class AnimSpriteSheet : IDisposable {
   /// <br/> The Y value defaults to 1, the bottom of the sprite.
   /// </summary>
   public readonly Vector2 Align;
+
+  public readonly AnimTag DefaultTag;
 
   internal bool HasSetFallbacks { get; private set; }
 
